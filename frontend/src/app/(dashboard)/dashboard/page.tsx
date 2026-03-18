@@ -12,8 +12,9 @@ import { RootState } from '@/lib/store';
 import {
   CheckCircle2, Circle, ArrowRight, TrendingUp, Target,
   DollarSign, Megaphone, Plus, BarChart2, AlertTriangle,
-  Sparkles,
+  Sparkles, type LucideIcon,
 } from 'lucide-react';
+import type { AnalyticsOverview, TopCampaign, CampaignsListResponse, OnboardingStatus, PlatformStat } from '@/types';
 
 const PLATFORM_COLORS: Record<string, string> = {
   meta:       '#6C5CE7',
@@ -33,7 +34,7 @@ const STATUS_STYLES: Record<string, string> = {
 
 function KpiCard({ title, value, sub, icon: Icon, accent }: {
   title: string; value: string; sub?: string;
-  icon: any; accent: string;
+  icon: LucideIcon; accent: string;
 }) {
   return (
     <div className="bg-white rounded-2xl p-5 card-shadow flex flex-col gap-4">
@@ -51,13 +52,13 @@ function KpiCard({ title, value, sub, icon: Icon, accent }: {
   );
 }
 
-function OnboardingChecklist({ onboarding }: { onboarding: any }) {
+function OnboardingChecklist({ onboarding }: { onboarding: OnboardingStatus | undefined }) {
   if (!onboarding) return null;
-  const steps = [
-    { key: 'workspace_created',    label: 'Workspace set up',         href: null },
-    { key: 'taxonomies_configured', label: 'Configure taxonomies',     href: '/taxonomies' },
-    { key: 'platforms_configured',  label: 'Set platform templates',   href: '/settings/platforms' },
-    { key: 'first_campaign_created',label: 'Launch your first campaign', href: '/campaigns/create' },
+  const steps: { key: keyof OnboardingStatus; label: string; href: string | null }[] = [
+    { key: 'workspace_created',     label: 'Workspace set up',            href: null },
+    { key: 'taxonomies_configured', label: 'Configure taxonomies',        href: '/taxonomies' },
+    { key: 'platforms_configured',  label: 'Set platform templates',      href: '/settings/platforms' },
+    { key: 'first_campaign_created',label: 'Launch your first campaign',  href: '/campaigns/create' },
   ];
   const done = steps.filter((s) => onboarding[s.key]).length;
   const total = steps.length;
@@ -111,26 +112,26 @@ export default function DashboardPage() {
   const { user } = useSelector((state: RootState) => state.auth);
   const firstName = user?.name?.split(' ')[0] || 'there';
 
-  const { data: overview, isLoading } = useQuery({
+  const { data: overview, isLoading } = useQuery<AnalyticsOverview>({
     queryKey: ['analytics', 'overview'],
     queryFn: async () => {
-      const { data } = await apiClient.get('/analytics/overview');
+      const { data } = await apiClient.get<AnalyticsOverview>('/analytics/overview');
       return data;
     },
   });
 
-  const { data: campaigns } = useQuery({
+  const { data: campaigns } = useQuery<CampaignsListResponse>({
     queryKey: ['campaigns', { limit: 5 }],
     queryFn: async () => {
-      const { data } = await apiClient.get('/campaigns?limit=5&sort_by=created_at&sort_order=desc');
+      const { data } = await apiClient.get<CampaignsListResponse>('/campaigns?limit=5&sort_by=created_at&sort_order=desc');
       return data;
     },
   });
 
-  const { data: topCampaigns } = useQuery({
+  const { data: topCampaigns } = useQuery<TopCampaign[]>({
     queryKey: ['analytics', 'top-campaigns'],
     queryFn: async () => {
-      const { data } = await apiClient.get('/analytics/top-campaigns?limit=5');
+      const { data } = await apiClient.get<TopCampaign[]>('/analytics/top-campaigns?limit=5');
       return data;
     },
   });
@@ -146,7 +147,7 @@ export default function DashboardPage() {
     );
   }
 
-  const platformData = (overview?.platforms || []).map((p: any) => ({
+  const platformData = (overview?.platforms ?? []).map((p: PlatformStat) => ({
     name: p.platform.replace('_', ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
     campaigns: Number(p.count),
     platform: p.platform,
@@ -279,7 +280,7 @@ export default function DashboardPage() {
             </Link>
           </div>
           <div className="space-y-1">
-            {topCampaigns?.length > 0 ? (
+            {Array.isArray(topCampaigns) && topCampaigns?.length > 0 ? (
               topCampaigns.slice(0, 5).map((c: any, i: number) => (
                 <Link key={c.id} href={`/campaigns/${c.id}`}
                   className="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-[#F8F7FF] transition-colors group">
@@ -334,7 +335,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {campaigns?.campaigns?.length > 0 ? (
+        {Array.isArray(campaigns) && campaigns?.campaigns?.length > 0 ? (
           <table className="w-full">
             <thead>
               <tr className="bg-[#F8F7FF]">

@@ -4,9 +4,10 @@ import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import Link from 'next/link';
-import { Plus, Download, Search, MoreHorizontal, Copy, Eye, Trash2, Play, Pause, ChevronUp, ChevronDown } from 'lucide-react';
+import { Plus, Search, MoreHorizontal, Copy, Eye, Trash2, Play, Pause, ChevronUp, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { useDebounce } from '@/lib/hooks/useDebounce';
+import type { Campaign, CampaignsListResponse } from '@/types';
 
 const PLATFORM_COLORS: Record<string, string> = {
   meta: 'bg-blue-100 text-blue-700',
@@ -16,7 +17,14 @@ const PLATFORM_COLORS: Record<string, string> = {
   linkedin: 'bg-indigo-100 text-indigo-700',
 };
 
-function SortButton({ column, current, order, onClick }: any) {
+interface SortButtonProps {
+  column: string;
+  current: string;
+  order: string;
+  onClick: (col: string) => void;
+}
+
+function SortButton({ column, current, order, onClick }: SortButtonProps) {
   const active = current === column;
   return (
     <button onClick={() => onClick(column)} className="flex items-center gap-1 hover:text-gray-900 transition-colors group">
@@ -28,7 +36,12 @@ function SortButton({ column, current, order, onClick }: any) {
   );
 }
 
-function ActionMenu({ campaign, onAction }: { campaign: any; onAction: (action: string, id: string) => void }) {
+interface ActionMenuProps {
+  campaign: Campaign;
+  onAction: (action: string, id: string) => void;
+}
+
+function ActionMenu({ campaign, onAction }: ActionMenuProps) {
   const [open, setOpen] = useState(false);
   return (
     <div className="relative">
@@ -76,19 +89,19 @@ export default function CampaignsPage() {
   const [sortOrder, setSortOrder] = useState('desc');
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<CampaignsListResponse>({
     queryKey: ['campaigns', { platform, status, search: debouncedSearch, sortBy, sortOrder }],
     queryFn: async () => {
       const params = new URLSearchParams({ sort_by: sortBy, sort_order: sortOrder, limit: '100' });
       if (platform) params.set('platform', platform);
       if (status) params.set('status', status);
       if (debouncedSearch) params.set('search', debouncedSearch);
-      const { data } = await apiClient.get(`/campaigns?${params}`);
+      const { data } = await apiClient.get<CampaignsListResponse>(`/campaigns?${params}`);
       return data;
     },
   });
 
-  const campaigns = data?.campaigns || [];
+  const campaigns: Campaign[] = data?.campaigns ?? [];
 
   const handleSort = useCallback((col: string) => {
     if (sortBy === col) {
@@ -132,7 +145,7 @@ export default function CampaignsPage() {
   };
 
   const handleBulkAction = (action: string) => {
-    const ids = [...selected];
+    const ids = Array.from(selected);
     if (action === 'archive') ids.forEach(id => archiveMutation.mutate(id));
     else if (action === 'activate') ids.forEach(id => statusMutation.mutate({ id, status: 'active' }));
     else if (action === 'pause') ids.forEach(id => statusMutation.mutate({ id, status: 'paused' }));
@@ -149,7 +162,7 @@ export default function CampaignsPage() {
 
   const toggleAll = () => {
     if (selected.size === campaigns.length) setSelected(new Set());
-    else setSelected(new Set(campaigns.map((c: any) => c.id)));
+    else setSelected(new Set(campaigns.map((c) => c.id)));
   };
 
   return (
@@ -247,7 +260,7 @@ export default function CampaignsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {campaigns.map((campaign: any) => (
+              {campaigns.map((campaign) => (
                 <tr key={campaign.id} className={`hover:bg-gray-50 ${selected.has(campaign.id) ? 'bg-blue-50' : ''}`}>
                   <td className="px-4 py-3">
                     <input type="checkbox" checked={selected.has(campaign.id)}

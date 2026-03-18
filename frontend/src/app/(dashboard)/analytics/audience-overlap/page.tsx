@@ -6,6 +6,16 @@ import { apiClient } from '@/lib/api/client';
 import { AlertTriangle, TrendingDown, Users } from 'lucide-react';
 import Link from 'next/link';
 
+interface OverlapPair {
+  campaign_a_id: string;
+  campaign_a_name: string;
+  campaign_b_id: string;
+  campaign_b_name: string;
+  overlap_percentage: number;
+  wasted_spend_estimate: number;
+  shared_taxonomy?: Record<string, unknown>;
+}
+
 function OverlapBadge({ pct }: { pct: number }) {
   const color = pct >= 50 ? 'bg-red-100 text-red-700 border-red-200' :
                 pct >= 20 ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
@@ -31,7 +41,7 @@ export default function AudienceOverlapPage() {
 
   const highOverlaps = data?.high_overlap_pairs || [];
   const allOverlaps = data?.overlaps || [];
-  const totalWasted = highOverlaps.reduce((sum: number, p: any) => sum + (p.wasted_spend_estimate || 0), 0);
+  const totalWasted = (highOverlaps as OverlapPair[]).reduce((sum, p) => sum + (p.wasted_spend_estimate || 0), 0);
 
   return (
     <div className="space-y-6">
@@ -99,7 +109,7 @@ export default function AudienceOverlapPage() {
                 <h3 className="font-semibold text-gray-900">High Overlap Pairs — Action Required</h3>
               </div>
               <div className="divide-y divide-gray-100">
-                {highOverlaps.map((pair: any, i: number) => (
+                {(highOverlaps as OverlapPair[]).map((pair, i) => (
                   <div key={i} className="p-5">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
@@ -128,7 +138,7 @@ export default function AudienceOverlapPage() {
                           <div className="mt-3">
                             <p className="text-xs text-gray-500 mb-1">Shared taxonomy values:</p>
                             <div className="flex flex-wrap gap-1">
-                              {Object.entries(pair.shared_taxonomy).map(([k, v]) => (
+                              {Object.entries(pair.shared_taxonomy ?? {}).map(([k, v]) => (
                                 <span key={k} className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">
                                   {k}: {String(v)}
                                 </span>
@@ -160,7 +170,7 @@ export default function AudienceOverlapPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {allOverlaps.sort((a: any, b: any) => b.overlap_percentage - a.overlap_percentage).map((pair: any, i: number) => (
+                {(allOverlaps as OverlapPair[]).sort((a, b) => b.overlap_percentage - a.overlap_percentage).map((pair, i) => (
                   <tr key={i} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm">
                       <Link href={`/campaigns/${pair.campaign_a_id}`} className="font-mono text-blue-600 hover:underline truncate max-w-44 block">

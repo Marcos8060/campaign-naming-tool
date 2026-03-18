@@ -6,25 +6,60 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { CheckCircle, AlertCircle, Circle, ChevronRight } from 'lucide-react';
+import type { Taxonomy } from '@/types';
+
+// ── Local types ───────────────────────────────────────────────────────────────
+
+interface PlatformConfig {
+  id: string;
+  platform: string;
+  naming_template: string;
+  max_length: number;
+  separator: string;
+  is_active: boolean;
+}
+
+interface CampaignFormData {
+  platform: string;
+  name: string;
+  objective: string;
+  budget_total: string;
+  budget_daily: string;
+  start_date: string;
+  end_date: string;
+  status: string;
+  taxonomy_values: Record<string, string>;
+}
+
+interface ValidationCheck {
+  label: string;
+  pass: boolean;
+  required: boolean;
+}
+
+// ── Constants ─────────────────────────────────────────────────────────────────
 
 const PLATFORMS = [
-  { id: 'meta', label: 'Meta', desc: 'Facebook & Instagram' },
+  { id: 'meta',       label: 'Meta',       desc: 'Facebook & Instagram' },
   { id: 'google_ads', label: 'Google Ads', desc: 'Search, Display, Video' },
-  { id: 'tiktok', label: 'TikTok', desc: 'Short-form video' },
-  { id: 'dv360', label: 'DV360', desc: 'Display & Video 360' },
-  { id: 'linkedin', label: 'LinkedIn', desc: 'Professional network' },
+  { id: 'tiktok',     label: 'TikTok',     desc: 'Short-form video' },
+  { id: 'dv360',      label: 'DV360',      desc: 'Display & Video 360' },
+  { id: 'linkedin',   label: 'LinkedIn',   desc: 'Professional network' },
 ];
+
 const OBJECTIVES = ['awareness', 'consideration', 'conversion', 'retention', 'traffic', 'leads'];
 
 const STEPS = [
-  { label: 'Platform', desc: 'Choose your ad platform' },
-  { label: 'Taxonomy', desc: 'Select classification values' },
-  { label: 'Details', desc: 'Budget & schedule' },
+  { label: 'Platform',   desc: 'Choose your ad platform' },
+  { label: 'Taxonomy',   desc: 'Select classification values' },
+  { label: 'Details',    desc: 'Budget & schedule' },
   { label: 'Validation', desc: 'Review name & checks' },
-  { label: 'Confirm', desc: 'Create campaign' },
+  { label: 'Confirm',    desc: 'Create campaign' },
 ];
 
-function ValidationChecklist({ checks }: { checks: { label: string; pass: boolean; required: boolean }[] }) {
+// ── Sub-components ────────────────────────────────────────────────────────────
+
+function ValidationChecklist({ checks }: { checks: ValidationCheck[] }) {
   return (
     <div className="space-y-2">
       {checks.map((c) => (
@@ -36,23 +71,23 @@ function ValidationChecklist({ checks }: { checks: { label: string; pass: boolea
           ) : (
             <Circle className="w-4 h-4 text-gray-300 flex-shrink-0" />
           )}
-          <span className={c.pass ? 'text-gray-700' : c.required ? 'text-red-600' : 'text-gray-400'}>{c.label}</span>
+          <span className={c.pass ? 'text-gray-700' : c.required ? 'text-red-600' : 'text-gray-400'}>
+            {c.label}
+          </span>
         </div>
       ))}
     </div>
   );
 }
 
-function LivePreview({
-  generatedName,
-  platformConfig,
-  form,
-}: {
+interface LivePreviewProps {
   generatedName: string;
-  platformConfig: any;
-  form: any;
-}) {
-  const maxLen = platformConfig?.max_length || 100;
+  platformConfig: PlatformConfig | null | undefined;
+  form: CampaignFormData;
+}
+
+function LivePreview({ generatedName, platformConfig, form }: LivePreviewProps) {
+  const maxLen = platformConfig?.max_length ?? 100;
   const charCount = generatedName.length;
   const pct = Math.min((charCount / maxLen) * 100, 100);
   const barColor = pct > 90 ? 'bg-red-500' : pct > 70 ? 'bg-yellow-500' : 'bg-green-500';
@@ -126,11 +161,13 @@ function LivePreview({
   );
 }
 
+// ── Page ──────────────────────────────────────────────────────────────────────
+
 export default function CreateCampaignPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [step, setStep] = useState(1);
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<CampaignFormData>({
     platform: '',
     name: '',
     objective: '',
@@ -139,41 +176,48 @@ export default function CreateCampaignPage() {
     start_date: '',
     end_date: '',
     status: 'draft',
-    taxonomy_values: {} as Record<string, string>,
+    taxonomy_values: {},
   });
 
-  const { data: taxonomies = [] } = useQuery({
+  const { data: taxonomies = [] } = useQuery<Taxonomy[]>({
     queryKey: ['taxonomies', 'all'],
     queryFn: async () => {
-      const { data } = await apiClient.get('/taxonomies');
+      const { data } = await apiClient.get<Taxonomy[]>('/taxonomies');
       return data;
     },
   });
 
-  const { data: platformConfig } = useQuery({
+  const { data: platformConfig } = useQuery<PlatformConfig | null>({
     queryKey: ['platform', form.platform],
     queryFn: async () => {
       if (!form.platform) return null;
-      const { data } = await apiClient.get('/platforms');
-      return data.find((p: any) => p.platform === form.platform) ?? null;
+      const { data } = await apiClient.get<PlatformConfig[]>('/platforms');
+      return data.find((p) => p.platform === form.platform) ?? null;
     },
     enabled: !!form.platform,
   });
 
   const mutation = useMutation({
-    mutationFn: (payload: any) => apiClient.post('/campaigns', payload),
+    mutationFn: (payload: Omit<CampaignFormData, 'budget_total' | 'budget_daily'> & {
+      name: string;
+      budget_total: number | null;
+      budget_daily: number | null;
+    }) => apiClient.post('/campaigns', payload),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
       toast.success('Campaign created successfully!');
       router.push(`/campaigns/${res.data.id}`);
     },
-    onError: (err: any) => toast.error(err?.response?.data?.detail || 'Failed to create campaign'),
+    onError: (err: unknown) => {
+      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      toast.error(detail || 'Failed to create campaign');
+    },
   });
 
   const generatedName = useMemo(() => {
     if (!form.platform) return '';
-    const sep = platformConfig?.separator || '_';
-    const template = platformConfig?.naming_template || '{platform}_{objective}_{date}';
+    const sep = platformConfig?.separator ?? '_';
+    const template = platformConfig?.naming_template ?? `{platform}${sep}{objective}${sep}{date}`;
     const now = new Date();
     const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
     let name = template
@@ -187,16 +231,16 @@ export default function CreateCampaignPage() {
   }, [form.platform, form.objective, form.taxonomy_values, platformConfig]);
 
   const finalName = form.name || generatedName || `Campaign_${Date.now()}`;
-  const maxLen = platformConfig?.max_length || 100;
+  const maxLen = platformConfig?.max_length ?? 100;
 
-  const validationChecks = useMemo(() => [
-    { label: 'Platform selected', pass: !!form.platform, required: true },
-    { label: 'Taxonomy values populated', pass: Object.values(form.taxonomy_values).some(Boolean), required: false },
-    { label: 'Campaign objective set', pass: !!form.objective, required: false },
-    { label: 'Name within character limit', pass: finalName.length <= maxLen, required: true },
-    { label: 'Name does not contain spaces', pass: !finalName.includes(' '), required: false },
-    { label: 'Budget specified', pass: !!form.budget_total, required: false },
-    { label: 'Start date set', pass: !!form.start_date, required: false },
+  const validationChecks: ValidationCheck[] = useMemo(() => [
+    { label: 'Platform selected',             pass: !!form.platform,                                           required: true },
+    { label: 'Taxonomy values populated',     pass: Object.values(form.taxonomy_values).some(Boolean),         required: false },
+    { label: 'Campaign objective set',        pass: !!form.objective,                                          required: false },
+    { label: 'Name within character limit',   pass: finalName.length <= maxLen,                                required: true },
+    { label: 'Name does not contain spaces',  pass: !finalName.includes(' '),                                  required: false },
+    { label: 'Budget specified',              pass: !!form.budget_total,                                       required: false },
+    { label: 'Start date set',               pass: !!form.start_date,                                         required: false },
   ], [form, finalName, maxLen]);
 
   const canAdvance = useMemo(() => {
@@ -214,7 +258,7 @@ export default function CreateCampaignPage() {
     });
   };
 
-  const taxonomyTypes: string[] = Array.from(new Set(taxonomies.map((t: any) => t.type)));
+  const taxonomyTypes: string[] = Array.from(new Set(taxonomies.map((t) => t.type)));
   const showPreviewPanel = step === 2 || step === 3;
 
   return (
@@ -323,8 +367,8 @@ export default function CreateCampaignPage() {
                         >
                           <option value="">Select {type}…</option>
                           {taxonomies
-                            .filter((t: any) => t.type === type)
-                            .map((t: any) => (
+                            .filter((t) => t.type === type)
+                            .map((t) => (
                               <option key={t.id} value={t.code}>
                                 {t.name} ({t.code})
                               </option>
@@ -336,10 +380,7 @@ export default function CreateCampaignPage() {
                 ) : (
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
                     No taxonomies configured yet. You can still create a campaign — go to{' '}
-                    <button
-                      className="underline font-medium"
-                      onClick={() => router.push('/taxonomies')}
-                    >
+                    <button className="underline font-medium" onClick={() => router.push('/taxonomies')}>
                       Taxonomies
                     </button>{' '}
                     to set them up.
@@ -376,9 +417,7 @@ export default function CreateCampaignPage() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Total Budget ($)</label>
                     <input
-                      type="number"
-                      min="0"
-                      value={form.budget_total}
+                      type="number" min="0" value={form.budget_total}
                       onChange={(e) => setForm({ ...form, budget_total: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="10000"
@@ -387,9 +426,7 @@ export default function CreateCampaignPage() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Daily Budget ($)</label>
                     <input
-                      type="number"
-                      min="0"
-                      value={form.budget_daily}
+                      type="number" min="0" value={form.budget_daily}
                       onChange={(e) => setForm({ ...form, budget_daily: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="500"
@@ -399,18 +436,14 @@ export default function CreateCampaignPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                    <input
-                      type="date"
-                      value={form.start_date}
+                    <input type="date" value={form.start_date}
                       onChange={(e) => setForm({ ...form, start_date: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                    <input
-                      type="date"
-                      value={form.end_date}
+                    <input type="date" value={form.end_date}
                       onChange={(e) => setForm({ ...form, end_date: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
@@ -426,7 +459,6 @@ export default function CreateCampaignPage() {
                   <h2 className="font-semibold text-gray-900 text-lg">Preview & Validation</h2>
                   <p className="text-sm text-gray-500 mt-1">Review your campaign name and confirm all checks pass before creating.</p>
                 </div>
-
                 <div>
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Final Campaign Name</p>
                   <div className="bg-gray-900 text-green-400 font-mono text-sm rounded-lg px-4 py-3 break-all">
@@ -434,23 +466,18 @@ export default function CreateCampaignPage() {
                   </div>
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>{finalName.length} characters</span>
-                    <span className={finalName.length > maxLen ? 'text-red-500 font-medium' : ''}>
-                      Max: {maxLen}
-                    </span>
+                    <span className={finalName.length > maxLen ? 'text-red-500 font-medium' : ''}>Max: {maxLen}</span>
                   </div>
                 </div>
-
                 <div>
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Validation Checklist</p>
                   <ValidationChecklist checks={validationChecks} />
                 </div>
-
                 {validationChecks.filter((c) => c.required && !c.pass).length > 0 && (
                   <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
                     Please fix the required checks above before proceeding.
                   </div>
                 )}
-
                 {validationChecks.filter((c) => c.required).every((c) => c.pass) && (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-700 flex items-center gap-2">
                     <CheckCircle className="w-4 h-4" />
@@ -467,25 +494,23 @@ export default function CreateCampaignPage() {
                   <h2 className="font-semibold text-gray-900 text-lg">Confirm & Create</h2>
                   <p className="text-sm text-gray-500 mt-1">Review your campaign summary before creating.</p>
                 </div>
-
                 <div className="bg-gray-50 rounded-xl border border-gray-200 divide-y divide-gray-200">
-                  {[
-                    ['Platform', PLATFORMS.find((p) => p.id === form.platform)?.label || form.platform],
-                    ['Campaign Name', finalName],
-                    ['Objective', form.objective ? form.objective.charAt(0).toUpperCase() + form.objective.slice(1) : '—'],
-                    ['Total Budget', form.budget_total ? `$${Number(form.budget_total).toLocaleString()}` : '—'],
-                    ['Daily Budget', form.budget_daily ? `$${Number(form.budget_daily).toLocaleString()}` : '—'],
-                    ['Start Date', form.start_date || '—'],
-                    ['End Date', form.end_date || '—'],
-                    ['Status', 'Draft'],
-                  ].map(([label, value]) => (
+                  {([
+                    ['Platform',       PLATFORMS.find((p) => p.id === form.platform)?.label ?? form.platform],
+                    ['Campaign Name',  finalName],
+                    ['Objective',      form.objective ? form.objective.charAt(0).toUpperCase() + form.objective.slice(1) : '—'],
+                    ['Total Budget',   form.budget_total ? `$${Number(form.budget_total).toLocaleString()}` : '—'],
+                    ['Daily Budget',   form.budget_daily ? `$${Number(form.budget_daily).toLocaleString()}` : '—'],
+                    ['Start Date',     form.start_date || '—'],
+                    ['End Date',       form.end_date || '—'],
+                    ['Status',         'Draft'],
+                  ] as [string, string][]).map(([label, value]) => (
                     <div key={label} className="flex justify-between px-4 py-3 text-sm">
                       <span className="text-gray-500">{label}</span>
                       <span className="font-medium text-gray-900 text-right max-w-xs break-all">{value}</span>
                     </div>
                   ))}
                 </div>
-
                 {Object.entries(form.taxonomy_values).some(([, v]) => v) && (
                   <div>
                     <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Taxonomy Values</p>
@@ -523,11 +548,9 @@ export default function CreateCampaignPage() {
         >
           Back
         </button>
-
         <div className="flex items-center gap-2 text-xs text-gray-400">
           Step {step} of {STEPS.length}
         </div>
-
         {step < STEPS.length ? (
           <button
             onClick={() => setStep((s) => s + 1)}

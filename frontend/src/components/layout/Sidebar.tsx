@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils/cn';
 import {
   LayoutDashboard, Tag, Megaphone, BarChart2, Download,
   Image, Settings, ChevronLeft, ChevronRight, Users2, Sparkles, X,
+  type LucideIcon,
 } from 'lucide-react';
 
 const NAV = [
@@ -22,12 +23,19 @@ const NAV = [
 ];
 const BOTTOM_NAV = [{ href: '/settings', label: 'Settings', icon: Settings }];
 
+interface NavItemProps {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  indent?: boolean;
+  active: boolean;
+  collapsed?: boolean;
+  onClick?: () => void;
+}
+
 function NavItem({
   href, label, icon: Icon, indent, active, collapsed, onClick,
-}: {
-  href: string; label: string; icon: any;
-  indent?: boolean; active: boolean; collapsed?: boolean; onClick?: () => void;
-}) {
+}: NavItemProps) {
   return (
     <Link
       href={href}

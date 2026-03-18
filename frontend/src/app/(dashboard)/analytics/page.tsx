@@ -5,7 +5,17 @@ import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import Link from 'next/link';
-import { TrendingUp, TrendingDown, DollarSign, Eye, MousePointer, Target, AlertTriangle } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Eye, Target, AlertTriangle } from 'lucide-react';
+import { type LucideIcon } from 'lucide-react';
+import type { PlatformStat, TopCampaign } from '@/types';
+
+interface KPICardProps {
+  title: string;
+  value: string;
+  change?: number;
+  icon: LucideIcon;
+  color: string;
+}
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'];
 
@@ -15,7 +25,7 @@ const DATE_PRESETS = [
   { label: '90d', days: 90 },
 ];
 
-function KPICard({ title, value, change, icon: Icon, color }: any) {
+function KPICard({ title, value, change, icon: Icon, color }: KPICardProps) {
   const isPositive = change >= 0;
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6">
@@ -73,7 +83,7 @@ export default function AnalyticsPage() {
     },
   });
 
-  const platformData = overview?.platforms?.map((p: any) => ({
+  const platformData = (overview?.platforms as PlatformStat[] | undefined)?.map((p) => ({
     name: p.platform.replace('_', ' '),
     campaigns: Number(p.count),
     budget: Number(p.total_budget),
@@ -138,7 +148,7 @@ export default function AnalyticsPage() {
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
                 <Pie data={platformData} dataKey="campaigns" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
-                  {platformData.map((_: any, i: number) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                  {platformData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Pie>
                 <Tooltip />
               </PieChart>
@@ -157,7 +167,7 @@ export default function AnalyticsPage() {
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 11 }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
                 <YAxis type="category" dataKey="platform" tick={{ fontSize: 11 }} width={80} />
-                <Tooltip formatter={(v: any) => [`$${Number(v).toLocaleString()}`, 'Budget']} />
+                <Tooltip formatter={(v: number | string) => [`$${Number(v).toLocaleString()}`, 'Budget']} />
                 <Bar dataKey="total_budget" fill="#3b82f6" radius={[0, 4, 4, 0]} name="Budget" />
               </BarChart>
             </ResponsiveContainer>
@@ -186,7 +196,7 @@ export default function AnalyticsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {topCampaigns.map((c: any, i: number) => (
+              {(topCampaigns as TopCampaign[]).map((c, i) => (
                 <tr key={c.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 text-sm font-bold text-gray-400">#{i + 1}</td>
                   <td className="px-4 py-3">

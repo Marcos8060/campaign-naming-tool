@@ -7,6 +7,8 @@ import { apiClient } from '@/lib/api/client';
 import Link from 'next/link';
 import { ArrowLeft, Edit2, Copy, Play, Pause, Trash2, X, Save } from 'lucide-react';
 import { toast } from 'sonner';
+import { AxiosError } from 'axios';
+import type { Campaign, Taxonomy, ApiErrorResponse } from '@/types';
 
 const STATUS_COLORS: Record<string, string> = {
   active: 'bg-green-100 text-green-700 border-green-200',
@@ -18,19 +20,25 @@ const STATUS_COLORS: Record<string, string> = {
 
 const OBJECTIVES = ['awareness', 'consideration', 'conversion', 'retention', 'traffic', 'leads'];
 
-function EditModal({
-  campaign,
-  taxonomies,
-  onClose,
-  onSave,
-  isPending,
-}: {
-  campaign: any;
-  taxonomies: any[];
+interface CampaignUpdatePayload {
+  name: string;
+  objective: string;
+  budget_total: number | null;
+  budget_daily: number | null;
+  start_date: string | null;
+  end_date: string | null;
+  taxonomy_values: Record<string, string>;
+}
+
+interface EditModalProps {
+  campaign: Campaign;
+  taxonomies: Taxonomy[];
   onClose: () => void;
-  onSave: (data: any) => void;
+  onSave: (data: CampaignUpdatePayload) => void;
   isPending: boolean;
-}) {
+}
+
+function EditModal({ campaign, taxonomies, onClose, onSave, isPending }: EditModalProps) {
   const [form, setForm] = useState({
     name: campaign.name || '',
     objective: campaign.objective || '',
@@ -38,10 +46,10 @@ function EditModal({
     budget_daily: campaign.budget_daily ? String(campaign.budget_daily) : '',
     start_date: campaign.start_date || '',
     end_date: campaign.end_date || '',
-    taxonomy_values: campaign.taxonomy_values || {} as Record<string, string>,
+    taxonomy_values: (campaign.taxonomy_values || {}) as Record<string, string>,
   });
 
-  const taxonomyTypes: string[] = Array.from(new Set(taxonomies.map((t: any) => t.type)));
+  const taxonomyTypes: string[] = Array.from(new Set(taxonomies.map((t) => t.type)));
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -54,7 +62,6 @@ function EditModal({
         </div>
 
         <div className="p-6 space-y-5">
-          {/* Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Campaign Name</label>
             <input
@@ -64,7 +71,6 @@ function EditModal({
             />
           </div>
 
-          {/* Objective */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Objective</label>
             <select
@@ -81,14 +87,11 @@ function EditModal({
             </select>
           </div>
 
-          {/* Budget */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Total Budget ($)</label>
               <input
-                type="number"
-                min="0"
-                value={form.budget_total}
+                type="number" min="0" value={form.budget_total}
                 onChange={(e) => setForm({ ...form, budget_total: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="10000"
@@ -97,9 +100,7 @@ function EditModal({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Daily Budget ($)</label>
               <input
-                type="number"
-                min="0"
-                value={form.budget_daily}
+                type="number" min="0" value={form.budget_daily}
                 onChange={(e) => setForm({ ...form, budget_daily: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="500"
@@ -107,29 +108,23 @@ function EditModal({
             </div>
           </div>
 
-          {/* Dates */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-              <input
-                type="date"
-                value={form.start_date}
+              <input type="date" value={form.start_date}
                 onChange={(e) => setForm({ ...form, start_date: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-              <input
-                type="date"
-                value={form.end_date}
+              <input type="date" value={form.end_date}
                 onChange={(e) => setForm({ ...form, end_date: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
 
-          {/* Taxonomy Values */}
           {taxonomyTypes.length > 0 && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Taxonomy Values</label>
@@ -140,17 +135,14 @@ function EditModal({
                     <select
                       value={form.taxonomy_values[type] || ''}
                       onChange={(e) =>
-                        setForm({
-                          ...form,
-                          taxonomy_values: { ...form.taxonomy_values, [type]: e.target.value },
-                        })
+                        setForm({ ...form, taxonomy_values: { ...form.taxonomy_values, [type]: e.target.value } })
                       }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">— none —</option>
                       {taxonomies
-                        .filter((t: any) => t.type === type)
-                        .map((t: any) => (
+                        .filter((t) => t.type === type)
+                        .map((t) => (
                           <option key={t.id} value={t.code}>
                             {t.name} ({t.code})
                           </option>
@@ -164,10 +156,8 @@ function EditModal({
         </div>
 
         <div className="px-6 py-4 border-t border-gray-200 flex gap-3 justify-end sticky bottom-0 bg-white">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 transition-colors"
-          >
+          <button onClick={onClose}
+            className="px-4 py-2 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 transition-colors">
             Cancel
           </button>
           <button
@@ -198,25 +188,25 @@ export default function CampaignDetailPage() {
   const queryClient = useQueryClient();
   const [showEdit, setShowEdit] = useState(false);
 
-  const { data: campaign, isLoading } = useQuery({
+  const { data: campaign, isLoading } = useQuery<Campaign>({
     queryKey: ['campaign', id],
     queryFn: async () => {
-      const { data } = await apiClient.get(`/campaigns/${id}`);
+      const { data } = await apiClient.get<Campaign>(`/campaigns/${id}`);
       return data;
     },
   });
 
-  const { data: taxonomies = [] } = useQuery({
+  const { data: taxonomies = [] } = useQuery<Taxonomy[]>({
     queryKey: ['taxonomies'],
     queryFn: async () => {
-      const { data } = await apiClient.get('/taxonomies');
+      const { data } = await apiClient.get<Taxonomy[]>('/taxonomies');
       return data;
     },
     enabled: showEdit,
   });
 
   const statusMutation = useMutation({
-    mutationFn: (status: string) => apiClient.patch(`/campaigns/${id}/status`, { status }),
+    mutationFn: (status: string) => apiClient.patch<Campaign>(`/campaigns/${id}/status`, { status }),
     onSuccess: (res) => {
       queryClient.setQueryData(['campaign', id], res.data);
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
@@ -225,18 +215,23 @@ export default function CampaignDetailPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (body: any) => apiClient.patch(`/campaigns/${id}`, body),
+    mutationFn: (body: CampaignUpdatePayload) => apiClient.patch<Campaign>(`/campaigns/${id}`, body),
     onSuccess: (res) => {
       queryClient.setQueryData(['campaign', id], res.data);
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
       setShowEdit(false);
       toast.success('Campaign updated');
     },
-    onError: (err: any) => toast.error(err?.response?.data?.detail || 'Failed to update'),
+    onError: (err) => {
+      const message = err instanceof AxiosError
+        ? (err.response?.data as ApiErrorResponse)?.detail
+        : undefined;
+      toast.error(message || 'Failed to update');
+    },
   });
 
   const duplicateMutation = useMutation({
-    mutationFn: () => apiClient.post(`/campaigns/${id}/duplicate`, {}),
+    mutationFn: () => apiClient.post<Campaign>(`/campaigns/${id}/duplicate`, {}),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
       toast.success('Campaign duplicated');
@@ -264,7 +259,7 @@ export default function CampaignDetailPage() {
 
   if (!campaign) return <div className="text-gray-500">Campaign not found</div>;
 
-  const taxonomyValues = campaign.taxonomy_values || {};
+  const taxonomyValues: Record<string, string> = campaign.taxonomy_values || {};
 
   return (
     <div className="max-w-4xl space-y-6">
@@ -278,7 +273,6 @@ export default function CampaignDetailPage() {
         />
       )}
 
-      {/* Header */}
       <div className="flex items-center gap-4">
         <Link href="/campaigns" className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors">
           <ArrowLeft className="w-5 h-5" />
@@ -294,35 +288,24 @@ export default function CampaignDetailPage() {
         </div>
         <div className="flex gap-2 flex-shrink-0">
           {campaign.status !== 'archived' && campaign.status !== 'completed' && (
-            <button
-              onClick={() => setShowEdit(true)}
-              className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
-            >
+            <button onClick={() => setShowEdit(true)}
+              className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
               <Edit2 className="w-4 h-4" /> Edit
             </button>
           )}
           {campaign.status === 'active' ? (
-            <button
-              onClick={() => statusMutation.mutate('paused')}
-              disabled={statusMutation.isPending}
-              className="inline-flex items-center gap-2 px-3 py-2 border border-yellow-300 text-yellow-700 text-sm font-medium rounded-lg hover:bg-yellow-50 transition-colors"
-            >
+            <button onClick={() => statusMutation.mutate('paused')} disabled={statusMutation.isPending}
+              className="inline-flex items-center gap-2 px-3 py-2 border border-yellow-300 text-yellow-700 text-sm font-medium rounded-lg hover:bg-yellow-50 transition-colors">
               <Pause className="w-4 h-4" /> Pause
             </button>
           ) : campaign.status !== 'archived' && campaign.status !== 'completed' && (
-            <button
-              onClick={() => statusMutation.mutate('active')}
-              disabled={statusMutation.isPending}
-              className="inline-flex items-center gap-2 px-3 py-2 border border-green-300 text-green-700 text-sm font-medium rounded-lg hover:bg-green-50 transition-colors"
-            >
+            <button onClick={() => statusMutation.mutate('active')} disabled={statusMutation.isPending}
+              className="inline-flex items-center gap-2 px-3 py-2 border border-green-300 text-green-700 text-sm font-medium rounded-lg hover:bg-green-50 transition-colors">
               <Play className="w-4 h-4" /> Activate
             </button>
           )}
-          <button
-            onClick={() => duplicateMutation.mutate()}
-            disabled={duplicateMutation.isPending}
-            className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
-          >
+          <button onClick={() => duplicateMutation.mutate()} disabled={duplicateMutation.isPending}
+            className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
             <Copy className="w-4 h-4" /> Duplicate
           </button>
           {campaign.status !== 'archived' && (
@@ -339,7 +322,6 @@ export default function CampaignDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Campaign Details */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-3">
           <h3 className="font-semibold text-gray-900">Campaign Details</h3>
           {[
@@ -358,7 +340,6 @@ export default function CampaignDetailPage() {
           ))}
         </div>
 
-        {/* Budget & Schedule */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-3">
           <h3 className="font-semibold text-gray-900">Budget & Schedule</h3>
           {[
@@ -374,7 +355,6 @@ export default function CampaignDetailPage() {
           ))}
         </div>
 
-        {/* Taxonomy Breakdown */}
         {Object.keys(taxonomyValues).length > 0 && (
           <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-3">
             <h3 className="font-semibold text-gray-900">Taxonomy Breakdown</h3>
@@ -389,7 +369,6 @@ export default function CampaignDetailPage() {
           </div>
         )}
 
-        {/* Generated Name */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h3 className="font-semibold text-gray-900 mb-4">Generated Name</h3>
           <div className="bg-gray-900 rounded-lg px-4 py-3">
@@ -398,10 +377,7 @@ export default function CampaignDetailPage() {
           <div className="flex justify-between text-xs text-gray-400 mt-2">
             <span>{campaign.name.length} characters</span>
             <button
-              onClick={() => {
-                navigator.clipboard.writeText(campaign.name);
-                toast.success('Copied to clipboard');
-              }}
+              onClick={() => { navigator.clipboard.writeText(campaign.name); toast.success('Copied to clipboard'); }}
               className="text-blue-500 hover:text-blue-700"
             >
               Copy

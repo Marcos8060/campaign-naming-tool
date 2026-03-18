@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { toast } from 'sonner';
 import { Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+import { AxiosError } from 'axios';
+import type { ApiErrorResponse } from '@/types';
 
 const FIELDS = [
   { key: 'name',           label: 'Full Name',                type: 'text',     placeholder: 'Jane Smith' },
@@ -36,8 +38,11 @@ export default function RegisterPage() {
       await register(form.email, form.password, form.name, form.workspace_name);
       toast.success('Workspace created!');
       router.push('/dashboard');
-    } catch (err: any) {
-      toast.error(err?.response?.data?.detail || 'Registration failed');
+    } catch (err) {
+      const message = err instanceof AxiosError
+        ? (err.response?.data as ApiErrorResponse)?.detail
+        : undefined;
+      toast.error(message || 'Registration failed');
     } finally {
       setLoading(false);
     }

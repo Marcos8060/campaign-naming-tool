@@ -1,9 +1,10 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import type { Workspace, WorkspaceTheme } from '@/types';
 
 interface WorkspaceState {
-  currentWorkspace: any | null;
+  currentWorkspace: Workspace | null;
   currentWorkspaceId: string | null;
-  theme: any | null;
+  theme: WorkspaceTheme | null;
 }
 
 const initialState: WorkspaceState = {
@@ -16,11 +17,11 @@ const workspaceSlice = createSlice({
   name: 'workspace',
   initialState,
   reducers: {
-    setWorkspace: (state, action: PayloadAction<any>) => {
+    setWorkspace: (state, action: PayloadAction<Workspace>) => {
       state.currentWorkspace = action.payload;
       state.currentWorkspaceId = action.payload?.id ?? null;
     },
-    setTheme: (state, action: PayloadAction<any>) => {
+    setTheme: (state, action: PayloadAction<WorkspaceTheme>) => {
       state.theme = action.payload;
     },
     clearWorkspace: (state) => {
