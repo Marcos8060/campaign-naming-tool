@@ -104,7 +104,7 @@ export default function RegisterPage() {
 
         <button
           type="submit" disabled={loading}
-          className="w-full py-3 px-4 brand-gradient text-white font-bold rounded-xl hover:opacity-90 disabled:opacity-50 transition-opacity shadow-sm shadow-violet-200 text-sm"
+          className="w-full py-3 px-4 brand-gradient text-white font-bold rounded-xl hover:opacity-90 disabled:opacity-50 transition-opacity shadow-sm shadow-blue-200 text-sm"
         >
           {loading ? 'Creating workspace…' : 'Create Free Account'}
         </button>

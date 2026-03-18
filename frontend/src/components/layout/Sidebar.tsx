@@ -37,8 +37,8 @@ function NavItem({
         collapsed ? 'px-0 py-2.5 justify-center' : 'px-3 py-2.5',
         indent && !collapsed ? 'ml-5 py-2' : '',
         active
-          ? 'brand-gradient text-white shadow-sm shadow-violet-300/30'
-          : 'text-t2 hover:bg-[var(--brand-soft)] hover:text-brand dark:hover:text-violet-300'
+          ? 'brand-gradient text-white shadow-sm shadow-blue-400/30'
+          : 'text-t2 hover:bg-[var(--brand-soft)] hover:text-brand dark:hover:text-blue-300'
       )}
     >
       <Icon className={cn(

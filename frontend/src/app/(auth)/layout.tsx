@@ -19,20 +19,20 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <h2 className="text-4xl font-extrabold text-white leading-tight mb-4">
             Campaign naming.<br />Finally<br />standardized.
           </h2>
-          <p className="text-violet-200 text-base leading-relaxed max-w-xs">
+          <p className="text-blue-100 text-base leading-relaxed max-w-xs">
             Define your taxonomy once. Enforce it across Meta, Google Ads, TikTok, DV360, and LinkedIn.
           </p>
           <div className="flex gap-8 mt-10">
             {[['5', 'Platforms'], ['100%', 'Consistency'], ['3×', 'Faster Launch']].map(([val, label]) => (
               <div key={label}>
                 <p className="text-2xl font-extrabold text-white">{val}</p>
-                <p className="text-violet-300 text-xs font-medium mt-0.5">{label}</p>
+                <p className="text-blue-200 text-xs font-medium mt-0.5">{label}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <p className="relative z-10 text-violet-300 text-xs">
+        <p className="relative z-10 text-blue-200 text-xs">
           © {new Date().getFullYear()} Camparc · Campaign Intelligence Platform
         </p>
       </div>

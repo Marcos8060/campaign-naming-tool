@@ -72,7 +72,7 @@ function OnboardingChecklist({ onboarding }: { onboarding: OnboardingStatus | un
             <Sparkles className="w-5 h-5 text-white" />
             <div>
               <p className="font-bold text-white text-sm">Getting Started</p>
-              <p className="text-violet-200 text-xs">{done} of {total} steps complete</p>
+              <p className="text-blue-100 text-xs">{done} of {total} steps complete</p>
             </div>
           </div>
           <div className="text-white font-extrabold text-lg">{Math.round((done / total) * 100)}%</div>
@@ -88,7 +88,7 @@ function OnboardingChecklist({ onboarding }: { onboarding: OnboardingStatus | un
             <div key={key} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
               <div className="flex items-center gap-3">
                 {isDone
-                  ? <CheckCircle2 className="w-5 h-5 text-[#6C5CE7] flex-shrink-0" />
+                  ? <CheckCircle2 className="w-5 h-5 text-[#2e6be4] flex-shrink-0" />
                   : <Circle className="w-5 h-5 text-gray-300 flex-shrink-0" />}
                 <span className={`text-sm font-medium ${isDone ? 'line-through text-gray-300' : 'text-gray-700'}`}>
                   {label}
@@ -96,7 +96,7 @@ function OnboardingChecklist({ onboarding }: { onboarding: OnboardingStatus | un
               </div>
               {!isDone && href && (
                 <Link href={href}
-                  className="inline-flex items-center gap-1 text-xs text-[#6C5CE7] font-semibold hover:underline">
+                  className="inline-flex items-center gap-1 text-xs text-[#2e6be4] font-semibold hover:underline">
                   Go <ArrowRight className="w-3 h-3" />
                 </Link>
               )}
@@ -167,11 +167,11 @@ export default function DashboardPage() {
         <div className="absolute right-0 top-0 w-64 h-64 bg-white/5 rounded-full translate-x-20 -translate-y-20" />
         <div className="absolute right-32 bottom-0 w-40 h-40 bg-white/5 rounded-full translate-y-12" />
         <div className="relative z-10">
-          <p className="text-violet-200 text-sm font-medium mb-1">CAMPAIGN INTELLIGENCE PLATFORM</p>
+          <p className="text-blue-100 text-sm font-medium mb-1">CAMPAIGN INTELLIGENCE PLATFORM</p>
           <h1 className="text-2xl font-extrabold text-white mb-2">
             {greeting}, {firstName} 🔥
           </h1>
-          <p className="text-violet-200 text-sm max-w-md">
+          <p className="text-blue-100 text-sm max-w-md">
             {overview?.active_campaigns
               ? `You have ${overview.active_campaigns} active campaign${overview.active_campaigns !== 1 ? 's' : ''} running. Here's your overview.`
               : 'Welcome to Camparc. Set up your taxonomy and launch your first campaign.'}
@@ -179,7 +179,7 @@ export default function DashboardPage() {
         </div>
         <div className="relative z-10 hidden md:flex gap-3 flex-shrink-0">
           <Link href="/campaigns/create"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-[#6C5CE7] font-bold rounded-sm hover:bg-violet-50 transition-colors text-sm shadow-lg">
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-[#2e6be4] font-bold rounded-sm hover:bg-blue-50 transition-colors text-sm shadow-lg">
             <Plus className="w-4 h-4" /> New Campaign
           </Link>
           <Link href="/analytics"
@@ -233,7 +233,7 @@ export default function DashboardPage() {
               <h3 className="font-bold text-gray-900">Campaigns by Platform</h3>
               <p className="text-xs text-gray-400 mt-0.5">Campaign count per ad channel</p>
             </div>
-            <Link href="/analytics" className="text-xs text-[#6C5CE7] font-semibold hover:underline flex items-center gap-1">
+            <Link href="/analytics" className="text-xs text-[#2e6be4] font-semibold hover:underline flex items-center gap-1">
               Full report <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
@@ -256,12 +256,12 @@ export default function DashboardPage() {
             </ResponsiveContainer>
           ) : (
             <div className="h-48 flex flex-col items-center justify-center">
-              <div className="w-12 h-12 bg-violet-50 rounded-2xl flex items-center justify-center mb-3">
-                <BarChart2 className="w-6 h-6 text-[#6C5CE7]" />
+              <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-3">
+                <BarChart2 className="w-6 h-6 text-[#2e6be4]" />
               </div>
               <p className="text-sm text-gray-400 font-medium">No campaigns yet</p>
               <Link href="/campaigns/create"
-                className="text-[#6C5CE7] text-sm font-semibold mt-2 hover:underline flex items-center gap-1">
+                className="text-[#2e6be4] text-sm font-semibold mt-2 hover:underline flex items-center gap-1">
                 Create first campaign <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
@@ -275,7 +275,7 @@ export default function DashboardPage() {
               <h3 className="font-bold text-gray-900">Top Campaigns</h3>
               <p className="text-xs text-gray-400 mt-0.5">By ROAS performance</p>
             </div>
-            <Link href="/analytics" className="text-xs text-[#6C5CE7] font-semibold hover:underline">
+            <Link href="/analytics" className="text-xs text-[#2e6be4] font-semibold hover:underline">
               See all
             </Link>
           </div>
@@ -289,7 +289,7 @@ export default function DashboardPage() {
                       {i + 1}
                     </span>
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate group-hover:text-[#6C5CE7] transition-colors">
+                      <p className="text-sm font-semibold text-gray-900 truncate group-hover:text-[#2e6be4] transition-colors">
                         {c.name}
                       </p>
                       <p className="text-xs text-gray-400 capitalize">{c.platform?.replace('_', ' ')}</p>
@@ -325,11 +325,11 @@ export default function DashboardPage() {
           </div>
           <div className="flex items-center gap-3">
             <Link href="/campaigns/create"
-              className="inline-flex items-center gap-2 px-4 py-2 brand-gradient text-white text-sm font-semibold rounded-sm hover:opacity-90 transition-opacity shadow-sm shadow-violet-200">
+              className="inline-flex items-center gap-2 px-4 py-2 brand-gradient text-white text-sm font-semibold rounded-sm hover:opacity-90 transition-opacity shadow-sm shadow-blue-200">
               <Plus className="w-4 h-4" /> New Campaigns
             </Link>
             <Link href="/campaigns"
-              className="text-sm text-[#6C5CE7] font-semibold hover:underline flex items-center gap-1">
+              className="text-sm text-[#2e6be4] font-semibold hover:underline flex items-center gap-1">
               View all <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
@@ -351,7 +351,7 @@ export default function DashboardPage() {
                 <tr key={c.id} className="hover:bg-[#F8F7FF] transition-colors group">
                   <td className="px-6 py-4">
                     <Link href={`/campaigns/${c.id}`}
-                      className="text-sm font-semibold text-gray-900 group-hover:text-[#6C5CE7] transition-colors font-mono truncate max-w-[280px] block">
+                      className="text-sm font-semibold text-gray-900 group-hover:text-[#2e6be4] transition-colors font-mono truncate max-w-[280px] block">
                       {c.name}
                     </Link>
                   </td>
@@ -379,8 +379,8 @@ export default function DashboardPage() {
           </table>
         ) : (
           <div className="text-center py-16">
-            <div className="w-14 h-14 bg-violet-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Megaphone className="w-7 h-7 text-[#6C5CE7]" />
+            <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Megaphone className="w-7 h-7 text-[#2e6be4]" />
             </div>
             <p className="text-gray-700 font-semibold mb-1">No campaigns yet</p>
             <p className="text-gray-400 text-sm mb-5">Launch your first campaign using the wizard</p>

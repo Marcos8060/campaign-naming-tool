@@ -6,88 +6,88 @@
 @layer base {
   :root {
     /* Surfaces */
-    --surface:      #F8F7FF;
+    --surface:      #f0f5ff;
     --card:         #FFFFFF;
-    --card-hover:   #F5F4FF;
-    --input-bg:     #F8F7FF;
+    --card-hover:   #eaf0fd;
+    --input-bg:     #f5f8ff;
     --sidebar-bg:   #FFFFFF;
 
     /* Text */
-    --t1: #1a1a2e;
+    --t1: #0f1c3f;
     --t2: #6b7280;
     --t3: #9ca3af;
 
     /* Borders */
-    --bd:       #e5e7eb;
-    --bd-light: #f3f4f6;
+    --bd:       #dde5f4;
+    --bd-light: #eef3fb;
 
     /* Shadows */
-    --shadow-card:    0 1px 3px rgba(108,92,231,0.06), 0 4px 16px rgba(108,92,231,0.08);
-    --shadow-card-lg: 0 4px 24px rgba(108,92,231,0.12), 0 1px 4px rgba(108,92,231,0.06);
+    --shadow-card:    0 1px 3px rgba(46,107,228,0.06), 0 4px 16px rgba(46,107,228,0.08);
+    --shadow-card-lg: 0 4px 24px rgba(46,107,228,0.12), 0 1px 4px rgba(46,107,228,0.06);
 
     /* Brand */
-    --brand:       #6C5CE7;
-    --brand-light: #A29BFE;
-    --brand-soft:  #F0EFFE;
-    --brand-hover: #5A4BD1;
+    --brand:       #2e6be4;
+    --brand-light: #5b8ef0;
+    --brand-soft:  #e8f0fd;
+    --brand-hover: #1d55cc;
 
     /* Radix / shadcn tokens */
     --background: 0 0% 100%;
-    --foreground: 240 10% 10%;
-    --border: 248 20% 91%;
-    --input: 248 20% 91%;
-    --ring: 252 87% 65%;
+    --foreground: 222 47% 15%;
+    --border: 216 40% 88%;
+    --input: 216 40% 88%;
+    --ring: 220 84% 55%;
     --radius: 0.75rem;
-    --primary: 252 87% 65%;
+    --primary: 220 74% 54%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 252 30% 96%;
-    --secondary-foreground: 252 50% 30%;
-    --muted: 248 20% 96%;
-    --muted-foreground: 248 10% 52%;
-    --accent: 252 30% 94%;
-    --accent-foreground: 252 60% 40%;
+    --secondary: 216 50% 95%;
+    --secondary-foreground: 220 50% 25%;
+    --muted: 216 30% 95%;
+    --muted-foreground: 216 10% 52%;
+    --accent: 216 40% 93%;
+    --accent-foreground: 220 60% 35%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 10%;
+    --card-foreground: 222 47% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 10%;
+    --popover-foreground: 222 47% 15%;
   }
 
   .dark {
-    --surface:    #0d0d1a;
-    --card:       #16162a;
-    --card-hover: #1e1e38;
-    --input-bg:   #1a1a2e;
-    --sidebar-bg: #13131f;
+    --surface:    #080f1f;
+    --card:       #101828;
+    --card-hover: #1a2540;
+    --input-bg:   #121e35;
+    --sidebar-bg: #0c1525;
 
-    --t1: #eef0f8;
+    --t1: #e8eef8;
     --t2: #8892a4;
-    --t3: #5a6478;
+    --t3: #4f5c72;
 
-    --bd:       #252545;
-    --bd-light: #1e1e38;
+    --bd:       #1e2d4a;
+    --bd-light: #172036;
 
     --shadow-card:    0 1px 3px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.25);
     --shadow-card-lg: 0 4px 24px rgba(0,0,0,0.4), 0 1px 4px rgba(0,0,0,0.3);
 
-    --brand-soft: rgba(108,92,231,0.18);
+    --brand-soft: rgba(46,107,228,0.18);
 
     /* Radix dark overrides */
-    --background: 240 30% 8%;
-    --foreground: 240 10% 95%;
-    --border: 240 20% 18%;
-    --input: 240 20% 14%;
-    --card: 240 25% 13%;
-    --card-foreground: 240 10% 95%;
-    --popover: 240 25% 13%;
-    --popover-foreground: 240 10% 95%;
-    --secondary: 240 25% 16%;
-    --secondary-foreground: 240 10% 95%;
-    --muted: 240 25% 16%;
-    --muted-foreground: 240 10% 55%;
-    --accent: 240 25% 16%;
-    --accent-foreground: 240 10% 95%;
+    --background: 222 47% 8%;
+    --foreground: 216 30% 93%;
+    --border: 222 35% 18%;
+    --input: 222 35% 14%;
+    --card: 222 40% 12%;
+    --card-foreground: 216 30% 93%;
+    --popover: 222 40% 12%;
+    --popover-foreground: 216 30% 93%;
+    --secondary: 222 35% 16%;
+    --secondary-foreground: 216 30% 93%;
+    --muted: 222 35% 16%;
+    --muted-foreground: 216 15% 55%;
+    --accent: 222 35% 18%;
+    --accent-foreground: 216 30% 93%;
     --destructive: 0 62% 30%;
     --destructive-foreground: 0 0% 100%;
   }
@@ -107,10 +107,10 @@
 /* ── Utilities ─────────────────────────────────────────────── */
 @layer utilities {
   .brand-gradient {
-    background: linear-gradient(135deg, #6C5CE7 0%, #a78bfa 100%);
+    background: linear-gradient(135deg, #2e6be4 0%, #5b8ef0 100%);
   }
   .brand-gradient-soft {
-    background: linear-gradient(135deg, var(--brand-soft) 0%, #ede9fe 100%);
+    background: linear-gradient(135deg, var(--brand-soft) 0%, #dbeafe 100%);
   }
   .text-brand  { color: var(--brand); }
   .bg-brand    { background-color: var(--brand); }

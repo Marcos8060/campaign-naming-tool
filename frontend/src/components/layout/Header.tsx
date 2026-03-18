@@ -8,7 +8,7 @@ import { toggleDarkMode, setMobileNavOpen } from '@/lib/store/slices/uiSlice';
 import { Bell, LogOut, Search, ChevronDown, Sun, Moon, Menu } from 'lucide-react';
 
 const ROLE_BADGE: Record<string, string> = {
-  admin:   'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300',
+  admin:   'bg-blue-100 text-[#2e6be4] dark:bg-blue-900/40 dark:text-blue-300',
   manager: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
   viewer:  'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300',
 };
