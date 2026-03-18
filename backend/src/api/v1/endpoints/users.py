@@ -25,7 +25,7 @@ async def list_users(
 ):
     users = await pool.fetch(
         """SELECT id, workspace_id, email, name, role, avatar_url, is_active, last_login_at, created_at
-           FROM users WHERE workspace_id = $1 ORDER BY created_at""",
+           FROM users WHERE workspace_id = $1 AND is_active = true ORDER BY created_at""",
         workspace_id
     )
     return [

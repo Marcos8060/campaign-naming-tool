@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-dev_password_123}
       POSTGRES_INITDB_ARGS: "-E UTF8"
     ports:
-      - "${DB_PORT:-5434}:5434"
+      - "${DB_PORT:-5434}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init:/docker-entrypoint-initdb.d
@@ -34,6 +34,11 @@ services:
       JWT_EXPIRATION: 604800
       ALLOWED_ORIGINS: http://localhost:3000
       ENVIRONMENT: development
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      EMAIL_FROM: ${EMAIL_FROM:-}
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     volumes:
