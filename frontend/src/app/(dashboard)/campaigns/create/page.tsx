@@ -7,35 +7,8 @@ import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { CheckCircle, AlertCircle, Circle, ChevronRight } from 'lucide-react';
 import type { Taxonomy } from '@/types';
+import type { PlatformConfig, CampaignFormData, ValidationCheck, LivePreviewProps } from '@/types/campaign-create';
 
-// ── Local types ───────────────────────────────────────────────────────────────
-
-interface PlatformConfig {
-  id: string;
-  platform: string;
-  naming_template: string;
-  max_length: number;
-  separator: string;
-  is_active: boolean;
-}
-
-interface CampaignFormData {
-  platform: string;
-  name: string;
-  objective: string;
-  budget_total: string;
-  budget_daily: string;
-  start_date: string;
-  end_date: string;
-  status: string;
-  taxonomy_values: Record<string, string>;
-}
-
-interface ValidationCheck {
-  label: string;
-  pass: boolean;
-  required: boolean;
-}
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -80,11 +53,6 @@ function ValidationChecklist({ checks }: { checks: ValidationCheck[] }) {
   );
 }
 
-interface LivePreviewProps {
-  generatedName: string;
-  platformConfig: PlatformConfig | null | undefined;
-  form: CampaignFormData;
-}
 
 function LivePreview({ generatedName, platformConfig, form }: LivePreviewProps) {
   const maxLen = platformConfig?.max_length ?? 100;

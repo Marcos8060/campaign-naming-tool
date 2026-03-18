@@ -6,16 +6,8 @@ import { apiClient } from '@/lib/api/client';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import Link from 'next/link';
 import { TrendingUp, TrendingDown, DollarSign, Eye, Target, AlertTriangle } from 'lucide-react';
-import { type LucideIcon } from 'lucide-react';
 import type { PlatformStat, TopCampaign } from '@/types';
-
-interface KPICardProps {
-  title: string;
-  value: string;
-  change?: number;
-  icon: LucideIcon;
-  color: string;
-}
+import type { KPICardProps } from '@/types/analytics';
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'];
 

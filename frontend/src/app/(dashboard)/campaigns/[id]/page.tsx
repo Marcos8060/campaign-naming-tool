@@ -9,6 +9,7 @@ import { ArrowLeft, Edit2, Copy, Play, Pause, Trash2, X, Save } from 'lucide-rea
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 import type { Campaign, Taxonomy, ApiErrorResponse } from '@/types';
+import type { CampaignUpdatePayload, EditModalProps } from '@/types/campaign-detail';
 
 const STATUS_COLORS: Record<string, string> = {
   active: 'bg-green-100 text-green-700 border-green-200',
@@ -20,23 +21,6 @@ const STATUS_COLORS: Record<string, string> = {
 
 const OBJECTIVES = ['awareness', 'consideration', 'conversion', 'retention', 'traffic', 'leads'];
 
-interface CampaignUpdatePayload {
-  name: string;
-  objective: string;
-  budget_total: number | null;
-  budget_daily: number | null;
-  start_date: string | null;
-  end_date: string | null;
-  taxonomy_values: Record<string, string>;
-}
-
-interface EditModalProps {
-  campaign: Campaign;
-  taxonomies: Taxonomy[];
-  onClose: () => void;
-  onSave: (data: CampaignUpdatePayload) => void;
-  isPending: boolean;
-}
 
 function EditModal({ campaign, taxonomies, onClose, onSave, isPending }: EditModalProps) {
   const [form, setForm] = useState({

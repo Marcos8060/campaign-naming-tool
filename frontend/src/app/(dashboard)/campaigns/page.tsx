@@ -8,6 +8,7 @@ import { Plus, Search, MoreHorizontal, Copy, Eye, Trash2, Play, Pause, ChevronUp
 import { toast } from 'sonner';
 import { useDebounce } from '@/lib/hooks/useDebounce';
 import type { Campaign, CampaignsListResponse } from '@/types';
+import type { SortButtonProps, ActionMenuProps } from '@/types/campaigns';
 
 const PLATFORM_COLORS: Record<string, string> = {
   meta: 'bg-blue-100 text-blue-700',
@@ -16,13 +17,6 @@ const PLATFORM_COLORS: Record<string, string> = {
   dv360: 'bg-green-100 text-green-700',
   linkedin: 'bg-indigo-100 text-indigo-700',
 };
-
-interface SortButtonProps {
-  column: string;
-  current: string;
-  order: string;
-  onClick: (col: string) => void;
-}
 
 function SortButton({ column, current, order, onClick }: SortButtonProps) {
   const active = current === column;
@@ -36,10 +30,6 @@ function SortButton({ column, current, order, onClick }: SortButtonProps) {
   );
 }
 
-interface ActionMenuProps {
-  campaign: Campaign;
-  onAction: (action: string, id: string) => void;
-}
 
 function ActionMenu({ campaign, onAction }: ActionMenuProps) {
   const [open, setOpen] = useState(false);

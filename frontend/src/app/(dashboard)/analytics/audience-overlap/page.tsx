@@ -5,16 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import { AlertTriangle, TrendingDown, Users } from 'lucide-react';
 import Link from 'next/link';
-
-interface OverlapPair {
-  campaign_a_id: string;
-  campaign_a_name: string;
-  campaign_b_id: string;
-  campaign_b_name: string;
-  overlap_percentage: number;
-  wasted_spend_estimate: number;
-  shared_taxonomy?: Record<string, unknown>;
-}
+import type { OverlapPair } from '@/types/analytics';
 
 function OverlapBadge({ pct }: { pct: number }) {
   const color = pct >= 50 ? 'bg-red-100 text-red-700 border-red-200' :
