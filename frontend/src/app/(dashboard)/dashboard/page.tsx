@@ -11,11 +11,12 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
 import { useRole } from '@/lib/hooks/useRole';
 import {
-  CheckCircle2, Circle, ArrowRight, TrendingUp, Target,
+  ArrowRight, TrendingUp, Target,
   DollarSign, Megaphone, Plus, BarChart2, AlertTriangle,
-  Sparkles, type LucideIcon,
 } from 'lucide-react';
-import type { AnalyticsOverview, TopCampaign, CampaignsListResponse, OnboardingStatus, PlatformStat } from '@/types';
+import type { AnalyticsOverview, TopCampaign, CampaignsListResponse, PlatformStat } from '@/types';
+import { KpiCard } from '@/components/dashboard/KpiCard';
+import { OnboardingChecklist } from '@/components/dashboard/OnboardingChecklist';
 
 const PLATFORM_COLORS: Record<string, string> = {
   meta:       '#6C5CE7',
@@ -33,81 +34,6 @@ const STATUS_STYLES: Record<string, string> = {
   completed:'bg-blue-50 text-blue-700 border border-blue-100',
 };
 
-function KpiCard({ title, value, sub, icon: Icon, accent }: {
-  title: string; value: string; sub?: string;
-  icon: LucideIcon; accent: string;
-}) {
-  return (
-    <div className="bg-white rounded-2xl p-5 card-shadow flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-gray-500">{title}</p>
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: accent + '18' }}>
-          <Icon className="w-5 h-5" style={{ color: accent }} />
-        </div>
-      </div>
-      <div>
-        <p className="text-3xl font-extrabold text-gray-900 tracking-tight">{value}</p>
-        {sub && <p className="text-xs text-gray-400 mt-1 font-medium">{sub}</p>}
-      </div>
-    </div>
-  );
-}
-
-function OnboardingChecklist({ onboarding }: { onboarding: OnboardingStatus | undefined }) {
-  if (!onboarding) return null;
-  const steps: { key: keyof OnboardingStatus; label: string; href: string | null }[] = [
-    { key: 'workspace_created',     label: 'Workspace set up',            href: null },
-    { key: 'taxonomies_configured', label: 'Configure taxonomies',        href: '/taxonomies' },
-    { key: 'platforms_configured',  label: 'Set platform templates',      href: '/settings/platforms' },
-    { key: 'first_campaign_created',label: 'Launch your first campaign',  href: '/campaigns/create' },
-  ];
-  const done = steps.filter((s) => onboarding[s.key]).length;
-  const total = steps.length;
-  if (done === total) return null;
-
-  return (
-    <div className="bg-white rounded-2xl card-shadow overflow-hidden">
-      <div className="brand-gradient px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Sparkles className="w-5 h-5 text-white" />
-            <div>
-              <p className="font-bold text-white text-sm">Getting Started</p>
-              <p className="text-blue-100 text-xs">{done} of {total} steps complete</p>
-            </div>
-          </div>
-          <div className="text-white font-extrabold text-lg">{Math.round((done / total) * 100)}%</div>
-        </div>
-        <div className="mt-3 h-1.5 bg-white/20 rounded-full overflow-hidden">
-          <div className="h-full bg-white rounded-full transition-all" style={{ width: `${(done / total) * 100}%` }} />
-        </div>
-      </div>
-      <div className="p-4 divide-y divide-gray-50">
-        {steps.map(({ key, label, href }) => {
-          const isDone = onboarding[key];
-          return (
-            <div key={key} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
-              <div className="flex items-center gap-3">
-                {isDone
-                  ? <CheckCircle2 className="w-5 h-5 text-[#2e6be4] flex-shrink-0" />
-                  : <Circle className="w-5 h-5 text-gray-300 flex-shrink-0" />}
-                <span className={`text-sm font-medium ${isDone ? 'line-through text-gray-300' : 'text-gray-700'}`}>
-                  {label}
-                </span>
-              </div>
-              {!isDone && href && (
-                <Link href={href}
-                  className="inline-flex items-center gap-1 text-xs text-[#2e6be4] font-semibold hover:underline">
-                  Go <ArrowRight className="w-3 h-3" />
-                </Link>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 export default function DashboardPage() {
   const { user } = useSelector((state: RootState) => state.auth);

@@ -4,12 +4,13 @@ import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import Link from 'next/link';
-import { Plus, Search, MoreHorizontal, Copy, Eye, Trash2, Play, Pause, ChevronUp, ChevronDown } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRole } from '@/lib/hooks/useRole';
 import { useDebounce } from '@/lib/hooks/useDebounce';
 import type { Campaign, CampaignsListResponse } from '@/types';
-import type { SortButtonProps, ActionMenuProps } from '@/types/campaigns';
+import { SortButton } from '@/components/campaigns/SortButton';
+import { ActionMenu } from '@/components/campaigns/ActionMenu';
 
 const PLATFORM_COLORS: Record<string, string> = {
   meta: 'bg-blue-100 text-blue-700',
@@ -18,57 +19,6 @@ const PLATFORM_COLORS: Record<string, string> = {
   dv360: 'bg-green-100 text-green-700',
   linkedin: 'bg-indigo-100 text-indigo-700',
 };
-
-function SortButton({ column, current, order, onClick }: SortButtonProps) {
-  const active = current === column;
-  return (
-    <button onClick={() => onClick(column)} className="flex items-center gap-1 hover:text-gray-900 transition-colors group">
-      {column.replace('_', ' ')}
-      <span className={`${active ? 'text-blue-600' : 'text-gray-300 group-hover:text-gray-500'}`}>
-        {active && order === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-      </span>
-    </button>
-  );
-}
-
-
-function ActionMenu({ campaign, onAction }: ActionMenuProps) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="relative">
-      <button
-        onClick={() => setOpen(!open)}
-        className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-500"
-        onBlur={() => setTimeout(() => setOpen(false), 150)}
-      >
-        <MoreHorizontal className="w-4 h-4" />
-      </button>
-      {open && (
-        <div className="absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg z-20 py-1 w-44">
-          <Link href={`/campaigns/${campaign.id}`} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
-            <Eye className="w-4 h-4" /> View Details
-          </Link>
-          <button onClick={() => { onAction('duplicate', campaign.id); setOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
-            <Copy className="w-4 h-4" /> Duplicate
-          </button>
-          {campaign.status === 'active' ? (
-            <button onClick={() => { onAction('pause', campaign.id); setOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
-              <Pause className="w-4 h-4" /> Pause
-            </button>
-          ) : campaign.status !== 'archived' && (
-            <button onClick={() => { onAction('activate', campaign.id); setOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-green-700 hover:bg-green-50">
-              <Play className="w-4 h-4" /> Activate
-            </button>
-          )}
-          <div className="border-t border-gray-100 my-1" />
-          <button onClick={() => { onAction('archive', campaign.id); setOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50">
-            <Trash2 className="w-4 h-4" /> Archive
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function CampaignsPage() {
   const queryClient = useQueryClient();

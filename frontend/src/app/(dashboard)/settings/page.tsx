@@ -8,17 +8,9 @@ import Link from 'next/link';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
 import { useRole } from '@/lib/hooks/useRole';
-import { UserPlus, Trash2, Shield, AlertTriangle, X } from 'lucide-react';
+import { UserPlus, Trash2, Shield } from 'lucide-react';
 import { AxiosError } from 'axios';
-
-interface TeamMember {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  is_active: boolean;
-  created_at: string;
-}
+import { ConfirmDeleteModal, type TeamMember } from '@/components/settings/ConfirmDeleteModal';
 
 interface InviteForm {
   email: string;
@@ -37,64 +29,6 @@ const ROLE_DESCRIPTIONS: Record<string, string> = {
   manager: 'Can create and edit campaigns, configure platforms',
   viewer: 'Read-only access to campaigns and reports',
 };
-
-function ConfirmDeleteModal({
-  member,
-  onConfirm,
-  onCancel,
-  isPending,
-}: {
-  member: TeamMember;
-  onConfirm: () => void;
-  onCancel: () => void;
-  isPending: boolean;
-}) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onCancel} />
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
-        <button
-          onClick={onCancel}
-          className="absolute top-4 right-4 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-        >
-          <X className="w-4 h-4" />
-        </button>
-
-        <div className="flex items-start gap-4 mb-5">
-          <div className="flex-shrink-0 w-11 h-11 rounded-full bg-red-100 flex items-center justify-center">
-            <AlertTriangle className="w-5 h-5 text-red-600" />
-          </div>
-          <div>
-            <h3 className="text-base font-semibold text-gray-900 mb-1">Remove team member</h3>
-            <p className="text-sm text-gray-500">
-              Are you sure you want to remove{' '}
-              <span className="font-medium text-gray-800">{member.name}</span>{' '}
-              (<span className="font-mono text-xs">{member.email}</span>) from the workspace?
-              They will immediately lose access.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-3 justify-end">
-          <button
-            onClick={onCancel}
-            disabled={isPending}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            disabled={isPending}
-            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
-          >
-            {isPending ? 'Removing…' : 'Remove member'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function SettingsPage() {
   const queryClient = useQueryClient();
@@ -201,7 +135,7 @@ export default function SettingsPage() {
             <button
               onClick={() => updateMutation.mutate({ name: wsName })}
               disabled={updateMutation.isPending}
-              className="px-4 py-2 bg-[#2e6be4] text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              className="px-4 py-2 bg-[#2e6be4] text-white text-sm font-medium rounded-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
             >
               {updateMutation.isPending ? 'Saving…' : 'Save Changes'}
             </button>
@@ -215,7 +149,7 @@ export default function SettingsPage() {
             {isAdmin && (
               <button
                 onClick={() => setShowInvite(!showInvite)}
-                className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#2e6be4] text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#2e6be4] text-white text-sm font-medium rounded-sm hover:bg-blue-700 transition-colors"
               >
                 <UserPlus className="w-4 h-4" />
                 Invite Member
