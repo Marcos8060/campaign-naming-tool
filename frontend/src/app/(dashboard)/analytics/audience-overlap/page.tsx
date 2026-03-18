@@ -86,7 +86,7 @@ export default function AudienceOverlapPage() {
           <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
           <p className="text-gray-500 font-medium">Not enough active campaigns to analyze</p>
           <p className="text-sm text-gray-400 mt-1">You need at least 2 active or paused campaigns</p>
-          <Link href="/campaigns/create" className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+          <Link href="/campaigns/create" className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-sm hover:bg-blue-700 transition-colors">
             Create Campaign
           </Link>
         </div>

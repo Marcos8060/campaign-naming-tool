@@ -115,7 +115,7 @@ export default function ExportsPage() {
         <button
           onClick={() => exportMutation.mutate({ platform: selectedPlatform, fmt: format })}
           disabled={exportMutation.isPending}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          className="inline-flex text-sm items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
         >
           <Download className="w-4 h-4" />
           {exportMutation.isPending ? 'Exporting…' : 'Download CSV'}

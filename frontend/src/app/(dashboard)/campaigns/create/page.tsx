@@ -519,7 +519,7 @@ export default function CreateCampaignPage() {
         <button
           onClick={() => setStep((s) => Math.max(1, s - 1))}
           disabled={step === 1}
-          className="px-5 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-40 transition-colors text-sm font-medium"
+          className="px-5 py-2 border border-gray-300 text-gray-700 rounded-sm hover:bg-gray-50 disabled:opacity-40 transition-colors text-sm font-medium"
         >
           Back
         </button>
@@ -532,7 +532,7 @@ export default function CreateCampaignPage() {
           <button
             onClick={() => setStep((s) => s + 1)}
             disabled={!canAdvance}
-            className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors text-sm"
+            className="px-6 py-2 bg-blue-600 text-white font-medium rounded-sm hover:bg-blue-700 disabled:opacity-50 transition-colors text-sm"
           >
             Continue
           </button>

@@ -178,7 +178,7 @@ export default function DashboardPage() {
         </div>
         <div className="relative z-10 hidden md:flex gap-3 flex-shrink-0">
           <Link href="/campaigns/create"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-[#6C5CE7] font-bold rounded-xl hover:bg-violet-50 transition-colors text-sm shadow-lg">
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-[#6C5CE7] font-bold rounded-sm hover:bg-violet-50 transition-colors text-sm shadow-lg">
             <Plus className="w-4 h-4" /> New Campaign
           </Link>
           <Link href="/analytics"
@@ -324,8 +324,8 @@ export default function DashboardPage() {
           </div>
           <div className="flex items-center gap-3">
             <Link href="/campaigns/create"
-              className="inline-flex items-center gap-2 px-4 py-2 brand-gradient text-white text-sm font-semibold rounded-xl hover:opacity-90 transition-opacity shadow-sm shadow-violet-200">
-              <Plus className="w-4 h-4" /> New Campaign
+              className="inline-flex items-center gap-2 px-4 py-2 brand-gradient text-white text-sm font-semibold rounded-sm hover:opacity-90 transition-opacity shadow-sm shadow-violet-200">
+              <Plus className="w-4 h-4" /> New Campaigns
             </Link>
             <Link href="/campaigns"
               className="text-sm text-[#6C5CE7] font-semibold hover:underline flex items-center gap-1">
@@ -384,7 +384,7 @@ export default function DashboardPage() {
             <p className="text-gray-700 font-semibold mb-1">No campaigns yet</p>
             <p className="text-gray-400 text-sm mb-5">Launch your first campaign using the wizard</p>
             <Link href="/campaigns/create"
-              className="inline-flex items-center gap-2 px-5 py-2.5 brand-gradient text-white font-semibold rounded-xl hover:opacity-90 transition-opacity text-sm">
+              className="inline-flex items-center gap-2 px-5 py-2.5 brand-gradient text-white font-semibold rounded-sm hover:opacity-90 transition-opacity text-sm">
               <Plus className="w-4 h-4" /> Create First Campaign
             </Link>
           </div>
