@@ -35,11 +35,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <Sidebar />
 
       {/* Content — offset by sidebar on lg+ */}
-      <div className={`
-        flex-1 flex flex-col overflow-hidden
-        transition-all duration-300
-        lg:${sidebarOpen ? 'ml-60' : 'ml-[70px]'}
-      `}>
+      <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${sidebarOpen ? 'lg:ml-60' : 'lg:ml-[70px]'}`}>
         <Header />
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
           {children}

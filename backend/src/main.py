@@ -2,15 +2,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
-from slowapi import _rate_limit_exceeded_handler
-from slowapi.errors import RateLimitExceeded
-from slowapi.middleware import SlowAPIMiddleware
 import os
 
 from src.config import settings
 from src.api.v1.router import api_router
 from src.db.session import init_db, close_db
-from src.core.limiter import limiter
 
 
 @asynccontextmanager
@@ -29,11 +25,6 @@ app = FastAPI(
     docs_url=None if settings.is_production() else "/docs",
     redoc_url=None if settings.is_production() else "/redoc",
 )
-
-# Rate limiting
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-app.add_middleware(SlowAPIMiddleware)
 
 app.add_middleware(
     CORSMiddleware,

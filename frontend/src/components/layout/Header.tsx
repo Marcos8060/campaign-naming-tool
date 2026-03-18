@@ -91,25 +91,42 @@ export function Header() {
           </button>
 
           {menuOpen && (
-            <div
-              style={{ backgroundColor: 'var(--card)', borderColor: 'var(--bd)' }}
-              className="absolute right-0 top-12 border rounded-2xl shadow-xl z-30 w-52 py-2 overflow-hidden"
+            <div className="absolute right-0 top-12 z-50 w-56 rounded-2xl overflow-hidden"
+              style={{
+                background: darkMode ? '#1e1e38' : '#ffffff',
+                border: darkMode ? '1px solid #252545' : '1px solid #d1d5db',
+                boxShadow: '0 12px 40px rgba(0,0,0,0.18), 0 3px 12px rgba(0,0,0,0.10)',
+              }}
             >
-              <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--bd)' }}>
-                <p className="text-sm font-semibold text-t1">{user?.name}</p>
-                <p className="text-xs text-t3 truncate">{user?.email || ''}</p>
+              {/* User info header */}
+              <div className="px-4 py-3"
+                style={{ borderBottom: darkMode ? '1px solid #252545' : '1px solid #e5e7eb' }}
+              >
+                <p className="text-sm font-semibold" style={{ color: darkMode ? '#eef0f8' : '#1a1a2e' }}>
+                  {user?.name}
+                </p>
+                <p className="text-xs truncate mt-0.5" style={{ color: darkMode ? '#8892a4' : '#6b7280' }}>
+                  {user?.email || ''}
+                </p>
               </div>
+
+              {/* Actions */}
               <div className="p-2">
                 <button
                   onClick={() => dispatch(toggleDarkMode())}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-t2 hover:bg-[var(--brand-soft)] hover:text-brand rounded-xl transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm rounded-xl transition-colors"
+                  style={{ color: darkMode ? '#8892a4' : '#374151' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = darkMode ? 'rgba(108,92,231,0.18)' : '#f0effe')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                 >
                   {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
                   {darkMode ? 'Light mode' : 'Dark mode'}
                 </button>
                 <button
                   onClick={signOut}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors font-medium"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm rounded-xl transition-colors font-medium text-red-500"
+                  onMouseEnter={e => (e.currentTarget.style.background = darkMode ? 'rgba(239,68,68,0.12)' : '#fef2f2')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                 >
                   <LogOut className="w-4 h-4" />
                   Sign Out

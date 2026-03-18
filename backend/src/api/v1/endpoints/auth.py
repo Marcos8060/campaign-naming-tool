@@ -1,12 +1,11 @@
-from fastapi import APIRouter, HTTPException, status, Depends, Request
-from pydantic import BaseModel, EmailStr
+from fastapi import APIRouter, HTTPException, status, Depends
+from pydantic import BaseModel
 from uuid import UUID, uuid4
 import asyncpg
 
 from src.core.security import hash_password, verify_password, create_access_token
 from src.db.session import get_pool
 from src.api.deps import get_current_user
-from src.core.limiter import limiter
 
 router = APIRouter()
 
@@ -31,8 +30,7 @@ class AuthResponse(BaseModel):
 
 
 @router.post("/register", response_model=AuthResponse)
-@limiter.limit("5/minute")
-async def register(request: Request, body: RegisterRequest, pool: asyncpg.Pool = Depends(get_pool)):
+async def register(body: RegisterRequest, pool: asyncpg.Pool = Depends(get_pool)):
     if len(body.password) < 8:
         raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
 
@@ -77,16 +75,19 @@ async def register(request: Request, body: RegisterRequest, pool: asyncpg.Pool =
         "role": user["role"],
     })
 
+    def serialize(row) -> dict:
+        return {k: str(v) if isinstance(v, UUID) else v for k, v in dict(row).items()
+                if k != "password_hash"}
+
     return AuthResponse(
         access_token=token,
-        user=dict(user),
-        workspace=dict(workspace),
+        user=serialize(user),
+        workspace=serialize(workspace),
     )
 
 
 @router.post("/login", response_model=AuthResponse)
-@limiter.limit("10/minute")
-async def login(request: Request, body: LoginRequest, pool: asyncpg.Pool = Depends(get_pool)):
+async def login(body: LoginRequest, pool: asyncpg.Pool = Depends(get_pool)):
     user = await pool.fetchrow(
         "SELECT * FROM users WHERE email = $1 AND is_active = true",
         body.email.lower().strip()
