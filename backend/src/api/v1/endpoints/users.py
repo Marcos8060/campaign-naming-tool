@@ -5,6 +5,7 @@ import asyncpg
 from src.api.deps import get_current_user, get_workspace_id, require_role
 from src.db.session import get_pool
 from src.core.security import hash_password
+from src.core.email import send_invitation_email
 
 router = APIRouter()
 
@@ -43,15 +44,32 @@ async def invite_user(
     if existing:
         raise HTTPException(status_code=400, detail="A user with this email already exists")
 
+    temp_password = body.get("password", "Camparc2024!")
+    invitee_name = body.get("name", body["email"].split("@")[0])
+
+    workspace = await pool.fetchrow(
+        "SELECT name FROM workspaces WHERE id = $1", current_user["workspace_id"]
+    )
+    workspace_name = workspace["name"] if workspace else "your workspace"
+
     user = await pool.fetchrow(
         """INSERT INTO users (workspace_id, email, password_hash, name, role)
            VALUES ($1, $2, $3, $4, $5) RETURNING id, email, name, role, is_active, created_at""",
         current_user["workspace_id"],
         body["email"],
-        hash_password(body.get("password", "Camparc2024!")),
-        body.get("name", body["email"].split("@")[0]),
+        hash_password(temp_password),
+        invitee_name,
         body.get("role", "viewer"),
     )
+
+    await send_invitation_email(
+        to_email=body["email"],
+        invitee_name=invitee_name,
+        workspace_name=workspace_name,
+        temp_password=temp_password,
+        invited_by=current_user.get("name") or current_user.get("email", "A team admin"),
+    )
+
     return {k: str(v) if isinstance(v, UUID) else v for k, v in dict(user).items()}
 
 

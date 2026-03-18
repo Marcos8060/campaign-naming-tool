@@ -18,6 +18,13 @@ class Settings(BaseSettings):
     allowed_origins: str = "http://localhost:3000"
     environment: str = "development"
 
+    # Email (Gmail SMTP)
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    email_from: str = ""
+
     @field_validator("jwt_secret", mode="before")
     @classmethod
     def validate_jwt_secret(cls, v: str) -> str:

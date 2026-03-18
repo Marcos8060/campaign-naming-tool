@@ -108,7 +108,7 @@ export default function SettingsPage() {
           <button
             onClick={() => updateMutation.mutate({ name: wsName })}
             disabled={updateMutation.isPending}
-            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
             Save Changes
           </button>
@@ -121,7 +121,7 @@ export default function SettingsPage() {
           <h3 className="font-semibold text-gray-900">Team Members</h3>
           {isAdmin && (
             <button onClick={() => setShowInvite(!showInvite)}
-              className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-sm hover:bg-blue-700 transition-colors">
               <UserPlus className="w-4 h-4" />
               Invite Member
             </button>
