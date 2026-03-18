@@ -1,0 +1,131 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Design tokens ─────────────────────────────────────────── */
+@layer base {
+  :root {
+    /* Surfaces */
+    --surface:      #F8F7FF;
+    --card:         #FFFFFF;
+    --card-hover:   #F5F4FF;
+    --input-bg:     #F8F7FF;
+    --sidebar-bg:   #FFFFFF;
+
+    /* Text */
+    --t1: #1a1a2e;
+    --t2: #6b7280;
+    --t3: #9ca3af;
+
+    /* Borders */
+    --bd:       #e5e7eb;
+    --bd-light: #f3f4f6;
+
+    /* Shadows */
+    --shadow-card:    0 1px 3px rgba(108,92,231,0.06), 0 4px 16px rgba(108,92,231,0.08);
+    --shadow-card-lg: 0 4px 24px rgba(108,92,231,0.12), 0 1px 4px rgba(108,92,231,0.06);
+
+    /* Brand */
+    --brand:       #6C5CE7;
+    --brand-light: #A29BFE;
+    --brand-soft:  #F0EFFE;
+    --brand-hover: #5A4BD1;
+
+    /* Radix / shadcn tokens */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 10%;
+    --border: 248 20% 91%;
+    --input: 248 20% 91%;
+    --ring: 252 87% 65%;
+    --radius: 0.75rem;
+    --primary: 252 87% 65%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 252 30% 96%;
+    --secondary-foreground: 252 50% 30%;
+    --muted: 248 20% 96%;
+    --muted-foreground: 248 10% 52%;
+    --accent: 252 30% 94%;
+    --accent-foreground: 252 60% 40%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 10%;
+  }
+
+  .dark {
+    --surface:    #0d0d1a;
+    --card:       #16162a;
+    --card-hover: #1e1e38;
+    --input-bg:   #1a1a2e;
+    --sidebar-bg: #13131f;
+
+    --t1: #eef0f8;
+    --t2: #8892a4;
+    --t3: #5a6478;
+
+    --bd:       #252545;
+    --bd-light: #1e1e38;
+
+    --shadow-card:    0 1px 3px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.25);
+    --shadow-card-lg: 0 4px 24px rgba(0,0,0,0.4), 0 1px 4px rgba(0,0,0,0.3);
+
+    --brand-soft: rgba(108,92,231,0.18);
+
+    /* Radix dark overrides */
+    --background: 240 30% 8%;
+    --foreground: 240 10% 95%;
+    --border: 240 20% 18%;
+    --input: 240 20% 14%;
+    --card: 240 25% 13%;
+    --card-foreground: 240 10% 95%;
+    --popover: 240 25% 13%;
+    --popover-foreground: 240 10% 95%;
+    --secondary: 240 25% 16%;
+    --secondary-foreground: 240 10% 95%;
+    --muted: 240 25% 16%;
+    --muted-foreground: 240 10% 55%;
+    --accent: 240 25% 16%;
+    --accent-foreground: 240 10% 95%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 100%;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  body {
+    background-color: var(--surface);
+    color: var(--t1);
+    @apply antialiased;
+    font-feature-settings: "cv02","cv03","cv04","cv11";
+    transition: background-color 0.2s, color 0.2s;
+  }
+}
+
+/* ── Utilities ─────────────────────────────────────────────── */
+@layer utilities {
+  .brand-gradient {
+    background: linear-gradient(135deg, #6C5CE7 0%, #a78bfa 100%);
+  }
+  .brand-gradient-soft {
+    background: linear-gradient(135deg, var(--brand-soft) 0%, #ede9fe 100%);
+  }
+  .text-brand  { color: var(--brand); }
+  .bg-brand    { background-color: var(--brand); }
+  .border-brand { border-color: var(--brand); }
+
+  .card-shadow    { box-shadow: var(--shadow-card); }
+  .card-shadow-lg { box-shadow: var(--shadow-card-lg); }
+
+  /* Semantic surface helpers */
+  .bg-surface   { background-color: var(--surface); }
+  .bg-card      { background-color: var(--card); }
+  .text-t1      { color: var(--t1); }
+  .text-t2      { color: var(--t2); }
+  .text-t3      { color: var(--t3); }
+  .border-bd    { border-color: var(--bd); }
+  .border-bd-light { border-color: var(--bd-light); }
+  .bg-input     { background-color: var(--input-bg); }
+}

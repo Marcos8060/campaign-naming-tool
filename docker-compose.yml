@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: campaign_db
+    environment:
+      POSTGRES_DB: campaign_intelligence
+      POSTGRES_USER: campaign_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-dev_password_123}
+      POSTGRES_INITDB_ARGS: "-E UTF8"
+    ports:
+      - "${DB_PORT:-5434}:5434"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U campaign_user -d campaign_intelligence"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - campaign_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: campaign_backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://campaign_user:${DB_PASSWORD:-dev_password_123}@postgres:5432/campaign_intelligence
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-min-32-chars-please-change}
+      JWT_ALGORITHM: HS256
+      JWT_EXPIRATION: 604800
+      ALLOWED_ORIGINS: http://localhost:3000
+      ENVIRONMENT: development
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ./backend:/app
+      - backend_uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - campaign_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: campaign_frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - backend
+    command: npm run dev
+    networks:
+      - campaign_network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: campaign_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@campaign.local
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - campaign_network
+    profiles:
+      - tools
+
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+  backend_uploads:
+    driver: local
+
+networks:
+  campaign_network:
+    driver: bridge

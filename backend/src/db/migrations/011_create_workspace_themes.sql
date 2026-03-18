@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS workspace_themes (
+  workspace_id UUID PRIMARY KEY REFERENCES workspaces(id) ON DELETE CASCADE,
+  logo_url TEXT,
+  logo_dark_url TEXT,
+  favicon_url TEXT,
+  primary_color VARCHAR(7) DEFAULT '#3b82f6',
+  primary_hover VARCHAR(7) DEFAULT '#2563eb',
+  secondary_color VARCHAR(7) DEFAULT '#8b5cf6',
+  accent_color VARCHAR(7) DEFAULT '#10b981',
+  danger_color VARCHAR(7) DEFAULT '#ef4444',
+  warning_color VARCHAR(7) DEFAULT '#f59e0b',
+  success_color VARCHAR(7) DEFAULT '#10b981',
+  background_primary VARCHAR(7) DEFAULT '#ffffff',
+  background_secondary VARCHAR(7) DEFAULT '#f9fafb',
+  text_primary VARCHAR(7) DEFAULT '#111827',
+  text_secondary VARCHAR(7) DEFAULT '#6b7280',
+  border_color VARCHAR(7) DEFAULT '#e5e7eb',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
