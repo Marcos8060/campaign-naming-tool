@@ -1,14 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import { Upload, Image } from 'lucide-react';
 import { toast } from 'sonner';
+import { useRole } from '@/lib/hooks/useRole';
 
 export default function AssetsPage() {
+  const router = useRouter();
+  const { isViewer } = useRole();
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    if (isViewer) router.replace('/dashboard');
+  }, [isViewer, router]);
 
   const { data: assets, isLoading } = useQuery({
     queryKey: ['assets'],

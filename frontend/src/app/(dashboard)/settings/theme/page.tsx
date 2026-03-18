@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useRole } from '@/lib/hooks/useRole';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
@@ -94,9 +96,15 @@ function ThemePreview({ colors, logoUrl }: { colors: Record<string, string>; log
 }
 
 export default function ThemePage() {
+  const router = useRouter();
+  const { isAdmin } = useRole();
   const queryClient = useQueryClient();
   const [colors, setColors] = useState<Record<string, string>>({});
   const [logoUrl, setLogoUrl] = useState<string | undefined>();
+
+  useEffect(() => {
+    if (!isAdmin) router.replace('/dashboard');
+  }, [isAdmin, router]);
 
   const { data: branding } = useQuery({
     queryKey: ['branding'],

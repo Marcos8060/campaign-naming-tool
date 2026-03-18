@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
+import { useRole } from '@/lib/hooks/useRole';
 import { UserPlus, Trash2, Shield, AlertTriangle, X } from 'lucide-react';
 import { AxiosError } from 'axios';
 
@@ -98,7 +99,7 @@ function ConfirmDeleteModal({
 export default function SettingsPage() {
   const queryClient = useQueryClient();
   const { user } = useSelector((state: RootState) => state.auth);
-  const isAdmin = user?.role === 'admin';
+  const { isAdmin } = useRole();
 
   const [wsName, setWsName] = useState('');
   const [showInvite, setShowInvite] = useState(false);
@@ -331,30 +332,24 @@ export default function SettingsPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h3 className="font-semibold text-gray-900 mb-4">Configuration</h3>
           <div className="space-y-2">
-            {[
-              {
-                href: '/settings/theme',
-                label: 'Theme & Branding',
-                desc: 'Customize colors, logo, and favicon',
-              },
-              {
-                href: '/settings/platforms',
-                label: 'Platform Configurations',
-                desc: 'Naming templates per ad platform',
-              },
-            ].map(({ href, label, desc }) => (
-              <Link
-                key={href}
-                href={href}
-                className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 border border-gray-100 transition-colors"
-              >
+            {isAdmin && (
+              <Link href="/settings/theme"
+                className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 border border-gray-100 transition-colors">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">{label}</p>
-                  <p className="text-xs text-gray-500">{desc}</p>
+                  <p className="text-sm font-medium text-gray-900">Theme & Branding</p>
+                  <p className="text-xs text-gray-500">Customize colors, logo, and favicon</p>
                 </div>
                 <span className="text-gray-400">→</span>
               </Link>
-            ))}
+            )}
+            <Link href="/settings/platforms"
+              className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 border border-gray-100 transition-colors">
+              <div>
+                <p className="text-sm font-medium text-gray-900">Platform Configurations</p>
+                <p className="text-xs text-gray-500">Naming templates per ad platform</p>
+              </div>
+              <span className="text-gray-400">→</span>
+            </Link>
           </div>
         </div>
       </div>

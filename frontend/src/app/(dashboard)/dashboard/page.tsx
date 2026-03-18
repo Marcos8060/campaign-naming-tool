@@ -9,6 +9,7 @@ import {
 import Link from 'next/link';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
+import { useRole } from '@/lib/hooks/useRole';
 import {
   CheckCircle2, Circle, ArrowRight, TrendingUp, Target,
   DollarSign, Megaphone, Plus, BarChart2, AlertTriangle,
@@ -110,6 +111,7 @@ function OnboardingChecklist({ onboarding }: { onboarding: OnboardingStatus | un
 
 export default function DashboardPage() {
   const { user } = useSelector((state: RootState) => state.auth);
+  const { canManage: canCreate } = useRole();
   const firstName = user?.name?.split(' ')[0] || 'there';
 
   const { data: overview, isLoading } = useQuery<AnalyticsOverview>({
@@ -178,10 +180,12 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="relative z-10 hidden md:flex gap-3 flex-shrink-0">
-          <Link href="/campaigns/create"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-[#2e6be4] font-bold rounded-sm hover:bg-blue-50 transition-colors text-sm shadow-lg">
-            <Plus className="w-4 h-4" /> New Campaign
-          </Link>
+          {canCreate && (
+            <Link href="/campaigns/create"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-[#2e6be4] font-bold rounded-sm hover:bg-blue-50 transition-colors text-sm shadow-lg">
+              <Plus className="w-4 h-4" /> New Campaign
+            </Link>
+          )}
           <Link href="/analytics"
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/15 text-white font-semibold rounded-xl hover:bg-white/25 transition-colors text-sm border border-white/20">
             <BarChart2 className="w-4 h-4" /> Analytics
@@ -190,7 +194,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Onboarding ── */}
-      <OnboardingChecklist onboarding={overview?.onboarding} />
+      {canCreate && <OnboardingChecklist onboarding={overview?.onboarding} />}
 
       {/* ── KPI Cards ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -260,10 +264,12 @@ export default function DashboardPage() {
                 <BarChart2 className="w-6 h-6 text-[#2e6be4]" />
               </div>
               <p className="text-sm text-gray-400 font-medium">No campaigns yet</p>
-              <Link href="/campaigns/create"
-                className="text-[#2e6be4] text-sm font-semibold mt-2 hover:underline flex items-center gap-1">
-                Create first campaign <ArrowRight className="w-3 h-3" />
-              </Link>
+              {canCreate && (
+                <Link href="/campaigns/create"
+                  className="text-[#2e6be4] text-sm font-semibold mt-2 hover:underline flex items-center gap-1">
+                  Create first campaign <ArrowRight className="w-3 h-3" />
+                </Link>
+              )}
             </div>
           )}
         </div>
@@ -324,10 +330,12 @@ export default function DashboardPage() {
             <p className="text-xs text-gray-400 mt-0.5">Latest 5 created campaigns</p>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/campaigns/create"
-              className="inline-flex items-center gap-2 px-4 py-2 brand-gradient text-white text-sm font-semibold rounded-sm hover:opacity-90 transition-opacity shadow-sm shadow-blue-200">
-              <Plus className="w-4 h-4" /> New Campaigns
-            </Link>
+            {canCreate && (
+              <Link href="/campaigns/create"
+                className="inline-flex items-center gap-2 px-4 py-2 brand-gradient text-white text-sm font-semibold rounded-sm hover:opacity-90 transition-opacity shadow-sm shadow-blue-200">
+                <Plus className="w-4 h-4" /> New Campaigns
+              </Link>
+            )}
             <Link href="/campaigns"
               className="text-sm text-[#2e6be4] font-semibold hover:underline flex items-center gap-1">
               View all <ArrowRight className="w-3 h-3" />
@@ -383,11 +391,15 @@ export default function DashboardPage() {
               <Megaphone className="w-7 h-7 text-[#2e6be4]" />
             </div>
             <p className="text-gray-700 font-semibold mb-1">No campaigns yet</p>
-            <p className="text-gray-400 text-sm mb-5">Launch your first campaign using the wizard</p>
-            <Link href="/campaigns/create"
-              className="inline-flex items-center gap-2 px-5 py-2.5 brand-gradient text-white font-semibold rounded-sm hover:opacity-90 transition-opacity text-sm">
-              <Plus className="w-4 h-4" /> Create First Campaign
-            </Link>
+            <p className="text-gray-400 text-sm mb-5">
+              {canCreate ? 'Launch your first campaign using the wizard' : 'No campaigns have been created yet'}
+            </p>
+            {canCreate && (
+              <Link href="/campaigns/create"
+                className="inline-flex items-center gap-2 px-5 py-2.5 brand-gradient text-white font-semibold rounded-sm hover:opacity-90 transition-opacity text-sm">
+                <Plus className="w-4 h-4" /> Create First Campaign
+              </Link>
+            )}
           </div>
         )}
       </div>

@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useRole } from '@/lib/hooks/useRole';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
@@ -134,6 +135,12 @@ function LivePreview({ generatedName, platformConfig, form }: LivePreviewProps) 
 export default function CreateCampaignPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { isViewer } = useRole();
+
+  useEffect(() => {
+    if (isViewer) router.replace('/campaigns');
+  }, [isViewer, router]);
+
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<CampaignFormData>({
     platform: '',

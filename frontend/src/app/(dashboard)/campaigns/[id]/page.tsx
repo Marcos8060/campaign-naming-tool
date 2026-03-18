@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useRole } from '@/lib/hooks/useRole';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import Link from 'next/link';
@@ -170,7 +171,9 @@ export default function CampaignDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { canManage: canEdit } = useRole();
   const [showEdit, setShowEdit] = useState(false);
+  const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
 
   const { data: campaign, isLoading } = useQuery<Campaign>({
     queryKey: ['campaign', id],
@@ -257,6 +260,31 @@ export default function CampaignDetailPage() {
         />
       )}
 
+      {showArchiveConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowArchiveConfirm(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+            <h3 className="text-base font-semibold text-gray-900 mb-2">Archive campaign?</h3>
+            <p className="text-sm text-gray-500 mb-5">
+              This will archive <span className="font-medium text-gray-800">{campaign.name}</span>.
+              It will no longer appear in active campaigns.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setShowArchiveConfirm(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                Cancel
+              </button>
+              <button
+                onClick={() => { setShowArchiveConfirm(false); archiveMutation.mutate(); }}
+                disabled={archiveMutation.isPending}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors">
+                Archive
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center gap-4">
         <Link href="/campaigns" className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors">
           <ArrowLeft className="w-5 h-5" />
@@ -270,39 +298,41 @@ export default function CampaignDetailPage() {
             <span className="text-gray-500 text-sm capitalize">{campaign.platform?.replace('_', ' ')}</span>
           </div>
         </div>
-        <div className="flex gap-2 flex-shrink-0">
-          {campaign.status !== 'archived' && campaign.status !== 'completed' && (
-            <button onClick={() => setShowEdit(true)}
+        {canEdit && (
+          <div className="flex gap-2 flex-shrink-0">
+            {campaign.status !== 'archived' && campaign.status !== 'completed' && (
+              <button onClick={() => setShowEdit(true)}
+                className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
+                <Edit2 className="w-4 h-4" /> Edit
+              </button>
+            )}
+            {campaign.status === 'active' ? (
+              <button onClick={() => statusMutation.mutate('paused')} disabled={statusMutation.isPending}
+                className="inline-flex items-center gap-2 px-3 py-2 border border-yellow-300 text-yellow-700 text-sm font-medium rounded-lg hover:bg-yellow-50 transition-colors">
+                <Pause className="w-4 h-4" /> Pause
+              </button>
+            ) : campaign.status !== 'archived' && campaign.status !== 'completed' && (
+              <button onClick={() => statusMutation.mutate('active')} disabled={statusMutation.isPending}
+                className="inline-flex items-center gap-2 px-3 py-2 border border-green-300 text-green-700 text-sm font-medium rounded-lg hover:bg-green-50 transition-colors">
+                <Play className="w-4 h-4" /> Activate
+              </button>
+            )}
+            <button onClick={() => duplicateMutation.mutate()} disabled={duplicateMutation.isPending}
               className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
-              <Edit2 className="w-4 h-4" /> Edit
+              <Copy className="w-4 h-4" /> Duplicate
             </button>
-          )}
-          {campaign.status === 'active' ? (
-            <button onClick={() => statusMutation.mutate('paused')} disabled={statusMutation.isPending}
-              className="inline-flex items-center gap-2 px-3 py-2 border border-yellow-300 text-yellow-700 text-sm font-medium rounded-lg hover:bg-yellow-50 transition-colors">
-              <Pause className="w-4 h-4" /> Pause
-            </button>
-          ) : campaign.status !== 'archived' && campaign.status !== 'completed' && (
-            <button onClick={() => statusMutation.mutate('active')} disabled={statusMutation.isPending}
-              className="inline-flex items-center gap-2 px-3 py-2 border border-green-300 text-green-700 text-sm font-medium rounded-lg hover:bg-green-50 transition-colors">
-              <Play className="w-4 h-4" /> Activate
-            </button>
-          )}
-          <button onClick={() => duplicateMutation.mutate()} disabled={duplicateMutation.isPending}
-            className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
-            <Copy className="w-4 h-4" /> Duplicate
-          </button>
-          {campaign.status !== 'archived' && (
-            <button
-              onClick={() => { if (confirm('Archive this campaign?')) archiveMutation.mutate(); }}
-              disabled={archiveMutation.isPending}
-              className="p-2 border border-red-200 text-red-500 rounded-lg hover:bg-red-50 transition-colors"
-              title="Archive"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          )}
-        </div>
+            {campaign.status !== 'archived' && (
+              <button
+                onClick={() => setShowArchiveConfirm(true)}
+                disabled={archiveMutation.isPending}
+                className="p-2 border border-red-200 text-red-500 rounded-lg hover:bg-red-50 transition-colors"
+                title="Archive"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

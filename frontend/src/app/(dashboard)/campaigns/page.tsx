@@ -6,6 +6,7 @@ import { apiClient } from '@/lib/api/client';
 import Link from 'next/link';
 import { Plus, Search, MoreHorizontal, Copy, Eye, Trash2, Play, Pause, ChevronUp, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
+import { useRole } from '@/lib/hooks/useRole';
 import { useDebounce } from '@/lib/hooks/useDebounce';
 import type { Campaign, CampaignsListResponse } from '@/types';
 import type { SortButtonProps, ActionMenuProps } from '@/types/campaigns';
@@ -71,6 +72,7 @@ function ActionMenu({ campaign, onAction }: ActionMenuProps) {
 
 export default function CampaignsPage() {
   const queryClient = useQueryClient();
+  const { canManage: canCreate } = useRole();
   const [platform, setPlatform] = useState('');
   const [status, setStatus] = useState('');
   const [search, setSearch] = useState('');
@@ -166,13 +168,15 @@ export default function CampaignsPage() {
               : 'Loading...'}
           </p>
         </div>
-        <Link
-          href="/campaigns/create"
-          className="inline-flex text-sm items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-sm hover:bg-blue-700 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          New Campaign
-        </Link>
+        {canCreate && (
+          <Link
+            href="/campaigns/create"
+            className="inline-flex text-sm items-center gap-2 px-4 py-2 bg-[#2e6be4] text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            New Campaign
+          </Link>
+        )}
       </div>
 
       {/* Filters */}
@@ -202,8 +206,8 @@ export default function CampaignsPage() {
         )}
       </div>
 
-      {/* Bulk actions bar */}
-      {selected.size > 0 && (
+      {/* Bulk actions bar — managers/admins only */}
+      {canCreate && selected.size > 0 && (
         <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
           <span className="text-sm font-medium text-blue-800">{selected.size} selected</span>
           <div className="flex gap-2 ml-2">
@@ -221,7 +225,7 @@ export default function CampaignsPage() {
         ) : campaigns.length === 0 ? (
           <div className="p-12 text-center">
             <p className="text-gray-500 mb-4">{search || platform || status ? 'No campaigns match your filters.' : 'No campaigns yet.'}</p>
-            {!search && !platform && !status && (
+            {!search && !platform && !status && canCreate && (
               <Link href="/campaigns/create" className="text-blue-600 hover:underline text-sm font-medium">
                 Create your first campaign →
               </Link>
@@ -231,17 +235,19 @@ export default function CampaignsPage() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-4 py-3 w-10">
-                  <input type="checkbox" checked={selected.size === campaigns.length && campaigns.length > 0}
-                    onChange={toggleAll} className="rounded border-gray-300" />
-                </th>
+                {canCreate && (
+                  <th className="px-4 py-3 w-10">
+                    <input type="checkbox" checked={selected.size === campaigns.length && campaigns.length > 0}
+                      onChange={toggleAll} className="rounded border-gray-300" />
+                  </th>
+                )}
                 {[
                   { label: <SortButton column="name" current={sortBy} order={sortOrder} onClick={handleSort} />, cls: '' },
                   { label: 'Platform', cls: '' },
                   { label: <SortButton column="status" current={sortBy} order={sortOrder} onClick={handleSort} />, cls: '' },
                   { label: <SortButton column="budget_total" current={sortBy} order={sortOrder} onClick={handleSort} />, cls: '' },
                   { label: <SortButton column="start_date" current={sortBy} order={sortOrder} onClick={handleSort} />, cls: 'hidden md:table-cell' },
-                  { label: '', cls: 'w-10' },
+                  ...(canCreate ? [{ label: '', cls: 'w-10' }] : []),
                 ].map((h, i) => (
                   <th key={i} className={`px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider ${h.cls}`}>
                     {h.label}
@@ -252,10 +258,12 @@ export default function CampaignsPage() {
             <tbody className="divide-y divide-gray-100">
               {campaigns.map((campaign) => (
                 <tr key={campaign.id} className={`hover:bg-gray-50 ${selected.has(campaign.id) ? 'bg-blue-50' : ''}`}>
-                  <td className="px-4 py-3">
-                    <input type="checkbox" checked={selected.has(campaign.id)}
-                      onChange={() => toggleSelect(campaign.id)} className="rounded border-gray-300" />
-                  </td>
+                  {canCreate && (
+                    <td className="px-4 py-3">
+                      <input type="checkbox" checked={selected.has(campaign.id)}
+                        onChange={() => toggleSelect(campaign.id)} className="rounded border-gray-300" />
+                    </td>
+                  )}
                   <td className="px-4 py-3">
                     <Link href={`/campaigns/${campaign.id}`} className="font-medium text-gray-900 hover:text-blue-600 text-sm block truncate max-w-56">
                       {campaign.name}
@@ -283,9 +291,11 @@ export default function CampaignsPage() {
                   <td className="px-4 py-3 text-sm text-gray-600 hidden md:table-cell">
                     {campaign.start_date ? `${campaign.start_date}${campaign.end_date ? ' → ' + campaign.end_date : ''}` : '—'}
                   </td>
-                  <td className="px-4 py-3">
-                    <ActionMenu campaign={campaign} onAction={handleAction} />
-                  </td>
+                  {canCreate && (
+                    <td className="px-4 py-3">
+                      <ActionMenu campaign={campaign} onAction={handleAction} />
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

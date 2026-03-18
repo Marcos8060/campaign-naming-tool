@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useRole } from '@/lib/hooks/useRole';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
@@ -8,8 +10,14 @@ import { toast } from 'sonner';
 const PLATFORMS = ['meta', 'google_ads', 'tiktok', 'dv360', 'linkedin'];
 
 export default function PlatformsSettingsPage() {
+  const router = useRouter();
+  const { isViewer } = useRole();
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isViewer) router.replace('/dashboard');
+  }, [isViewer, router]);
   const [form, setForm] = useState({ naming_template: '', separator: '_', max_length: 255 });
 
   const { data: platforms } = useQuery({

@@ -40,7 +40,7 @@ async def invite_user(
     current_user: dict = Depends(require_role("admin")),
     pool: asyncpg.Pool = Depends(get_pool),
 ):
-    existing = await pool.fetchrow("SELECT id FROM users WHERE email = $1", body["email"])
+    existing = await pool.fetchrow("SELECT id FROM users WHERE email = $1 AND is_active = true", body["email"])
     if existing:
         raise HTTPException(status_code=400, detail="A user with this email already exists")
 
@@ -105,7 +105,7 @@ async def remove_user(
     if str(user_id) == str(current_user["id"]):
         raise HTTPException(status_code=400, detail="Cannot remove yourself")
     await pool.execute(
-        "UPDATE users SET is_active = false WHERE id = $1 AND workspace_id = $2",
+        "DELETE FROM users WHERE id = $1 AND workspace_id = $2",
         user_id, current_user["workspace_id"]
     )
     return {"success": True}

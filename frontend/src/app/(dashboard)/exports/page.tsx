@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import { Download, FileText, Info } from 'lucide-react';
 import { toast } from 'sonner';
+import { useRole } from '@/lib/hooks/useRole';
 
 const PLATFORMS = [
   { id: 'meta', label: 'Meta' },
@@ -20,8 +22,14 @@ const FORMAT_DESCRIPTIONS: Record<string, string> = {
 };
 
 export default function ExportsPage() {
+  const router = useRouter();
+  const { isViewer } = useRole();
   const [selectedPlatform, setSelectedPlatform] = useState('');
   const [format, setFormat] = useState<'generic' | 'platform_native'>('generic');
+
+  useEffect(() => {
+    if (isViewer) router.replace('/dashboard');
+  }, [isViewer, router]);
 
   const { data: history, refetch } = useQuery({
     queryKey: ['exports'],

@@ -12,16 +12,16 @@ import {
 } from 'lucide-react';
 import type { NavItemProps } from '@/types/layout';
 
-const NAV = [
-  { href: '/dashboard',                  label: 'Dashboard',        icon: LayoutDashboard },
-  { href: '/taxonomies',                 label: 'Taxonomies',       icon: Tag },
-  { href: '/campaigns',                  label: 'Campaigns',        icon: Megaphone },
-  { href: '/analytics',                  label: 'Analytics',        icon: BarChart2 },
-  { href: '/analytics/audience-overlap', label: 'Audience Overlap', icon: Users2, indent: true },
-  { href: '/exports',                    label: 'Exports',          icon: Download },
-  { href: '/assets',                     label: 'Assets',           icon: Image },
+const NAV_ALL = [
+  { href: '/dashboard',                  label: 'Dashboard',        icon: LayoutDashboard, roles: ['admin', 'manager', 'viewer'] },
+  { href: '/campaigns',                  label: 'Campaigns',        icon: Megaphone,        roles: ['admin', 'manager', 'viewer'] },
+  { href: '/analytics',                  label: 'Analytics',        icon: BarChart2,        roles: ['admin', 'manager', 'viewer'] },
+  { href: '/analytics/audience-overlap', label: 'Audience Overlap', icon: Users2,           roles: ['admin', 'manager', 'viewer'], indent: true },
+  { href: '/taxonomies',                 label: 'Taxonomies',       icon: Tag,              roles: ['admin', 'manager'] },
+  { href: '/exports',                    label: 'Exports',          icon: Download,         roles: ['admin', 'manager'] },
+  { href: '/assets',                     label: 'Assets',           icon: Image,            roles: ['admin', 'manager'] },
 ];
-const BOTTOM_NAV = [{ href: '/settings', label: 'Settings', icon: Settings }];
+const BOTTOM_NAV_ALL = [{ href: '/settings', label: 'Settings', icon: Settings, roles: ['admin', 'manager'] }];
 
 
 function NavItem({
@@ -65,6 +65,11 @@ function DesktopSidebar() {
   const dispatch = useDispatch();
   const { sidebarOpen } = useSelector((state: RootState) => state.ui);
   const { currentWorkspace } = useSelector((state: RootState) => state.workspace);
+  const { user } = useSelector((state: RootState) => state.auth);
+  const role = user?.role ?? 'viewer';
+
+  const NAV = NAV_ALL.filter((item) => item.roles.includes(role));
+  const BOTTOM_NAV = BOTTOM_NAV_ALL.filter((item) => item.roles.includes(role));
 
   const isActive = (href: string) =>
     href === '/dashboard' ? pathname === href : pathname === href || pathname.startsWith(href + '/');
@@ -135,6 +140,11 @@ function MobileDrawer() {
   const dispatch = useDispatch();
   const { mobileNavOpen } = useSelector((state: RootState) => state.ui);
   const { currentWorkspace } = useSelector((state: RootState) => state.workspace);
+  const { user } = useSelector((state: RootState) => state.auth);
+  const role = user?.role ?? 'viewer';
+
+  const NAV = NAV_ALL.filter((item) => item.roles.includes(role));
+  const BOTTOM_NAV = BOTTOM_NAV_ALL.filter((item) => item.roles.includes(role));
 
   const isActive = (href: string) =>
     href === '/dashboard' ? pathname === href : pathname === href || pathname.startsWith(href + '/');
