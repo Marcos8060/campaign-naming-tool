@@ -27,7 +27,7 @@ export default function RegisterPage() {
     : form.password.length < 8 ? 1
     : form.password.length < 12 ? 2 : 3;
 
-  const pwColors = ['', 'bg-red-400', 'bg-amber-400', 'bg-green-500'];
+  const pwColors = ['', 'bg-red-400', 'bg-amber-400', 'bg-positive'];
   const pwLabels = ['', 'Too short', 'Good', 'Strong'];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -87,7 +87,7 @@ export default function RegisterPage() {
                     <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${pwStrength >= i ? pwColors[pwStrength] : 'bg-[var(--bd)]'}`} />
                   ))}
                 </div>
-                <p className={`text-xs mt-1 font-medium ${pwStrength === 3 ? 'text-green-500' : pwStrength === 2 ? 'text-amber-500' : 'text-red-400'}`}>
+                <p className={`text-xs mt-1 font-medium ${pwStrength === 3 ? 'text-positive' : pwStrength === 2 ? 'text-amber-500' : 'text-red-400'}`}>
                   {pwLabels[pwStrength]}
                 </p>
               </div>
@@ -96,7 +96,7 @@ export default function RegisterPage() {
         ))}
 
         <div className="flex items-start gap-2 pt-1">
-          <CheckCircle2 className="w-4 h-4 text-brand mt-0.5 flex-shrink-0" />
+          <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
           <p className="text-xs text-t2">
             By creating an account you agree to our Terms of Service and Privacy Policy.
           </p>
@@ -104,7 +104,7 @@ export default function RegisterPage() {
 
         <button
           type="submit" disabled={loading}
-          className="w-full py-3 px-4 brand-gradient text-white font-bold rounded-xl hover:opacity-90 disabled:opacity-50 transition-opacity shadow-sm shadow-blue-200 text-sm"
+          className="w-full py-3 px-4 primary-gradient text-white font-bold rounded-xl hover:opacity-90 disabled:opacity-50 transition-opacity shadow-sm shadow-primary/20 text-sm"
         >
           {loading ? 'Creating workspace…' : 'Create Free Account'}
         </button>
@@ -112,7 +112,7 @@ export default function RegisterPage() {
 
       <p className="mt-6 text-center text-sm text-t2">
         Already have an account?{' '}
-        <Link href="/login" className="text-brand font-semibold hover:underline">Sign in</Link>
+        <Link href="/login" className="text-primary font-semibold hover:underline">Sign in</Link>
       </p>
     </>
   );

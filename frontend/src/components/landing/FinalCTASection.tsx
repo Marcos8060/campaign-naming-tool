@@ -12,7 +12,7 @@ export function FinalCTASection() {
   return (
     <section className="py-16 bg-white">
       <div className="max-w-5xl mx-auto px-6">
-        <div className="relative brand-gradient rounded-3xl p-12 md:p-16 text-white overflow-hidden">
+        <div className="relative primary-gradient rounded-3xl p-12 md:p-16 text-white overflow-hidden">
           {/* Background orbs */}
           <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full translate-x-32 -translate-y-32 pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full -translate-x-16 translate-y-16 pointer-events-none" />
@@ -52,7 +52,7 @@ export function FinalCTASection() {
             <div className="flex flex-col sm:flex-row gap-3">
               <Link
                 href="/register"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-[#2e6be4] font-extrabold rounded-xl hover:bg-blue-50 transition-colors shadow-xl text-sm"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-primary font-extrabold rounded-xl hover:bg-blue-50 transition-colors shadow-xl text-sm"
               >
                 Find My Wasted Spend Now <ArrowRight className="w-4 h-4" />
               </Link>

@@ -8,8 +8,8 @@ import { toggleDarkMode, setMobileNavOpen } from '@/lib/store/slices/uiSlice';
 import { Bell, LogOut, Search, ChevronDown, Sun, Moon, Menu } from 'lucide-react';
 
 const ROLE_BADGE: Record<string, string> = {
-  admin:   'bg-blue-100 text-[#2e6be4] dark:bg-blue-900/40 dark:text-blue-300',
-  manager: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+  admin:   'bg-blue-100 text-primary dark:bg-blue-900/40 dark:text-blue-300',
+  manager: 'bg-blue-100 text-primary dark:bg-blue-900/40 dark:text-blue-300',
   viewer:  'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300',
 };
 
@@ -31,7 +31,7 @@ export function Header() {
     >
       {/* Mobile hamburger */}
       <button
-        className="lg:hidden p-2 rounded-xl hover:bg-[var(--brand-soft)] text-t2 hover:text-brand transition-colors flex-shrink-0"
+        className="lg:hidden p-2 rounded-xl hover:bg-[var(--color-primary-soft)] text-t2 hover:text-primary transition-colors flex-shrink-0"
         onClick={() => dispatch(setMobileNavOpen(true))}
         aria-label="Open navigation"
       >
@@ -59,16 +59,16 @@ export function Header() {
         {/* Dark mode toggle */}
         <button
           onClick={() => dispatch(toggleDarkMode())}
-          className="p-2 rounded-xl hover:bg-[var(--brand-soft)] text-t2 hover:text-brand transition-colors"
+          className="p-2 rounded-xl hover:bg-[var(--color-primary-soft)] text-t2 hover:text-primary transition-colors"
           aria-label="Toggle dark mode"
         >
           {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </button>
 
         {/* Notification bell */}
-        <button className="relative p-2 rounded-xl hover:bg-[var(--brand-soft)] text-t2 hover:text-brand transition-colors">
+        <button className="relative p-2 rounded-xl hover:bg-[var(--color-primary-soft)] text-t2 hover:text-primary transition-colors">
           <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-brand rounded-full border-2 border-[var(--card)]" />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full border-2 border-[var(--card)]" />
         </button>
 
         {/* User menu */}
@@ -76,9 +76,9 @@ export function Header() {
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             onBlur={() => setTimeout(() => setMenuOpen(false), 150)}
-            className="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-xl hover:bg-[var(--brand-soft)] transition-colors"
+            className="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-xl hover:bg-[var(--color-primary-soft)] transition-colors"
           >
-            <div className="w-8 h-8 rounded-xl brand-gradient flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm">
+            <div className="w-8 h-8 rounded-xl primary-gradient flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm">
               {initials}
             </div>
             <div className="hidden md:block text-left">

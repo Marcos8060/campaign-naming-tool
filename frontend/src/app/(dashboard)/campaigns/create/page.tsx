@@ -6,7 +6,7 @@ import { useRole } from '@/lib/hooks/useRole';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
-import { ChevronRight } from 'lucide-react';
+import { CheckCircle, ChevronRight } from 'lucide-react';
 import type { Taxonomy } from '@/types';
 import type { PlatformConfig, CampaignFormData } from '@/types/campaign-create';
 import { ValidationChecklist } from '@/components/campaigns/ValidationChecklist';
@@ -158,16 +158,16 @@ export default function CreateCampaignPage() {
             <div className="flex flex-col items-center gap-1">
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all
-                  ${step > i + 1 ? 'bg-green-500 text-white' : step === i + 1 ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 text-gray-400 border border-gray-200'}`}
+                  ${step > i + 1 ? 'bg-positive text-white' : step === i + 1 ? 'bg-primary text-white shadow-md' : 'bg-gray-100 text-gray-400 border border-gray-200'}`}
               >
                 {step > i + 1 ? '✓' : i + 1}
               </div>
-              <span className={`text-xs whitespace-nowrap ${step === i + 1 ? 'font-semibold text-blue-600' : step > i + 1 ? 'text-green-600' : 'text-gray-400'}`}>
+              <span className={`text-xs whitespace-nowrap ${step === i + 1 ? 'font-semibold text-primary' : step > i + 1 ? 'text-positive' : 'text-gray-400'}`}>
                 {s.label}
               </span>
             </div>
             {i < STEPS.length - 1 && (
-              <div className={`flex-1 h-0.5 mt-[-14px] mx-1 transition-colors ${step > i + 1 ? 'bg-green-400' : 'bg-gray-200'}`} />
+              <div className={`flex-1 h-0.5 mt-[-14px] mx-1 transition-colors ${step > i + 1 ? 'bg-positive' : 'bg-gray-200'}`} />
             )}
           </div>
         ))}
@@ -192,14 +192,14 @@ export default function CreateCampaignPage() {
                       onClick={() => setForm({ ...form, platform: p.id })}
                       className={`p-4 rounded-xl border-2 text-left transition-all ${
                         form.platform === p.id
-                          ? 'border-blue-600 bg-blue-50 shadow-sm'
+                          ? 'border-primary bg-primary-soft shadow-sm'
                           : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
                       }`}
                     >
                       <p className="font-semibold text-gray-900">{p.label}</p>
                       <p className="text-xs text-gray-500 mt-0.5">{p.desc}</p>
                       {form.platform === p.id && (
-                        <div className="mt-2 flex items-center gap-1 text-xs text-blue-600 font-medium">
+                        <div className="mt-2 flex items-center gap-1 text-xs text-primary font-medium">
                           <CheckCircle className="w-3 h-3" /> Selected
                         </div>
                       )}
@@ -223,7 +223,7 @@ export default function CreateCampaignPage() {
                   <select
                     value={form.objective}
                     onChange={(e) => setForm({ ...form, objective: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     <option value="">Select objective…</option>
                     {OBJECTIVES.map((o) => (
@@ -241,7 +241,7 @@ export default function CreateCampaignPage() {
                           onChange={(e) =>
                             setForm({ ...form, taxonomy_values: { ...form.taxonomy_values, [type]: e.target.value } })
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                         >
                           <option value="">Select {type}…</option>
                           {taxonomies
@@ -283,10 +283,10 @@ export default function CreateCampaignPage() {
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     placeholder={generatedName || 'Auto-generated from template'}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                   {!form.name && generatedName && (
-                    <p className="text-xs text-blue-600 mt-1">
+                    <p className="text-xs text-primary mt-1">
                       Will use: <span className="font-mono font-medium">{generatedName}</span>
                     </p>
                   )}
@@ -297,7 +297,7 @@ export default function CreateCampaignPage() {
                     <input
                       type="number" min="0" value={form.budget_total}
                       onChange={(e) => setForm({ ...form, budget_total: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                       placeholder="10000"
                     />
                   </div>
@@ -306,7 +306,7 @@ export default function CreateCampaignPage() {
                     <input
                       type="number" min="0" value={form.budget_daily}
                       onChange={(e) => setForm({ ...form, budget_daily: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                       placeholder="500"
                     />
                   </div>
@@ -316,14 +316,14 @@ export default function CreateCampaignPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
                     <input type="date" value={form.start_date}
                       onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
                     <input type="date" value={form.end_date}
                       onChange={(e) => setForm({ ...form, end_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
                 </div>
@@ -357,7 +357,7 @@ export default function CreateCampaignPage() {
                   </div>
                 )}
                 {validationChecks.filter((c) => c.required).every((c) => c.pass) && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-700 flex items-center gap-2">
+                  <div className="bg-positive-soft border border-positive/20 rounded-lg p-3 text-sm text-positive flex items-center gap-2">
                     <CheckCircle className="w-4 h-4" />
                     All required checks passed. Ready to create!
                   </div>
@@ -433,7 +433,7 @@ export default function CreateCampaignPage() {
           <button
             onClick={() => setStep((s) => s + 1)}
             disabled={!canAdvance}
-            className="px-6 py-2 bg-blue-600 text-white font-medium rounded-sm hover:bg-blue-700 disabled:opacity-50 transition-colors text-sm"
+            className="px-6 py-2 bg-primary text-white font-medium rounded-sm hover:bg-primary-hover disabled:opacity-50 transition-colors text-sm"
           >
             Continue
           </button>
@@ -441,7 +441,7 @@ export default function CreateCampaignPage() {
           <button
             onClick={handleSubmit}
             disabled={mutation.isPending}
-            className="px-6 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors text-sm"
+            className="px-6 py-2 bg-primary text-white font-medium rounded hover:bg-primary-hover disabled:opacity-50 transition-colors text-sm"
           >
             {mutation.isPending ? 'Creating…' : 'Create Campaign'}
           </button>

@@ -9,7 +9,7 @@ const STEPS = [
     title: 'Define your naming taxonomy once',
     body: 'Set the structure — brand, product, region, objective, audience — that your entire team will use across every platform. No more "how did we name this again?"',
     detail: 'Supports custom fields, hierarchy, and per-platform character limits.',
-    color: '#2e6be4',
+    color: `var(--color-primary)`,
     bg: 'bg-blue-50',
   },
   {
@@ -41,7 +41,7 @@ export function HowItWorksSection() {
 
         {/* Header */}
         <div className="max-w-2xl mx-auto text-center mb-14">
-          <div className="inline-flex items-center gap-2 text-xs font-bold text-[#2e6be4] bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-full mb-4 uppercase tracking-wider">
+          <div className="inline-flex items-center gap-2 text-xs font-bold text-primary bg-primary-soft border border-blue-100 px-3 py-1.5 rounded-full mb-4 uppercase tracking-wider">
             How It Works
           </div>
           <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight mb-4">
@@ -55,7 +55,7 @@ export function HowItWorksSection() {
         {/* Steps */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 relative">
           {/* Connector line */}
-          <div className="hidden lg:block absolute top-[52px] left-[calc(33.33%+32px)] right-[calc(33.33%+32px)] h-px bg-gradient-to-r from-[#2e6be4]/20 via-[#6c5ce7]/40 to-[#00b894]/20" />
+          <div className="hidden lg:block absolute top-[52px] left-[calc(33.33%+32px)] right-[calc(33.33%+32px)] h-px bg-gradient-to-r from-[var(--color-primary)]/20 via-[#6c5ce7]/40 to-[#00b894]/20" />
 
           {STEPS.map(({ num, icon: Icon, badge, title, body, detail, color, bg }, i) => (
             <div key={num} className="relative flex flex-col">
@@ -95,7 +95,7 @@ export function HowItWorksSection() {
         <div className="text-center mt-14">
           <Link
             href="/register"
-            className="inline-flex items-center gap-2 px-8 py-4 brand-gradient text-white font-bold rounded-xl hover:opacity-90 transition-opacity shadow-lg shadow-blue-200/60 text-sm"
+            className="inline-flex items-center gap-2 px-8 py-4 primary-gradient text-white font-bold rounded-xl hover:opacity-90 transition-opacity shadow-lg shadow-primary/20/60 text-sm"
           >
             Start Your 14-Day Free Trial <ArrowRight className="w-4 h-4" />
           </Link>

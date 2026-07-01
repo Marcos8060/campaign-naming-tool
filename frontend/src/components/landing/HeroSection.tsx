@@ -20,7 +20,7 @@ export function HeroSection() {
           {/* ── Left: Copy ── */}
           <div>
             {/* Eyebrow */}
-            <div className="inline-flex items-center gap-2 text-xs font-bold text-[#2e6be4] bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-full mb-6 uppercase tracking-wider">
+            <div className="inline-flex items-center gap-2 text-xs font-bold text-primary bg-primary-soft border border-blue-100 px-3 py-1.5 rounded-full mb-6 uppercase tracking-wider">
               <Sparkles className="w-3 h-3" />
               Campaign Intelligence Platform
             </div>
@@ -28,7 +28,7 @@ export function HeroSection() {
             <h1 className="text-4xl lg:text-5xl xl:text-[3.4rem] font-extrabold text-gray-900 leading-[1.1] tracking-tight mb-5">
               Your team is wasting{' '}
               <span className="relative">
-                <span className="text-transparent bg-clip-text brand-gradient">35% of ad spend</span>
+                <span className="text-transparent bg-clip-text primary-gradient">35% of ad spend</span>
               </span>
               {' '}right now.
             </h1>
@@ -41,13 +41,13 @@ export function HeroSection() {
             <div className="flex flex-col sm:flex-row gap-3 mb-7">
               <Link
                 href="/register"
-                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 brand-gradient text-white font-bold rounded-xl hover:opacity-90 transition-opacity shadow-lg shadow-blue-200/60 text-sm"
+                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 primary-gradient text-white font-bold rounded-xl hover:opacity-90 transition-opacity shadow-lg shadow-primary/20/60 text-sm"
               >
                 Find My Wasted Spend <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
                 href="/login"
-                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-white text-gray-700 font-semibold rounded-xl border border-gray-200 hover:border-blue-200 hover:bg-blue-50/50 transition-all text-sm"
+                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-white text-gray-700 font-semibold rounded-xl border border-gray-200 hover:border-blue-200 hover:bg-primary-soft/50 transition-all text-sm"
               >
                 Sign In to Dashboard
               </Link>
@@ -90,7 +90,7 @@ export function HeroSection() {
                   {/* Sidebar */}
                   <div className="w-44 bg-white border-r border-gray-100 px-3 pt-4 pb-3 flex-shrink-0">
                     <div className="flex items-center gap-2 mb-6 px-1">
-                      <div className="w-6 h-6 rounded-lg brand-gradient flex items-center justify-center">
+                      <div className="w-6 h-6 rounded-lg primary-gradient flex items-center justify-center">
                         <Sparkles className="w-3 h-3 text-white" />
                       </div>
                       <span className="text-xs font-extrabold text-gray-900">Camparc</span>
@@ -99,7 +99,7 @@ export function HeroSection() {
                       <div
                         key={item}
                         className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[11px] font-medium mb-0.5 ${
-                          i === 0 ? 'brand-gradient text-white shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                          i === 0 ? 'primary-gradient text-white shadow-sm' : 'text-gray-400 hover:text-gray-600'
                         }`}
                       >
                         <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${i === 0 ? 'bg-white/70' : 'bg-gray-200'}`} />
@@ -125,7 +125,7 @@ export function HeroSection() {
                     {/* KPI cards */}
                     <div className="grid grid-cols-3 gap-2">
                       {[
-                        { l: 'Active', v: '24', c: '#2e6be4' },
+                        { l: 'Active', v: '24', c: `var(--color-primary)` },
                         { l: 'Budget', v: '$128K', c: '#00b894' },
                         { l: 'ROAS', v: '3.4×', c: '#6c5ce7' },
                       ].map(({ l, v, c }) => (
@@ -142,7 +142,7 @@ export function HeroSection() {
                         <p className="text-[9px] font-bold text-gray-600 uppercase tracking-wide">Live Name Preview</p>
                         <span className="text-[8px] bg-emerald-50 text-emerald-600 font-semibold px-1.5 py-0.5 rounded-full border border-emerald-100">Valid</span>
                       </div>
-                      <div className="font-mono text-[9px] text-gray-800 bg-blue-50 rounded-lg px-2.5 py-2 break-all leading-relaxed border border-blue-100">
+                      <div className="font-mono text-[9px] text-gray-800 bg-primary-soft rounded-lg px-2.5 py-2 break-all leading-relaxed border border-blue-100">
                         META_23Q4_APEX_BRAND_US_CONV_PROSPECTING
                       </div>
                     </div>
@@ -152,7 +152,7 @@ export function HeroSection() {
                       <p className="text-[9px] font-bold text-gray-500 mb-2 uppercase tracking-wide">Spend by Platform</p>
                       <div className="space-y-2">
                         {[
-                          { n: 'Meta', w: '68%', c: '#2e6be4' },
+                          { n: 'Meta', w: '68%', c: `var(--color-primary)` },
                           { n: 'Google', w: '45%', c: '#6c5ce7' },
                           { n: 'TikTok', w: '27%', c: '#fd79a8' },
                         ].map(({ n, w, c }) => (

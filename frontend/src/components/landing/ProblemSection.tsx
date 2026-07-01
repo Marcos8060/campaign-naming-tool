@@ -51,7 +51,7 @@ export function ProblemSection() {
           </div>
           <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight mb-4">
             Sound familiar? This is happening in{' '}
-            <span className="text-transparent bg-clip-text brand-gradient">your campaigns right now.</span>
+            <span className="text-transparent bg-clip-text primary-gradient">your campaigns right now.</span>
           </h2>
           <p className="text-gray-500 text-base leading-relaxed">
             The marketing industry wastes over $353 billion annually on inefficiency. Most of it is silent — you never see the waste, you just feel it in your ROAS.

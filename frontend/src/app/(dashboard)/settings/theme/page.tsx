@@ -171,7 +171,7 @@ export default function ThemePage() {
                     type="file"
                     accept="image/png,image/jpeg,image/svg+xml"
                     onChange={(e) => e.target.files?.[0] && uploadLogo(e.target.files[0], type)}
-                    className="text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100"
+                    className="text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-primary-soft file:text-primary hover:file:bg-primary-soft"
                   />
                 </div>
               ))}
@@ -200,7 +200,7 @@ export default function ThemePage() {
             <button
               onClick={() => updateMutation.mutate(colors)}
               disabled={updateMutation.isPending}
-              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-hover disabled:opacity-50 transition-colors"
             >
               {updateMutation.isPending ? 'Saving…' : 'Save Theme'}
             </button>
@@ -211,7 +211,7 @@ export default function ThemePage() {
         <div className="col-span-2">
           <div className="sticky top-4 space-y-3">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <div className="w-2 h-2 rounded-full bg-positive animate-pulse" />
               <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Live Preview</span>
             </div>
             <ThemePreview colors={colors} logoUrl={logoUrl} />

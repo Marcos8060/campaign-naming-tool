@@ -14,7 +14,7 @@ const TESTIMONIALS = [
     role: 'Performance Director',
     company: 'Growth Labs Agency',
     initials: 'MC',
-    color: '#2e6be4',
+    color: `var(--color-primary)`,
   },
   {
     quote: 'We white-labeled it for three of our biggest clients. They think we built it in-house. Our retention improved because clients see more value from our service.',
@@ -51,7 +51,7 @@ export function SocialProofSection() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-16">
           {METRICS.map(({ value, label, sub }) => (
             <div key={label} className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm text-center">
-              <p className="text-4xl font-extrabold tracking-tight mb-1" style={{ color: '#2e6be4' }}>{value}</p>
+              <p className="text-4xl font-extrabold tracking-tight mb-1" style={{ color: `var(--color-primary)` }}>{value}</p>
               <p className="text-xs font-semibold text-gray-700 mb-1 leading-snug">{label}</p>
               <p className="text-[10px] text-gray-400">{sub}</p>
             </div>

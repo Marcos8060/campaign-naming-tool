@@ -83,7 +83,7 @@ export default function ExportsPage() {
                 setSelectedPlatform(e.target.value);
                 if (!e.target.value) setFormat('generic');
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="">All Platforms</option>
               {PLATFORMS.map((p) => (
@@ -98,7 +98,7 @@ export default function ExportsPage() {
               value={format}
               onChange={(e) => setFormat(e.target.value as any)}
               disabled={!canUseNativeFormat}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-400"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-50 disabled:text-gray-400"
             >
               <option value="generic">Generic CSV</option>
               <option value="platform_native" disabled={!canUseNativeFormat}>Platform Native Format</option>
@@ -107,12 +107,12 @@ export default function ExportsPage() {
         </div>
 
         <div className="flex items-start gap-2 text-xs text-gray-500 bg-gray-50 rounded-lg p-3">
-          <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-blue-500" />
+          <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-primary" />
           <span>{FORMAT_DESCRIPTIONS[format]}</span>
         </div>
 
         {format === 'platform_native' && selectedPlatform && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800">
+          <div className="bg-blue-50 border border-primary/20 rounded-lg p-3 text-xs text-primary">
             <strong>
               {PLATFORMS.find((p) => p.id === selectedPlatform)?.label} native format
             </strong>{' '}
@@ -123,7 +123,7 @@ export default function ExportsPage() {
         <button
           onClick={() => exportMutation.mutate({ platform: selectedPlatform, fmt: format })}
           disabled={exportMutation.isPending}
-          className="inline-flex text-sm items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          className="inline-flex text-sm items-center gap-2 px-5 py-2.5 bg-primary text-white font-medium rounded-sm hover:bg-primary-hover disabled:opacity-50 transition-colors"
         >
           <Download className="w-4 h-4" />
           {exportMutation.isPending ? 'Exporting…' : 'Download CSV'}
@@ -143,7 +143,7 @@ export default function ExportsPage() {
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="font-medium text-sm text-gray-900">{p.label}</span>
-                <FileText className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                <FileText className="w-4 h-4 text-gray-400 group-hover:text-primary transition-colors" />
               </div>
               <p className="text-xs text-gray-500">Native format</p>
             </button>
@@ -180,7 +180,7 @@ export default function ExportsPage() {
                   </td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium
-                      ${exp.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                      ${exp.status === 'completed' ? 'bg-positive-soft text-positive' : 'bg-yellow-100 text-yellow-700'}`}>
                       {exp.status}
                     </span>
                   </td>

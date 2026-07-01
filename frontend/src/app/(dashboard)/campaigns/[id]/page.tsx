@@ -14,10 +14,10 @@ import type { CampaignUpdatePayload } from '@/types/campaign-detail';
 import { CampaignEditModal } from '@/components/campaigns/CampaignEditModal';
 
 const STATUS_COLORS: Record<string, string> = {
-  active: 'bg-green-100 text-green-700 border-green-200',
+  active: 'bg-positive-soft text-positive border-positive/20',
   draft: 'bg-gray-100 text-gray-700 border-gray-200',
   paused: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-  completed: 'bg-blue-100 text-blue-700 border-blue-200',
+  completed: 'bg-blue-100 text-primary border-primary/20',
   archived: 'bg-red-100 text-red-700 border-red-200',
 };
 
@@ -167,7 +167,7 @@ export default function CampaignDetailPage() {
               </button>
             ) : campaign.status !== 'archived' && campaign.status !== 'completed' && (
               <button onClick={() => statusMutation.mutate('active')} disabled={statusMutation.isPending}
-                className="inline-flex items-center gap-2 px-3 py-2 border border-green-300 text-green-700 text-sm font-medium rounded-lg hover:bg-green-50 transition-colors">
+                className="inline-flex items-center gap-2 px-3 py-2 border border-positive/30 text-positive text-sm font-medium rounded-lg hover:bg-positive-soft transition-colors">
                 <Play className="w-4 h-4" /> Activate
               </button>
             )}
@@ -229,7 +229,7 @@ export default function CampaignDetailPage() {
             {Object.entries(taxonomyValues).map(([key, value]) => (
               <div key={key} className="flex justify-between text-sm border-b border-gray-100 pb-2 last:border-0 last:pb-0">
                 <span className="text-gray-500 capitalize">{key}</span>
-                <span className="font-mono text-sm font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded">
+                <span className="font-mono text-sm font-medium text-primary bg-primary-soft px-2 py-0.5 rounded">
                   {String(value)}
                 </span>
               </div>
@@ -246,7 +246,7 @@ export default function CampaignDetailPage() {
             <span>{campaign.name.length} characters</span>
             <button
               onClick={() => { navigator.clipboard.writeText(campaign.name); toast.success('Copied to clipboard'); }}
-              className="text-blue-500 hover:text-blue-700"
+              className="text-primary hover:text-primary-hover"
             >
               Copy
             </button>

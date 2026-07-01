@@ -11,7 +11,7 @@ export function ValidationChecklist({ checks }: ValidationChecklistProps) {
       {checks.map((c) => (
         <div key={c.label} className="flex items-center gap-2 text-sm">
           {c.pass ? (
-            <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+            <CheckCircle className="w-4 h-4 text-positive flex-shrink-0" />
           ) : c.required ? (
             <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
           ) : (

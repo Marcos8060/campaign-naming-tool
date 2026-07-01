@@ -10,7 +10,7 @@ import type { OverlapPair } from '@/types/analytics';
 function OverlapBadge({ pct }: { pct: number }) {
   const color = pct >= 50 ? 'bg-red-100 text-red-700 border-red-200' :
                 pct >= 20 ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
-                            'bg-green-100 text-green-700 border-green-200';
+                            'bg-positive-soft text-positive border-positive/20';
   return (
     <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-bold border ${color}`}>
       {pct}%
@@ -43,7 +43,7 @@ export default function AudienceOverlapPage() {
 
       <div className="flex gap-3 items-center">
         <select value={platform} onChange={(e) => setPlatform(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
           <option value="">All Platforms</option>
           {['meta', 'google_ads', 'tiktok', 'dv360', 'linkedin'].map(p => (
             <option key={p} value={p}>{p.replace('_', ' ')}</option>
@@ -55,7 +55,7 @@ export default function AudienceOverlapPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <div className="flex items-center gap-3 mb-2">
-            <Users className="w-5 h-5 text-blue-500" />
+            <Users className="w-5 h-5 text-primary" />
             <p className="text-sm font-medium text-gray-600">Campaigns Analyzed</p>
           </div>
           <p className="text-3xl font-bold text-gray-900">{data?.campaigns?.length || 0}</p>
@@ -87,7 +87,7 @@ export default function AudienceOverlapPage() {
           <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
           <p className="text-gray-500 font-medium">Not enough active campaigns to analyze</p>
           <p className="text-sm text-gray-400 mt-1">You need at least 2 active or paused campaigns</p>
-          <Link href="/campaigns/create" className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-sm hover:bg-blue-700 transition-colors">
+          <Link href="/campaigns/create" className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-primary text-white text-sm font-medium rounded-sm hover:bg-primary-hover transition-colors">
             Create Campaign
           </Link>
         </div>
@@ -114,13 +114,13 @@ export default function AudienceOverlapPage() {
                         <div className="grid grid-cols-2 gap-3">
                           <div className="bg-gray-50 rounded-lg p-3">
                             <p className="text-xs text-gray-500 mb-1">Campaign A</p>
-                            <Link href={`/campaigns/${pair.campaign_a_id}`} className="text-sm font-mono font-medium text-blue-600 hover:underline truncate block">
+                            <Link href={`/campaigns/${pair.campaign_a_id}`} className="text-sm font-mono font-medium text-primary hover:underline truncate block">
                               {pair.campaign_a_name}
                             </Link>
                           </div>
                           <div className="bg-gray-50 rounded-lg p-3">
                             <p className="text-xs text-gray-500 mb-1">Campaign B</p>
-                            <Link href={`/campaigns/${pair.campaign_b_id}`} className="text-sm font-mono font-medium text-blue-600 hover:underline truncate block">
+                            <Link href={`/campaigns/${pair.campaign_b_id}`} className="text-sm font-mono font-medium text-primary hover:underline truncate block">
                               {pair.campaign_b_name}
                             </Link>
                           </div>
@@ -164,12 +164,12 @@ export default function AudienceOverlapPage() {
                 {(allOverlaps as OverlapPair[]).sort((a, b) => b.overlap_percentage - a.overlap_percentage).map((pair, i) => (
                   <tr key={i} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm">
-                      <Link href={`/campaigns/${pair.campaign_a_id}`} className="font-mono text-blue-600 hover:underline truncate max-w-44 block">
+                      <Link href={`/campaigns/${pair.campaign_a_id}`} className="font-mono text-primary hover:underline truncate max-w-44 block">
                         {pair.campaign_a_name}
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-sm">
-                      <Link href={`/campaigns/${pair.campaign_b_id}`} className="font-mono text-blue-600 hover:underline truncate max-w-44 block">
+                      <Link href={`/campaigns/${pair.campaign_b_id}`} className="font-mono text-primary hover:underline truncate max-w-44 block">
                         {pair.campaign_b_name}
                       </Link>
                     </td>

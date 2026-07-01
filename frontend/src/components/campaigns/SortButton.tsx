@@ -9,7 +9,7 @@ export function SortButton({ column, current, order, onClick }: SortButtonProps)
       className="flex items-center gap-1 hover:text-gray-900 transition-colors group"
     >
       {column.replace('_', ' ')}
-      <span className={active ? 'text-blue-600' : 'text-gray-300 group-hover:text-gray-500'}>
+      <span className={active ? 'text-primary' : 'text-gray-300 group-hover:text-gray-500'}>
         {active && order === 'asc'
           ? <ChevronUp className="w-3 h-3" />
           : <ChevronDown className="w-3 h-3" />}

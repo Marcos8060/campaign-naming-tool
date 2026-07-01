@@ -29,7 +29,7 @@ export function TaxonomyNode({ node, depth = 0, onEdit, onDelete, canManage, can
         {canManage && (
           <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity flex-shrink-0">
             <button onClick={() => onEdit(node)}
-              className="p-1 hover:bg-blue-100 rounded text-gray-400 hover:text-blue-600 transition-colors" title="Edit">
+              className="p-1 hover:bg-primary-soft rounded text-gray-400 hover:text-primary transition-colors" title="Edit">
               <Pencil className="w-3.5 h-3.5" />
             </button>
             {canAdmin && (

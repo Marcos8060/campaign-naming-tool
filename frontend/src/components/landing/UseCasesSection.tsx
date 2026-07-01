@@ -9,7 +9,7 @@ const USE_CASES = [
     pain: 'You\'re running Meta, Google, and TikTok simultaneously. But no one has a clear view of audience overlap — so you\'re paying three platforms to reach the same 200K customers.',
     solution: 'Camparc maps the overlap in real time, shows you the exact dollar waste, and lets you reallocate budget to net-new audiences that actually expand your reach.',
     result: 'Typical outcome: 15–25% reduction in cost-per-acquisition within the first 30 days.',
-    color: '#2e6be4',
+    color: `var(--color-primary)`,
     bg: 'bg-blue-50',
     border: 'border-blue-100',
   },
@@ -44,12 +44,12 @@ export function UseCasesSection() {
 
         {/* Header */}
         <div className="max-w-2xl mx-auto text-center mb-14">
-          <div className="inline-flex items-center gap-2 text-xs font-bold text-[#2e6be4] bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-full mb-4 uppercase tracking-wider">
+          <div className="inline-flex items-center gap-2 text-xs font-bold text-primary bg-primary-soft border border-blue-100 px-3 py-1.5 rounded-full mb-4 uppercase tracking-wider">
             Who It's For
           </div>
           <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight mb-4">
             If this sounds like your team,{' '}
-            <span className="text-transparent bg-clip-text brand-gradient">you're in the right place.</span>
+            <span className="text-transparent bg-clip-text primary-gradient">you're in the right place.</span>
           </h2>
         </div>
 
@@ -95,7 +95,7 @@ export function UseCasesSection() {
         <div className="text-center mt-12">
           <Link
             href="/register"
-            className="inline-flex items-center gap-2 px-7 py-3.5 brand-gradient text-white font-bold rounded-xl hover:opacity-90 transition-opacity shadow-lg shadow-blue-200/60 text-sm"
+            className="inline-flex items-center gap-2 px-7 py-3.5 primary-gradient text-white font-bold rounded-xl hover:opacity-90 transition-opacity shadow-lg shadow-primary/20/60 text-sm"
           >
             See How It Works For Your Team <ArrowRight className="w-4 h-4" />
           </Link>

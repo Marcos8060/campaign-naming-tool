@@ -67,7 +67,7 @@ export function PricingSection() {
 
         {/* Header */}
         <div className="max-w-2xl mx-auto text-center mb-14">
-          <div className="inline-flex items-center gap-2 text-xs font-bold text-[#2e6be4] bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-full mb-4 uppercase tracking-wider">
+          <div className="inline-flex items-center gap-2 text-xs font-bold text-primary bg-primary-soft border border-blue-100 px-3 py-1.5 rounded-full mb-4 uppercase tracking-wider">
             Simple Pricing
           </div>
           <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight mb-4">
@@ -85,13 +85,13 @@ export function PricingSection() {
               key={name}
               className={`relative rounded-2xl p-7 border flex flex-col ${
                 highlight
-                  ? 'border-[#2e6be4] bg-white shadow-xl shadow-blue-100/60'
+                  ? 'border-[var(--color-primary)] bg-white shadow-xl shadow-primary/10'
                   : 'border-gray-200 bg-white hover:border-gray-300 transition-colors'
               }`}
             >
               {badge && (
                 <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                  <span className="brand-gradient text-white text-[10px] font-extrabold px-3.5 py-1 rounded-full shadow-sm whitespace-nowrap">
+                  <span className="primary-gradient text-white text-[10px] font-extrabold px-3.5 py-1 rounded-full shadow-sm whitespace-nowrap">
                     {badge}
                   </span>
                 </div>
@@ -113,7 +113,7 @@ export function PricingSection() {
                   <li key={f} className="flex items-start gap-2.5 text-sm text-gray-600">
                     <CheckCircle2
                       className={`w-4 h-4 flex-shrink-0 mt-0.5 ${
-                        highlight ? 'text-[#2e6be4]' : 'text-gray-400'
+                        highlight ? 'text-primary' : 'text-gray-400'
                       }`}
                     />
                     {f}
@@ -126,8 +126,8 @@ export function PricingSection() {
                 href={ctaHref}
                 className={`w-full text-center py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${
                   highlight
-                    ? 'brand-gradient text-white hover:opacity-90 shadow-md shadow-blue-200/50'
-                    : 'border border-gray-200 text-gray-700 hover:border-[#2e6be4] hover:text-[#2e6be4] hover:bg-blue-50/50'
+                    ? 'primary-gradient text-white hover:opacity-90 shadow-md shadow-primary/20/50'
+                    : 'border border-gray-200 text-gray-700 hover:border-[var(--color-primary)] hover:text-primary hover:bg-primary-soft/50'
                 }`}
               >
                 {cta} {highlight && <ArrowRight className="w-3.5 h-3.5" />}

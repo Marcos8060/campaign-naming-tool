@@ -37,8 +37,8 @@ function NavItem({
         collapsed ? 'px-0 py-2.5 justify-center' : 'px-3 py-2.5',
         indent && !collapsed ? 'ml-5 py-2' : '',
         active
-          ? 'brand-gradient text-white shadow-sm shadow-blue-400/30'
-          : 'text-t2 hover:bg-[var(--brand-soft)] hover:text-brand dark:hover:text-blue-300'
+          ? 'primary-gradient text-white shadow-sm shadow-primary/30'
+          : 'text-t2 hover:bg-[var(--color-primary-soft)] hover:text-primary dark:hover:text-blue-300'
       )}
     >
       <Icon className={cn(
@@ -86,7 +86,7 @@ function DesktopSidebar() {
       <div className="h-16 flex items-center justify-between px-4 border-b flex-shrink-0" style={{ borderColor: 'var(--bd)' }}>
         {sidebarOpen ? (
           <div className="flex items-center gap-2.5 overflow-hidden">
-            <div className="w-8 h-8 rounded-lg brand-gradient flex-shrink-0 flex items-center justify-center shadow-sm">
+            <div className="w-8 h-8 rounded-lg primary-gradient flex-shrink-0 flex items-center justify-center shadow-sm">
               <Sparkles className="w-4 h-4 text-white" />
             </div>
             <div className="overflow-hidden">
@@ -97,13 +97,13 @@ function DesktopSidebar() {
             </div>
           </div>
         ) : (
-          <div className="w-8 h-8 rounded-lg brand-gradient mx-auto flex items-center justify-center shadow-sm">
+          <div className="w-8 h-8 rounded-lg primary-gradient mx-auto flex items-center justify-center shadow-sm">
             <Sparkles className="w-4 h-4 text-white" />
           </div>
         )}
         <button
           onClick={() => dispatch(toggleSidebar())}
-          className="p-1.5 rounded-lg hover:bg-[var(--brand-soft)] text-t3 hover:text-brand transition-colors flex-shrink-0"
+          className="p-1.5 rounded-lg hover:bg-[var(--color-primary-soft)] text-t3 hover:text-primary transition-colors flex-shrink-0"
         >
           {sidebarOpen ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
         </button>
@@ -167,7 +167,7 @@ function MobileDrawer() {
       >
         <div className="h-16 flex items-center justify-between px-5 border-b" style={{ borderColor: 'var(--bd)' }}>
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg brand-gradient flex items-center justify-center shadow-sm">
+            <div className="w-8 h-8 rounded-lg primary-gradient flex items-center justify-center shadow-sm">
               <Sparkles className="w-4 h-4 text-white" />
             </div>
             <div>
@@ -177,7 +177,7 @@ function MobileDrawer() {
               )}
             </div>
           </div>
-          <button onClick={close} className="p-1.5 rounded-lg hover:bg-[var(--brand-soft)] text-t3">
+          <button onClick={close} className="p-1.5 rounded-lg hover:bg-[var(--color-primary-soft)] text-t3">
             <X className="w-5 h-5" />
           </button>
         </div>

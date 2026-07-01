@@ -29,7 +29,7 @@ function KPICard({ title, value, change, icon: Icon, color }: KPICardProps) {
       </div>
       <p className="text-3xl font-bold text-gray-900 mb-1">{value}</p>
       {change !== undefined && (
-        <div className={`flex items-center gap-1 text-xs font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+        <div className={`flex items-center gap-1 text-xs font-medium ${isPositive ? 'text-positive' : 'text-red-600'}`}>
           {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
           {Math.abs(change)}% vs prev period
         </div>
@@ -102,9 +102,9 @@ export default function AnalyticsPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPICard title="Total Spend" value={`$${(perf.total_spend || 0).toLocaleString()}`} icon={DollarSign} color="bg-blue-50 text-blue-600" />
+        <KPICard title="Total Spend" value={`$${(perf.total_spend || 0).toLocaleString()}`} icon={DollarSign} color="bg-blue-50 text-primary" />
         <KPICard title="Impressions" value={(perf.total_impressions || 0) > 1000000 ? `${((perf.total_impressions || 0) / 1000000).toFixed(1)}M` : (perf.total_impressions || 0).toLocaleString()} icon={Eye} color="bg-purple-50 text-purple-600" />
-        <KPICard title="Conversions" value={(perf.total_conversions || 0).toLocaleString()} icon={Target} color="bg-green-50 text-green-600" />
+        <KPICard title="Conversions" value={(perf.total_conversions || 0).toLocaleString()} icon={Target} color="bg-positive-soft text-positive" />
         <KPICard title="Avg ROAS" value={(perf.avg_roas || 0) > 0 ? `${(perf.avg_roas).toFixed(1)}x` : '—'} icon={TrendingUp} color="bg-orange-50 text-orange-600" />
       </div>
 
@@ -192,14 +192,14 @@ export default function AnalyticsPage() {
                 <tr key={c.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 text-sm font-bold text-gray-400">#{i + 1}</td>
                   <td className="px-4 py-3">
-                    <Link href={`/campaigns/${c.id}`} className="text-sm font-mono font-medium text-blue-600 hover:underline truncate max-w-52 block">
+                    <Link href={`/campaigns/${c.id}`} className="text-sm font-mono font-medium text-primary hover:underline truncate max-w-52 block">
                       {c.name}
                     </Link>
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-500 capitalize">{c.platform?.replace('_', ' ')}</td>
                   <td className="px-4 py-3 text-sm text-gray-700">${(c.total_spend || 0).toLocaleString()}</td>
                   <td className="px-4 py-3">
-                    <span className={`text-sm font-semibold ${(c.avg_roas || 0) > 2 ? 'text-green-600' : 'text-gray-600'}`}>
+                    <span className={`text-sm font-semibold ${(c.avg_roas || 0) > 2 ? 'text-positive' : 'text-gray-600'}`}>
                       {(c.avg_roas || 0) > 0 ? `${c.avg_roas.toFixed(1)}x` : '—'}
                     </span>
                   </td>

@@ -8,7 +8,7 @@ const FEATURES = [
     outcome: 'Save 10 hours a week on naming disputes',
     title: 'Standardize naming across all platforms',
     body: 'Define your taxonomy hierarchy once. Every campaign created through Camparc follows the same structure — no exceptions, no rogue naming.',
-    color: '#2e6be4',
+    color: `var(--color-primary)`,
     bg: 'bg-blue-50',
   },
   {
@@ -60,12 +60,12 @@ export function FeaturesSection() {
 
         {/* Header */}
         <div className="max-w-2xl mx-auto text-center mb-14">
-          <div className="inline-flex items-center gap-2 text-xs font-bold text-[#2e6be4] bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-full mb-4 uppercase tracking-wider">
+          <div className="inline-flex items-center gap-2 text-xs font-bold text-primary bg-primary-soft border border-blue-100 px-3 py-1.5 rounded-full mb-4 uppercase tracking-wider">
             Features
           </div>
           <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight mb-4">
             Built for agencies spending{' '}
-            <span className="text-transparent bg-clip-text brand-gradient">real budgets.</span>
+            <span className="text-transparent bg-clip-text primary-gradient">real budgets.</span>
           </h2>
           <p className="text-gray-500 text-base leading-relaxed">
             Every feature is measured by one metric: does it save you money, save you time, or make you look smarter in front of clients?

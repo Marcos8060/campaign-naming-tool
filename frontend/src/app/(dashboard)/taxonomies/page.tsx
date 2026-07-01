@@ -96,7 +96,7 @@ export default function TaxonomiesPage() {
           </div>
           {canManage && (
             <button onClick={() => setShowForm(!showForm)}
-              className="inline-flex text-sm items-center gap-2 px-4 py-2 bg-[#2e6be4] text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
+              className="inline-flex text-sm items-center gap-2 px-4 py-2 bg-primary text-white font-medium rounded-lg hover:bg-primary-hover transition-colors">
               <Plus className="w-4 h-4" />
               Add Taxonomy
             </button>
@@ -110,26 +110,26 @@ export default function TaxonomiesPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                 <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="e.g. North America" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Code</label>
                 <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="e.g. NA" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
                 <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
                   {TYPES.map((t) => <option key={t} value={t} className="capitalize">{t}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Parent (optional)</label>
                 <select value={form.parent_id} onChange={(e) => setForm({ ...form, parent_id: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
                   <option value="">No parent (root)</option>
                   {allTaxonomies.map((t) => (
                     <option key={t.id} value={t.id}>{t.name} ({t.code})</option>
@@ -141,7 +141,7 @@ export default function TaxonomiesPage() {
               <button
                 onClick={() => createMutation.mutate({ ...form, parent_id: form.parent_id || undefined })}
                 disabled={!form.name || !form.code || createMutation.isPending}
-                className="px-4 py-2 bg-[#2e6be4] text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-hover disabled:opacity-50 transition-colors">
                 {createMutation.isPending ? 'Creating…' : 'Create'}
               </button>
               <button onClick={() => setShowForm(false)}
