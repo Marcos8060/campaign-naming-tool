@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { CheckCircle2, Circle, ArrowRight, Sparkles } from 'lucide-react';
 import type { OnboardingStatus } from '@/types';
+import { Card } from '@/components/ui/Card';
 
 const STEPS: { key: keyof OnboardingStatus; label: string; href: string | null }[] = [
   { key: 'workspace_created',      label: 'Workspace set up',           href: null },
@@ -21,7 +22,7 @@ export function OnboardingChecklist({ onboarding }: OnboardingChecklistProps) {
   if (done === total) return null;
 
   return (
-    <div className="bg-white rounded-2xl card-shadow overflow-hidden">
+    <Card variant="elevated" padding="none" className="overflow-hidden">
       <div className="primary-gradient px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -59,6 +60,6 @@ export function OnboardingChecklist({ onboarding }: OnboardingChecklistProps) {
           );
         })}
       </div>
-    </div>
+    </Card>
   );
 }

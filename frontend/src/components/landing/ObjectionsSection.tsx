@@ -1,4 +1,5 @@
 import { Clock, BookOpen, Lock, Globe2, Package } from 'lucide-react';
+import { Card } from '@/components/ui/Card';
 
 const OBJECTIONS = [
   {
@@ -52,7 +53,7 @@ export function ObjectionsSection() {
         {/* Q&A */}
         <div className="space-y-4">
           {OBJECTIONS.map(({ icon: Icon, q, a, color }) => (
-            <div key={q} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex gap-5">
+            <Card key={q} variant="outlined" padding="lg" className="shadow-sm flex gap-5">
               <div
                 className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
                 style={{ backgroundColor: color + '15' }}
@@ -63,7 +64,7 @@ export function ObjectionsSection() {
                 <p className="font-bold text-gray-900 mb-2 text-sm leading-snug">{q}</p>
                 <p className="text-gray-500 text-sm leading-relaxed">{a}</p>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
 

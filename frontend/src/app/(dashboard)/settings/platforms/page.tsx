@@ -3,9 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useRole } from '@/lib/hooks/useRole';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { useGet, usePost } from '@/lib/hooks/api';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
+import { Input } from '@/components/ui/Input';
 
 const PLATFORMS = ['meta', 'google_ads', 'tiktok', 'dv360', 'linkedin'];
 
@@ -20,16 +24,10 @@ export default function PlatformsSettingsPage() {
   }, [isViewer, router]);
   const [form, setForm] = useState({ naming_template: '', separator: '_', max_length: 255 });
 
-  const { data: platforms } = useQuery({
-    queryKey: ['platforms'],
-    queryFn: async () => {
-      const { data } = await apiClient.get('/platforms');
-      return data;
-    },
-  });
+  const { data: platforms } = useGet({ url: '/platforms' });
 
-  const saveMutation = useMutation({
-    mutationFn: (body: any) => apiClient.post('/platforms', body),
+  const saveMutation = usePost({
+    url: '/platforms',
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['platforms'] });
       setEditing(null);
@@ -55,30 +53,27 @@ export default function PlatformsSettingsPage() {
 
       <div className="space-y-4">
         {platforms?.map((p: any) => (
-          <div key={p.platform} className="bg-white rounded-xl border border-gray-200 p-5">
+          <Card key={p.platform} variant="outlined" padding="sm">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 <h3 className="font-semibold text-gray-900 capitalize">{p.platform.replace('_', ' ')}</h3>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${p.is_active || p.id ? 'bg-positive-soft text-positive' : 'bg-gray-100 text-gray-500'}`}>
+                <Badge tone={p.is_active || p.id ? 'success' : 'neutral'}>
                   {p.is_active || p.id ? 'Configured' : 'Default'}
-                </span>
+                </Badge>
               </div>
-              <button
-                onClick={() => editing === p.platform ? setEditing(null) : startEdit(p)}
-                className="text-sm text-primary hover:text-blue-800 font-medium"
-              >
+              <Button variant="text" size="sm" onClick={() => editing === p.platform ? setEditing(null) : startEdit(p)}>
                 {editing === p.platform ? 'Cancel' : 'Edit'}
-              </button>
+              </Button>
             </div>
 
             {editing === p.platform ? (
               <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Naming Template</label>
-                  <input
+                  <Input
                     value={form.naming_template}
                     onChange={(e) => setForm({ ...form, naming_template: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="font-mono"
                     placeholder="{brand}_{product}_{region}_{objective}"
                   />
                   <p className="text-xs text-gray-500 mt-1">Use {'{variable}'} placeholders matching your taxonomy types</p>
@@ -86,37 +81,31 @@ export default function PlatformsSettingsPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Separator</label>
-                    <input
+                    <Input
                       value={form.separator}
                       onChange={(e) => setForm({ ...form, separator: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                       maxLength={3}
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Max Length</label>
-                    <input
+                    <Input
                       type="number"
                       value={form.max_length}
                       onChange={(e) => setForm({ ...form, max_length: Number(e.target.value) })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
                 </div>
-                <button
-                  onClick={() => saveMutation.mutate({ platform: p.platform, ...form })}
-                  disabled={saveMutation.isPending}
-                  className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-hover disabled:opacity-50 transition-colors"
-                >
+                <Button loading={saveMutation.isPending} onClick={() => saveMutation.mutate({ platform: p.platform, ...form })}>
                   Save
-                </button>
+                </Button>
               </div>
             ) : (
               <p className="text-sm font-mono text-gray-600 bg-gray-50 px-3 py-2 rounded-lg">
                 {p.naming_template || 'Using default template'}
               </p>
             )}
-          </div>
+          </Card>
         ))}
       </div>
     </div>

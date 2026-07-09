@@ -1,57 +1,71 @@
 import { useState } from 'react';
-import Link from 'next/link';
 import { MoreHorizontal, Eye, Copy, Play, Pause, Trash2 } from 'lucide-react';
 import type { ActionMenuProps } from '@/types/campaigns';
+import { Button } from '@/components/ui/Button';
+
+const menuItemClass = 'w-full justify-start rounded-none px-3 py-2 text-sm font-normal h-auto';
 
 export function ActionMenu({ campaign, onAction }: ActionMenuProps) {
   const [open, setOpen] = useState(false);
 
   return (
     <div className="relative">
-      <button
+      <Button
+        variant="ghost"
+        size="icon"
         onClick={() => setOpen(!open)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
-        className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-500"
+        className="rounded-lg"
       >
         <MoreHorizontal className="w-4 h-4" />
-      </button>
+      </Button>
 
       {open && (
         <div className="absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg z-20 py-1 w-44">
-          <Link
+          <Button
             href={`/campaigns/${campaign.id}`}
-            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            variant="ghost"
+            icon={<Eye className="w-4 h-4" />}
+            className={`${menuItemClass} text-gray-700`}
           >
-            <Eye className="w-4 h-4" /> View Details
-          </Link>
-          <button
+            View Details
+          </Button>
+          <Button
+            variant="ghost"
+            icon={<Copy className="w-4 h-4" />}
             onClick={() => { onAction('duplicate', campaign.id); setOpen(false); }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            className={`${menuItemClass} text-gray-700`}
           >
-            <Copy className="w-4 h-4" /> Duplicate
-          </button>
+            Duplicate
+          </Button>
           {campaign.status === 'active' ? (
-            <button
+            <Button
+              variant="ghost"
+              icon={<Pause className="w-4 h-4" />}
               onClick={() => { onAction('pause', campaign.id); setOpen(false); }}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              className={`${menuItemClass} text-gray-700`}
             >
-              <Pause className="w-4 h-4" /> Pause
-            </button>
+              Pause
+            </Button>
           ) : campaign.status !== 'archived' && (
-            <button
+            <Button
+              variant="ghost"
+              icon={<Play className="w-4 h-4" />}
               onClick={() => { onAction('activate', campaign.id); setOpen(false); }}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-positive hover:bg-positive-soft"
+              className={`${menuItemClass} text-positive hover:bg-positive-soft hover:text-positive`}
             >
-              <Play className="w-4 h-4" /> Activate
-            </button>
+              Activate
+            </Button>
           )}
           <div className="border-t border-gray-100 my-1" />
-          <button
+          <Button
+            variant="ghost"
+            icon={<Trash2 className="w-4 h-4" />}
             onClick={() => { onAction('archive', campaign.id); setOpen(false); }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+            className={`${menuItemClass} text-red-600 hover:bg-red-50 hover:text-red-600`}
           >
-            <Trash2 className="w-4 h-4" /> Archive
-          </button>
+            Archive
+          </Button>
         </div>
       )}
     </div>

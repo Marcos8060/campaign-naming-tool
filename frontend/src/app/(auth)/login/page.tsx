@@ -6,8 +6,9 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
-import { AxiosError } from 'axios';
-import type { ApiErrorResponse } from '@/types';
+import { ApiError } from '@/lib/api/request';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,17 +25,15 @@ export default function LoginPage() {
       toast.success('Welcome back!');
       router.push('/dashboard');
     } catch (err) {
-      const message = err instanceof AxiosError
-        ? (err.response?.data as ApiErrorResponse)?.detail
-        : undefined;
+      const message = err instanceof ApiError ? err.message : undefined;
       toast.error(message || 'Invalid credentials');
     } finally {
       setLoading(false);
     }
   };
 
-  const inputCls = `w-full px-3 py-2.5 border rounded-xl text-sm text-t1 placeholder:text-t3
-    focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all`;
+  const inputCls = `rounded-xl py-2.5 text-t1 placeholder:text-t3
+    focus:border-brand focus:ring-brand/20 transition-all`;
 
   return (
     <>
@@ -44,7 +43,7 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-semibold text-t1 mb-1.5">Email</label>
-          <input
+          <Input
             type="email" required
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -56,7 +55,7 @@ export default function LoginPage() {
         <div>
           <label className="block text-sm font-semibold text-t1 mb-1.5">Password</label>
           <div className="relative">
-            <input
+            <Input
               type={showPw ? 'text' : 'password'} required
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
@@ -64,21 +63,25 @@ export default function LoginPage() {
               className={`${inputCls} pr-10`}
               placeholder="••••••••"
             />
-            <button
+            <Button
               type="button"
+              variant="text"
+              size="icon"
               onClick={() => setShowPw(!showPw)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-t3 hover:text-t2 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-t3 hover:text-t2"
             >
               {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
+            </Button>
           </div>
         </div>
-        <button
-          type="submit" disabled={loading}
-          className="w-full py-3 px-4 primary-gradient text-white font-bold rounded-xl hover:opacity-90 disabled:opacity-50 transition-opacity shadow-sm shadow-primary/20 text-sm mt-2"
+        <Button
+          type="submit"
+          variant="text"
+          loading={loading}
+          className="w-full py-3 px-4 primary-gradient text-white font-bold rounded-xl hover:opacity-90 shadow-sm shadow-primary/20 text-sm mt-2"
         >
-          {loading ? 'Signing in…' : 'Sign In'}
-        </button>
+          Sign In
+        </Button>
       </form>
 
       <p className="mt-6 text-center text-sm text-t2">

@@ -1,5 +1,6 @@
-import Link from 'next/link';
 import { ArrowRight, CheckCircle2, AlertTriangle, TrendingDown, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 
 const TRUST_BADGES = [
   '14-day free trial',
@@ -39,18 +40,22 @@ export function HeroSection() {
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-3 mb-7">
-              <Link
+              <Button
                 href="/register"
-                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 primary-gradient text-white font-bold rounded-xl hover:opacity-90 transition-opacity shadow-lg shadow-primary/20/60 text-sm"
+                variant="text"
+                icon={<ArrowRight className="w-4 h-4" />}
+                iconPosition="right"
+                className="px-7 py-3.5 primary-gradient text-white hover:text-white font-bold rounded-xl hover:opacity-90 transition-opacity shadow-lg shadow-primary/20/60 text-sm"
               >
-                Find My Wasted Spend <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link
+                Find My Wasted Spend
+              </Button>
+              <Button
                 href="/login"
-                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-white text-gray-700 font-semibold rounded-xl border border-gray-200 hover:border-blue-200 hover:bg-primary-soft/50 transition-all text-sm"
+                variant="text"
+                className="px-7 py-3.5 bg-white text-gray-700 hover:text-gray-700 font-semibold rounded-xl border border-gray-200 hover:border-blue-200 hover:bg-primary-soft/50 transition-all text-sm"
               >
                 Sign In to Dashboard
-              </Link>
+              </Button>
             </div>
 
             {/* Trust badges */}
@@ -70,7 +75,7 @@ export function HeroSection() {
               {/* Glow */}
               <div className="absolute inset-0 bg-blue-400/10 blur-3xl rounded-3xl scale-95 pointer-events-none" />
 
-              <div className="relative bg-white rounded-2xl border border-gray-200/80 shadow-2xl shadow-blue-100/50 overflow-hidden">
+              <Card variant="elevated" padding="none" className="relative border border-gray-200/80 shadow-2xl shadow-blue-100/50 overflow-hidden">
                 {/* Browser chrome */}
                 <div className="bg-gray-50 border-b border-gray-100 px-4 py-3 flex items-center gap-3">
                   <div className="flex gap-1.5">
@@ -168,10 +173,10 @@ export function HeroSection() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </Card>
 
               {/* Floating badge */}
-              <div className="absolute -bottom-3 -left-4 bg-white border border-gray-200 rounded-2xl px-4 py-2.5 shadow-lg flex items-center gap-2.5">
+              <Card variant="elevated" padding="none" className="absolute -bottom-3 -left-4 border border-gray-200 px-4 py-2.5 flex items-center gap-2.5">
                 <div className="w-8 h-8 bg-emerald-50 rounded-xl flex items-center justify-center">
                   <TrendingDown className="w-4 h-4 text-emerald-500" />
                 </div>
@@ -179,7 +184,7 @@ export function HeroSection() {
                   <p className="text-[11px] font-extrabold text-gray-900">$42K saved</p>
                   <p className="text-[9px] text-gray-400">overlap removed this month</p>
                 </div>
-              </div>
+              </Card>
             </div>
           </div>
 

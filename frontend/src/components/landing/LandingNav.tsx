@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Sparkles, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 
 const NAV_LINKS = ['Features', 'How It Works', 'Pricing', 'Compare'];
 
@@ -30,18 +31,22 @@ export function LandingNav() {
 
         {/* CTAs */}
         <div className="flex items-center gap-2">
-          <Link
+          <Button
             href="/login"
+            variant="text"
             className="hidden sm:block text-sm font-medium text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
           >
             Sign In
-          </Link>
-          <Link
+          </Button>
+          <Button
             href="/register"
-            className="inline-flex items-center gap-1.5 text-sm font-bold text-white px-4 py-2 rounded-lg primary-gradient hover:opacity-90 transition-opacity shadow-sm shadow-primary/20"
+            variant="text"
+            icon={<ArrowRight className="w-3.5 h-3.5" />}
+            iconPosition="right"
+            className="text-sm font-bold text-white hover:text-white px-4 py-2 rounded-lg primary-gradient hover:opacity-90 transition-opacity shadow-sm shadow-primary/20"
           >
-            Try Free <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
+            Try Free
+          </Button>
         </div>
       </div>
     </nav>

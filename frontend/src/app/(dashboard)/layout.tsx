@@ -8,7 +8,7 @@ import { setUser } from '@/lib/store/slices/authSlice';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { useWorkspace } from '@/lib/hooks/useWorkspace';
-import { apiClient } from '@/lib/api/client';
+import { useGet } from '@/lib/hooks/api';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -22,11 +22,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [isAuthenticated, router]);
 
   // Rehydrate user after page refresh
+  const { data: me } = useGet({
+    url: '/auth/me',
+    enabled: isAuthenticated && !user,
+    retry: false,
+  });
+
   useEffect(() => {
-    if (isAuthenticated && !user) {
-      apiClient.get('/auth/me').then(({ data }) => dispatch(setUser(data))).catch(() => {});
-    }
-  }, [isAuthenticated, user, dispatch]);
+    if (me) dispatch(setUser(me));
+  }, [me, dispatch]);
 
   if (!isAuthenticated) return null;
 
