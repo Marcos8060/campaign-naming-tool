@@ -6,6 +6,8 @@ import { useRole } from '@/lib/hooks/useRole';
 import { useQueryClient } from '@tanstack/react-query';
 import { useGet, usePatch, usePost } from '@/lib/hooks/api';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 
 const COLOR_FIELDS = [
   { key: 'primary_color', label: 'Primary Color' },
@@ -152,7 +154,7 @@ export default function ThemePage() {
         {/* Left: controls */}
         <div className="col-span-3 space-y-6">
           {/* Logo */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+          <Card variant="outlined" padding="lg" className="space-y-4">
             <h3 className="font-semibold text-gray-900">Logo</h3>
             <div className="grid grid-cols-2 gap-4">
               {[
@@ -177,10 +179,10 @@ export default function ThemePage() {
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
 
           {/* Colors */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+          <Card variant="outlined" padding="lg" className="space-y-4">
             <h3 className="font-semibold text-gray-900">Brand Colors</h3>
             <div className="grid grid-cols-2 gap-4">
               {COLOR_FIELDS.map(({ key, label }) => (
@@ -198,14 +200,10 @@ export default function ThemePage() {
                 </div>
               ))}
             </div>
-            <button
-              onClick={() => updateMutation.mutate(colors)}
-              disabled={updateMutation.isPending}
-              className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-hover disabled:opacity-50 transition-colors"
-            >
-              {updateMutation.isPending ? 'Saving…' : 'Save Theme'}
-            </button>
-          </div>
+            <Button loading={updateMutation.isPending} onClick={() => updateMutation.mutate(colors)}>
+              Save Theme
+            </Button>
+          </Card>
         </div>
 
         {/* Right: live preview */}

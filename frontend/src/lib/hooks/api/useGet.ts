@@ -11,8 +11,8 @@ export interface UseGetOptions<T> extends Omit<UseQueryOptions<T>, 'queryFn' | '
 
 /**
  * Thin wrapper around `useQuery` for GET requests. Every screen that reads
- * data from the API should go through this instead of calling `apiClient.get`
- * (or `fetch`) directly.
+ * data from the API should go through this instead of calling `fetch` (or an
+ * HTTP client) directly.
  *
  * The project's existing QueryClient default (`staleTime: 60_000`, see
  * `app/providers.tsx`) already governs caching, so we don't override it here

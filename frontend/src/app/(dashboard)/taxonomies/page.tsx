@@ -7,9 +7,11 @@ import { useGet, usePost, usePatch, useDelete } from '@/lib/hooks/api';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRole } from '@/lib/hooks/useRole';
-import { TaxonomyEditModal, type TaxonomyNodeData } from '@/components/taxonomies/TaxonomyEditModal';
+import { TaxonomyEditModal, TYPES, type TaxonomyNodeData } from '@/components/taxonomies/TaxonomyEditModal';
 import { TaxonomyDeleteModal } from '@/components/taxonomies/TaxonomyDeleteModal';
 import { TaxonomyNode } from '@/components/taxonomies/TaxonomyNode';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 
 export default function TaxonomiesPage() {
   const router = useRouter();
@@ -83,16 +85,14 @@ export default function TaxonomiesPage() {
             <p className="text-gray-500 mt-1">Define your campaign naming hierarchy</p>
           </div>
           {canManage && (
-            <button onClick={() => setShowForm(!showForm)}
-              className="inline-flex text-sm items-center gap-2 px-4 py-2 bg-primary text-white font-medium rounded-lg hover:bg-primary-hover transition-colors">
-              <Plus className="w-4 h-4" />
+            <Button size="sm" icon={<Plus className="w-4 h-4" />} onClick={() => setShowForm(!showForm)}>
               Add Taxonomy
-            </button>
+            </Button>
           )}
         </div>
 
         {showForm && canManage && (
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <Card variant="outlined" padding="lg">
             <h3 className="font-semibold text-gray-900 mb-4">New Taxonomy Node</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -126,21 +126,19 @@ export default function TaxonomiesPage() {
               </div>
             </div>
             <div className="flex gap-3 mt-4">
-              <button
+              <Button
                 onClick={() => createMutation.mutate({ ...form, parent_id: form.parent_id || undefined })}
-                disabled={!form.name || !form.code || createMutation.isPending}
-                className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-hover disabled:opacity-50 transition-colors">
-                {createMutation.isPending ? 'Creating…' : 'Create'}
-              </button>
-              <button onClick={() => setShowForm(false)}
-                className="px-4 py-2 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 transition-colors">
-                Cancel
-              </button>
+                disabled={!form.name || !form.code}
+                loading={createMutation.isPending}
+              >
+                Create
+              </Button>
+              <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
             </div>
-          </div>
+          </Card>
         )}
 
-        <div className="bg-white rounded-xl border border-gray-200">
+        <Card variant="outlined" padding="none">
           <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
             <span className="text-sm font-medium text-gray-700">
               {allTaxonomies.length} {allTaxonomies.length === 1 ? 'taxonomy' : 'taxonomies'}
@@ -167,7 +165,7 @@ export default function TaxonomiesPage() {
               ))
             )}
           </div>
-        </div>
+        </Card>
       </div>
     </>
   );

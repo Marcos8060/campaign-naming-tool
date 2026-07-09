@@ -6,8 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
-import { AxiosError } from 'axios';
-import type { ApiErrorResponse } from '@/types';
+import { ApiError } from '@/lib/api/request';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,9 +23,7 @@ export default function LoginPage() {
       toast.success('Welcome back!');
       router.push('/dashboard');
     } catch (err) {
-      const message = err instanceof AxiosError
-        ? (err.response?.data as ApiErrorResponse)?.detail
-        : undefined;
+      const message = err instanceof ApiError ? err.message : undefined;
       toast.error(message || 'Invalid credentials');
     } finally {
       setLoading(false);

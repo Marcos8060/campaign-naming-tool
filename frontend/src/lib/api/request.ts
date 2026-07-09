@@ -1,11 +1,7 @@
 import { store } from '@/lib/store';
 import { logout } from '@/lib/store/slices/authSlice';
 
-/**
- * Same base URL the existing axios `apiClient` uses (see `lib/api/client.ts`).
- * Kept identical on purpose so both clients hit the same backend during the
- * incremental migration.
- */
+/** Same env var the app has always used for the backend base URL. */
 export const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
 export type ApiErrorBody = Record<string, unknown>;
@@ -39,7 +35,7 @@ export interface RequestOptions {
   method: HttpMethod;
   token?: string | null;
   body?: unknown;
-  /** Set to 'blob' for file downloads (mirrors `apiClient.post(..., { responseType: 'blob' })`). */
+  /** Set to 'blob' for file downloads (e.g. CSV export). */
   responseType?: 'json' | 'blob';
   headers?: Record<string, string>;
 }

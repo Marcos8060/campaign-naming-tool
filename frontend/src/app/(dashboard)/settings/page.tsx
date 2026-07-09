@@ -10,6 +10,9 @@ import { RootState } from '@/lib/store';
 import { useRole } from '@/lib/hooks/useRole';
 import { UserPlus, Trash2, Shield } from 'lucide-react';
 import { ConfirmDeleteModal, type TeamMember } from '@/components/settings/ConfirmDeleteModal';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
 
 interface InviteForm {
   email: string;
@@ -103,7 +106,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Workspace Settings */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+        <Card variant="outlined" padding="lg" className="space-y-4">
           <h3 className="font-semibold text-gray-900">Workspace</h3>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Workspace Name</label>
@@ -119,28 +122,20 @@ export default function SettingsPage() {
             <span className="font-mono bg-gray-100 px-2 py-0.5 rounded">{workspace?.slug}</span>
           </div>
           {isAdmin && (
-            <button
-              onClick={() => updateMutation.mutate({ name: wsName })}
-              disabled={updateMutation.isPending}
-              className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-sm hover:bg-primary-hover disabled:opacity-50 transition-colors"
-            >
-              {updateMutation.isPending ? 'Saving…' : 'Save Changes'}
-            </button>
+            <Button loading={updateMutation.isPending} onClick={() => updateMutation.mutate({ name: wsName })}>
+              Save Changes
+            </Button>
           )}
-        </div>
+        </Card>
 
         {/* Team Management */}
-        <div className="bg-white rounded-xl border border-gray-200">
+        <Card variant="outlined" padding="none">
           <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <h3 className="font-semibold text-gray-900">Team Members</h3>
             {isAdmin && (
-              <button
-                onClick={() => setShowInvite(!showInvite)}
-                className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary text-white text-sm font-medium rounded-sm hover:bg-primary-hover transition-colors"
-              >
-                <UserPlus className="w-4 h-4" />
+              <Button size="sm" icon={<UserPlus className="w-4 h-4" />} onClick={() => setShowInvite(!showInvite)}>
                 Invite Member
-              </button>
+              </Button>
             )}
           </div>
 
@@ -189,19 +184,14 @@ export default function SettingsPage() {
                 </p>
               )}
               <div className="flex gap-2">
-                <button
+                <Button
+                  disabled={!invite.email}
+                  loading={inviteMutation.isPending}
                   onClick={() => inviteMutation.mutate(invite)}
-                  disabled={!invite.email || inviteMutation.isPending}
-                  className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-hover disabled:opacity-50 transition-colors"
                 >
-                  {inviteMutation.isPending ? 'Sending…' : 'Send Invite'}
-                </button>
-                <button
-                  onClick={() => setShowInvite(false)}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
+                  Send Invite
+                </Button>
+                <Button variant="outline" onClick={() => setShowInvite(false)}>Cancel</Button>
               </div>
             </div>
           )}
@@ -227,30 +217,30 @@ export default function SettingsPage() {
                       ))}
                     </select>
                   ) : (
-                    <span
-                      className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium capitalize ${ROLE_COLORS[u.role] || ''}`}
-                    >
+                    <Badge tone="neutral" className={ROLE_COLORS[u.role] || ''}>
                       {u.role}
                       {u.id === user?.id && ' (you)'}
-                    </span>
+                    </Badge>
                   )}
                   {isAdmin && u.id !== user?.id && (
-                    <button
-                      onClick={() => setDeleteTarget(u)}
-                      className="p-1.5 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-600 transition-colors"
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       title="Remove member"
+                      onClick={() => setDeleteTarget(u)}
+                      className="hover:bg-red-50 hover:text-red-600"
                     >
                       <Trash2 className="w-4 h-4" />
-                    </button>
+                    </Button>
                   )}
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </Card>
 
         {/* Quick links */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <Card variant="outlined" padding="lg">
           <h3 className="font-semibold text-gray-900 mb-4">Configuration</h3>
           <div className="space-y-2">
             {isAdmin && (
@@ -272,7 +262,7 @@ export default function SettingsPage() {
               <span className="text-gray-400">→</span>
             </Link>
           </div>
-        </div>
+        </Card>
       </div>
     </>
   );
