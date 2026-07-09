@@ -75,7 +75,7 @@ export default function DashboardPage() {
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
   return (
-    <div className="space-y-6 max-w-[1400px]">
+    <div className="space-y-6">
 
       {/* ── Welcome Banner ── */}
       <div className="primary-gradient rounded-2xl p-7 flex items-center justify-between overflow-hidden relative">

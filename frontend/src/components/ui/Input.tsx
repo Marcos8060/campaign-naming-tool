@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils/cn';
  * input across the app (modals, forms, filters — dozens of call sites).
  */
 const inputStyles = cva(
-  'w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors',
+  'w-full border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors',
   {
     variants: {
       uiSize: {
