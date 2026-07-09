@@ -256,7 +256,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {Array.isArray(campaigns) && campaigns?.campaigns?.length > 0 ? (
+        {Array.isArray(campaigns?.campaigns) && campaigns.campaigns.length > 0 ? (
           <table className="w-full">
             <thead>
               <tr className="bg-[#F8F7FF]">
