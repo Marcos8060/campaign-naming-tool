@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api/client';
+import { useGet } from '@/lib/hooks/api';
 import { AlertTriangle, TrendingDown, Users } from 'lucide-react';
 import Link from 'next/link';
 import type { OverlapPair } from '@/types/analytics';
@@ -21,13 +20,10 @@ function OverlapBadge({ pct }: { pct: number }) {
 export default function AudienceOverlapPage() {
   const [platform, setPlatform] = useState('');
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['audience-overlap', platform],
-    queryFn: async () => {
-      const params = platform ? `?platform=${platform}` : '';
-      const { data } = await apiClient.get(`/analytics/audience-overlap${params}`);
-      return data;
-    },
+  const params = platform ? `?platform=${platform}` : '';
+  const { data, isLoading } = useGet({
+    url: `/analytics/audience-overlap${params}`,
+    queryKey: ['analytics', 'audience-overlap', platform],
   });
 
   const highOverlaps = data?.high_overlap_pairs || [];

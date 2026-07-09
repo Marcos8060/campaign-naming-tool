@@ -3,8 +3,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useRole } from '@/lib/hooks/useRole';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { useGet, usePost } from '@/lib/hooks/api';
 import { toast } from 'sonner';
 import { CheckCircle, ChevronRight } from 'lucide-react';
 import type { Taxonomy } from '@/types';
@@ -57,39 +57,28 @@ export default function CreateCampaignPage() {
     taxonomy_values: {},
   });
 
-  const { data: taxonomies = [] } = useQuery<Taxonomy[]>({
-    queryKey: ['taxonomies', 'all'],
-    queryFn: async () => {
-      const { data } = await apiClient.get<Taxonomy[]>('/taxonomies');
-      return data;
-    },
-  });
+  const { data: taxonomies = [] } = useGet<Taxonomy[]>({ url: '/taxonomies', queryKey: ['taxonomies', 'all'] });
 
-  const { data: platformConfig } = useQuery<PlatformConfig | null>({
-    queryKey: ['platform', form.platform],
-    queryFn: async () => {
-      if (!form.platform) return null;
-      const { data } = await apiClient.get<PlatformConfig[]>('/platforms');
-      return data.find((p) => p.platform === form.platform) ?? null;
-    },
-    enabled: !!form.platform,
-  });
+  // Shares the ['platforms'] cache entry with settings/platforms/page.tsx —
+  // filtering client-side means selecting a different platform in the wizard
+  // doesn't refire the request once the list's been fetched once.
+  const { data: allPlatforms } = useGet<PlatformConfig[]>({ url: '/platforms', enabled: !!form.platform });
+  const platformConfig = allPlatforms?.find((p) => p.platform === form.platform) ?? null;
 
-  const mutation = useMutation({
-    mutationFn: (payload: Omit<CampaignFormData, 'budget_total' | 'budget_daily'> & {
-      name: string;
-      budget_total: number | null;
-      budget_daily: number | null;
-    }) => apiClient.post('/campaigns', payload),
+  type CreateCampaignPayload = Omit<CampaignFormData, 'budget_total' | 'budget_daily'> & {
+    name: string;
+    budget_total: number | null;
+    budget_daily: number | null;
+  };
+
+  const mutation = usePost<{ id: string }, CreateCampaignPayload>({
+    url: '/campaigns',
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
       toast.success('Campaign created successfully!');
-      router.push(`/campaigns/${res.data.id}`);
+      router.push(`/campaigns/${res.id}`);
     },
-    onError: (err: unknown) => {
-      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      toast.error(detail || 'Failed to create campaign');
-    },
+    onError: (err) => toast.error(err.message || 'Failed to create campaign'),
   });
 
   const generatedName = useMemo(() => {

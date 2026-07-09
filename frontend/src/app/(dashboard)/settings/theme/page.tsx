@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useRole } from '@/lib/hooks/useRole';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { useGet, usePatch, usePost } from '@/lib/hooks/api';
 import { toast } from 'sonner';
 
 const COLOR_FIELDS = [
@@ -106,18 +106,17 @@ export default function ThemePage() {
     if (!isAdmin) router.replace('/dashboard');
   }, [isAdmin, router]);
 
-  const { data: branding } = useQuery({
-    queryKey: ['branding'],
-    queryFn: async () => {
-      const { data } = await apiClient.get('/branding');
-      setColors(data);
-      setLogoUrl(data.logo_url);
-      return data;
-    },
-  });
+  const { data: branding } = useGet({ url: '/branding' });
 
-  const updateMutation = useMutation({
-    mutationFn: (body: any) => apiClient.patch('/branding', body),
+  useEffect(() => {
+    if (branding) {
+      setColors(branding);
+      setLogoUrl(branding.logo_url);
+    }
+  }, [branding]);
+
+  const updateMutation = usePatch({
+    url: '/branding',
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['branding', 'workspace'] });
       toast.success('Theme saved');
@@ -125,20 +124,22 @@ export default function ThemePage() {
     onError: () => toast.error('Failed to save theme'),
   });
 
-  const uploadLogo = async (file: File, type: 'light' | 'dark') => {
-    const formData = new FormData();
-    formData.append('file', file);
-    try {
-      const { data } = await apiClient.post(`/branding/logo?logo_type=${type}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+  const uploadLogoMutation = usePost<{ logo_url?: string }, { file: File; type: 'light' | 'dark' }>({
+    url: ({ type }) => `/branding/logo?logo_type=${type}`,
+    body: ({ file }: { file: File; type: 'light' | 'dark' }) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      return formData;
+    },
+    onSuccess: (data, { type }) => {
       queryClient.invalidateQueries({ queryKey: ['branding'] });
       if (type === 'light' && data.logo_url) setLogoUrl(data.logo_url);
       toast.success(`${type === 'light' ? 'Logo' : 'Dark logo'} uploaded`);
-    } catch {
-      toast.error('Upload failed');
-    }
-  };
+    },
+    onError: () => toast.error('Upload failed'),
+  });
+
+  const uploadLogo = (file: File, type: 'light' | 'dark') => uploadLogoMutation.mutate({ file, type });
 
   return (
     <div className="space-y-6">

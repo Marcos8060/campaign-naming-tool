@@ -3,13 +3,12 @@
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useRole } from '@/lib/hooks/useRole';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { useGet, usePost, usePatch, useDelete } from '@/lib/hooks/api';
 import Link from 'next/link';
 import { ArrowLeft, Edit2, Copy, Play, Pause, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { AxiosError } from 'axios';
-import type { Campaign, Taxonomy, ApiErrorResponse } from '@/types';
+import type { Campaign, Taxonomy } from '@/types';
 import type { CampaignUpdatePayload } from '@/types/campaign-detail';
 import { CampaignEditModal } from '@/components/campaigns/CampaignEditModal';
 
@@ -29,59 +28,43 @@ export default function CampaignDetailPage() {
   const [showEdit, setShowEdit] = useState(false);
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
 
-  const { data: campaign, isLoading } = useQuery<Campaign>({
-    queryKey: ['campaign', id],
-    queryFn: async () => {
-      const { data } = await apiClient.get<Campaign>(`/campaigns/${id}`);
-      return data;
-    },
-  });
+  const { data: campaign, isLoading } = useGet<Campaign>({ url: `/campaigns/${id}`, queryKey: ['campaign', id] });
 
-  const { data: taxonomies = [] } = useQuery<Taxonomy[]>({
-    queryKey: ['taxonomies'],
-    queryFn: async () => {
-      const { data } = await apiClient.get<Taxonomy[]>('/taxonomies');
-      return data;
-    },
-    enabled: showEdit,
-  });
+  const { data: taxonomies = [] } = useGet<Taxonomy[]>({ url: '/taxonomies', enabled: showEdit });
 
-  const statusMutation = useMutation({
-    mutationFn: (status: string) => apiClient.patch<Campaign>(`/campaigns/${id}/status`, { status }),
-    onSuccess: (res) => {
-      queryClient.setQueryData(['campaign', id], res.data);
+  const statusMutation = usePatch<Campaign, string>({
+    url: `/campaigns/${id}/status`,
+    body: (status: string) => ({ status }),
+    onSuccess: (data) => {
+      queryClient.setQueryData(['campaign', id], data);
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
-      toast.success(`Campaign ${res.data.status}`);
+      toast.success(`Campaign ${data.status}`);
     },
   });
 
-  const updateMutation = useMutation({
-    mutationFn: (body: CampaignUpdatePayload) => apiClient.patch<Campaign>(`/campaigns/${id}`, body),
-    onSuccess: (res) => {
-      queryClient.setQueryData(['campaign', id], res.data);
+  const updateMutation = usePatch<Campaign, CampaignUpdatePayload>({
+    url: `/campaigns/${id}`,
+    onSuccess: (data) => {
+      queryClient.setQueryData(['campaign', id], data);
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
       setShowEdit(false);
       toast.success('Campaign updated');
     },
-    onError: (err) => {
-      const message = err instanceof AxiosError
-        ? (err.response?.data as ApiErrorResponse)?.detail
-        : undefined;
-      toast.error(message || 'Failed to update');
-    },
+    onError: (err) => toast.error(err.message || 'Failed to update'),
   });
 
-  const duplicateMutation = useMutation({
-    mutationFn: () => apiClient.post<Campaign>(`/campaigns/${id}/duplicate`, {}),
-    onSuccess: (res) => {
+  const duplicateMutation = usePost<Campaign, void>({
+    url: `/campaigns/${id}/duplicate`,
+    body: {},
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
       toast.success('Campaign duplicated');
-      router.push(`/campaigns/${res.data.id}`);
+      router.push(`/campaigns/${data.id}`);
     },
   });
 
-  const archiveMutation = useMutation({
-    mutationFn: () => apiClient.delete(`/campaigns/${id}`),
+  const archiveMutation = useDelete<void, void>({
+    url: `/campaigns/${id}`,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
       toast.success('Campaign archived');

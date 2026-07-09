@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api/client';
+import { useGet } from '@/lib/hooks/api';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import Link from 'next/link';
 import { TrendingUp, TrendingDown, DollarSign, Eye, Target, AlertTriangle } from 'lucide-react';
@@ -41,39 +40,20 @@ function KPICard({ title, value, change, icon: Icon, color }: KPICardProps) {
 export default function AnalyticsPage() {
   const [days, setDays] = useState(30);
 
-  const { data: overview } = useQuery({
-    queryKey: ['analytics', 'overview'],
-    queryFn: async () => {
-      const { data } = await apiClient.get('/analytics/overview');
-      return data;
-    },
-  });
+  const { data: overview } = useGet({ url: '/analytics/overview' });
 
-  const { data: performance } = useQuery({
+  const end = new Date().toISOString().split('T')[0];
+  const start = new Date(Date.now() - days * 86400000).toISOString().split('T')[0];
+  const { data: performance } = useGet({
+    url: `/analytics/performance?start_date=${start}&end_date=${end}`,
+    // Override the derived key so switching date presets actually refetches
+    // (the default key drops query-string params).
     queryKey: ['analytics', 'performance', days],
-    queryFn: async () => {
-      const end = new Date().toISOString().split('T')[0];
-      const start = new Date(Date.now() - days * 86400000).toISOString().split('T')[0];
-      const { data } = await apiClient.get(`/analytics/performance?start_date=${start}&end_date=${end}`);
-      return data;
-    },
   });
 
-  const { data: budget } = useQuery({
-    queryKey: ['analytics', 'budget'],
-    queryFn: async () => {
-      const { data } = await apiClient.get('/analytics/budget-intelligence');
-      return data;
-    },
-  });
+  const { data: budget } = useGet({ url: '/analytics/budget-intelligence' });
 
-  const { data: topCampaigns } = useQuery({
-    queryKey: ['analytics', 'top-campaigns'],
-    queryFn: async () => {
-      const { data } = await apiClient.get('/analytics/top-campaigns?limit=10');
-      return data;
-    },
-  });
+  const { data: topCampaigns } = useGet({ url: '/analytics/top-campaigns?limit=10' });
 
   const platformData = (overview?.platforms as PlatformStat[] | undefined)?.map((p) => ({
     name: p.platform.replace('_', ' '),

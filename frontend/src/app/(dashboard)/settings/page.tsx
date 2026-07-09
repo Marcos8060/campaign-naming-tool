@@ -1,15 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api/client';
+import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useGet, usePost, usePatch, useDelete } from '@/lib/hooks/api';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
 import { useRole } from '@/lib/hooks/useRole';
 import { UserPlus, Trash2, Shield } from 'lucide-react';
-import { AxiosError } from 'axios';
 import { ConfirmDeleteModal, type TeamMember } from '@/components/settings/ConfirmDeleteModal';
 
 interface InviteForm {
@@ -40,56 +39,44 @@ export default function SettingsPage() {
   const [invite, setInvite] = useState<InviteForm>({ email: '', name: '', role: 'viewer' });
   const [deleteTarget, setDeleteTarget] = useState<TeamMember | null>(null);
 
-  const { data: workspace } = useQuery({
-    queryKey: ['workspace', 'current'],
-    queryFn: async () => {
-      const { data } = await apiClient.get('/workspaces/current');
-      setWsName(data.name || '');
-      return data;
-    },
-  });
+  const { data: workspace } = useGet({ url: '/workspaces/current', queryKey: ['workspace', 'current'] });
 
-  const { data: users } = useQuery<TeamMember[]>({
-    queryKey: ['users'],
-    queryFn: async () => {
-      const { data } = await apiClient.get('/users');
-      return data;
-    },
-  });
+  useEffect(() => {
+    if (workspace) setWsName(workspace.name || '');
+  }, [workspace]);
 
-  const updateMutation = useMutation({
-    mutationFn: (body: { name: string }) => apiClient.patch('/workspaces/current', body),
+  const { data: users } = useGet<TeamMember[]>({ url: '/users' });
+
+  const updateMutation = usePatch<unknown, { name: string }>({
+    url: '/workspaces/current',
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workspace'] });
       toast.success('Workspace updated');
     },
   });
 
-  const inviteMutation = useMutation({
-    mutationFn: (body: InviteForm) => apiClient.post('/users/invite', body),
+  const inviteMutation = usePost<unknown, InviteForm>({
+    url: '/users/invite',
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       setShowInvite(false);
       setInvite({ email: '', name: '', role: 'viewer' });
       toast.success('Team member invited');
     },
-    onError: (err: unknown) => {
-      const detail = err instanceof AxiosError ? err.response?.data?.detail : undefined;
-      toast.error(detail || 'Invite failed');
-    },
+    onError: (err) => toast.error(err.message || 'Invite failed'),
   });
 
-  const roleMutation = useMutation({
-    mutationFn: ({ id, role }: { id: string; role: string }) =>
-      apiClient.patch(`/users/${id}/role`, { role }),
+  const roleMutation = usePatch<unknown, { id: string; role: string }>({
+    url: ({ id }) => `/users/${id}/role`,
+    body: ({ role }: { id: string; role: string }) => ({ role }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       toast.success('Role updated');
     },
   });
 
-  const removeMutation = useMutation({
-    mutationFn: (id: string) => apiClient.delete(`/users/${id}`),
+  const removeMutation = useDelete<void, string>({
+    url: (id) => `/users/${id}`,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       setDeleteTarget(null);

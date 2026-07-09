@@ -1,7 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api/client';
+import { useGet } from '@/lib/hooks/api';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell,
@@ -40,29 +39,14 @@ export default function DashboardPage() {
   const { canManage: canCreate } = useRole();
   const firstName = user?.name?.split(' ')[0] || 'there';
 
-  const { data: overview, isLoading } = useQuery<AnalyticsOverview>({
-    queryKey: ['analytics', 'overview'],
-    queryFn: async () => {
-      const { data } = await apiClient.get<AnalyticsOverview>('/analytics/overview');
-      return data;
-    },
-  });
+  const { data: overview, isLoading } = useGet<AnalyticsOverview>({ url: '/analytics/overview' });
 
-  const { data: campaigns } = useQuery<CampaignsListResponse>({
+  const { data: campaigns } = useGet<CampaignsListResponse>({
+    url: '/campaigns?limit=5&sort_by=created_at&sort_order=desc',
     queryKey: ['campaigns', { limit: 5 }],
-    queryFn: async () => {
-      const { data } = await apiClient.get<CampaignsListResponse>('/campaigns?limit=5&sort_by=created_at&sort_order=desc');
-      return data;
-    },
   });
 
-  const { data: topCampaigns } = useQuery<TopCampaign[]>({
-    queryKey: ['analytics', 'top-campaigns'],
-    queryFn: async () => {
-      const { data } = await apiClient.get<TopCampaign[]>('/analytics/top-campaigns?limit=5');
-      return data;
-    },
-  });
+  const { data: topCampaigns } = useGet<TopCampaign[]>({ url: '/analytics/top-campaigns?limit=5' });
 
   if (isLoading) {
     return (

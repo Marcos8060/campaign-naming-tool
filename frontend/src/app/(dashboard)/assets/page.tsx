@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { useGet, usePost } from '@/lib/hooks/api';
 import { Upload, Image } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRole } from '@/lib/hooks/useRole';
@@ -12,38 +12,32 @@ export default function AssetsPage() {
   const router = useRouter();
   const { isViewer } = useRole();
   const queryClient = useQueryClient();
-  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (isViewer) router.replace('/dashboard');
   }, [isViewer, router]);
 
-  const { data: assets, isLoading } = useQuery({
-    queryKey: ['assets'],
-    queryFn: async () => {
-      const { data } = await apiClient.get('/assets');
-      return data;
-    },
-  });
+  const { data: assets, isLoading } = useGet({ url: '/assets' });
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    try {
+  const uploadMutation = usePost<unknown, File>({
+    url: '/assets/upload',
+    body: (file: File) => {
       const formData = new FormData();
       formData.append('file', file);
-      await apiClient.post('/assets/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      return formData;
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
       toast.success('Asset uploaded');
-    } catch {
-      toast.error('Upload failed');
-    } finally {
-      setUploading(false);
-      e.target.value = '';
-    }
+    },
+    onError: () => toast.error('Upload failed'),
+  });
+
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    uploadMutation.mutate(file);
+    e.target.value = '';
   };
 
   return (
@@ -53,10 +47,10 @@ export default function AssetsPage() {
           <h1 className="text-2xl font-bold text-gray-900">Asset Library</h1>
           <p className="text-gray-500 mt-1">Manage creative assets for your campaigns</p>
         </div>
-        <label className={`inline-flex items-center gap-2 px-4 py-2 bg-primary text-white font-medium text-sm rounded-sm hover:bg-primary-hover cursor-pointer transition-colors ${uploading ? 'opacity-50' : ''}`}>
+        <label className={`inline-flex items-center gap-2 px-4 py-2 bg-primary text-white font-medium text-sm rounded-sm hover:bg-primary-hover cursor-pointer transition-colors ${uploadMutation.isPending ? 'opacity-50' : ''}`}>
           <Upload className="w-4 h-4" />
-          {uploading ? 'Uploading...' : 'Upload Asset'}
-          <input type="file" className="hidden" accept="image/*" onChange={handleUpload} disabled={uploading} />
+          {uploadMutation.isPending ? 'Uploading...' : 'Upload Asset'}
+          <input type="file" className="hidden" accept="image/*" onChange={handleUpload} disabled={uploadMutation.isPending} />
         </label>
       </div>
 

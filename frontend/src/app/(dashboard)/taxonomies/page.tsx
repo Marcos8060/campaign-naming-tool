@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { useGet, usePost, usePatch, useDelete } from '@/lib/hooks/api';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRole } from '@/lib/hooks/useRole';
@@ -24,24 +24,12 @@ export default function TaxonomiesPage() {
     if (isViewer) router.replace('/dashboard');
   }, [isViewer, router]);
 
-  const { data: tree, isLoading } = useQuery<TaxonomyNodeData[]>({
-    queryKey: ['taxonomies', 'tree'],
-    queryFn: async () => {
-      const { data } = await apiClient.get('/taxonomies/tree');
-      return data;
-    },
-  });
+  const { data: tree, isLoading } = useGet<TaxonomyNodeData[]>({ url: '/taxonomies/tree' });
 
-  const { data: allTaxonomies = [] } = useQuery<TaxonomyNodeData[]>({
-    queryKey: ['taxonomies'],
-    queryFn: async () => {
-      const { data } = await apiClient.get('/taxonomies');
-      return data;
-    },
-  });
+  const { data: allTaxonomies = [] } = useGet<TaxonomyNodeData[]>({ url: '/taxonomies' });
 
-  const createMutation = useMutation({
-    mutationFn: (payload: Omit<TaxonomyNodeData, 'id' | 'children'>) => apiClient.post('/taxonomies', payload),
+  const createMutation = usePost<TaxonomyNodeData, Omit<TaxonomyNodeData, 'id' | 'children'>>({
+    url: '/taxonomies',
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['taxonomies'] });
       setShowForm(false);
@@ -51,9 +39,9 @@ export default function TaxonomiesPage() {
     onError: () => toast.error('Failed to create taxonomy'),
   });
 
-  const updateMutation = useMutation({
-    mutationFn: ({ id, ...body }: Partial<TaxonomyNodeData> & { id: string }) =>
-      apiClient.patch(`/taxonomies/${id}`, body),
+  const updateMutation = usePatch<TaxonomyNodeData, Partial<TaxonomyNodeData> & { id: string }>({
+    url: ({ id }) => `/taxonomies/${id}`,
+    body: ({ id, ...body }: Partial<TaxonomyNodeData> & { id: string }) => body,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['taxonomies'] });
       setEditingNode(null);
@@ -62,8 +50,8 @@ export default function TaxonomiesPage() {
     onError: () => toast.error('Failed to update taxonomy'),
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => apiClient.delete(`/taxonomies/${id}`),
+  const deleteMutation = useDelete<void, string>({
+    url: (id) => `/taxonomies/${id}`,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['taxonomies'] });
       setDeleteTarget(null);

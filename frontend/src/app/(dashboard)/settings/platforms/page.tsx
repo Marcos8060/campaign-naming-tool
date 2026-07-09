@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useRole } from '@/lib/hooks/useRole';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { useGet, usePost } from '@/lib/hooks/api';
 import { toast } from 'sonner';
 
 const PLATFORMS = ['meta', 'google_ads', 'tiktok', 'dv360', 'linkedin'];
@@ -20,16 +20,10 @@ export default function PlatformsSettingsPage() {
   }, [isViewer, router]);
   const [form, setForm] = useState({ naming_template: '', separator: '_', max_length: 255 });
 
-  const { data: platforms } = useQuery({
-    queryKey: ['platforms'],
-    queryFn: async () => {
-      const { data } = await apiClient.get('/platforms');
-      return data;
-    },
-  });
+  const { data: platforms } = useGet({ url: '/platforms' });
 
-  const saveMutation = useMutation({
-    mutationFn: (body: any) => apiClient.post('/platforms', body),
+  const saveMutation = usePost({
+    url: '/platforms',
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['platforms'] });
       setEditing(null);

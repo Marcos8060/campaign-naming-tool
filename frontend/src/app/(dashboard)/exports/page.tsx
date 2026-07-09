@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api/client';
+import { useGet, usePost } from '@/lib/hooks/api';
 import { Download, FileText, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRole } from '@/lib/hooks/useRole';
@@ -31,22 +30,20 @@ export default function ExportsPage() {
     if (isViewer) router.replace('/dashboard');
   }, [isViewer, router]);
 
-  const { data: history, refetch } = useQuery({
-    queryKey: ['exports'],
-    queryFn: async () => {
-      const { data } = await apiClient.get('/exports');
-      return data;
-    },
-  });
+  const { data: history, refetch } = useGet({ url: '/exports' });
 
-  const exportMutation = useMutation({
-    mutationFn: async ({ platform, fmt }: { platform: string; fmt: string }) => {
-      const body: any = { format: fmt };
+  const exportMutation = usePost<Blob, { platform: string; fmt: string }>({
+    url: '/exports/csv',
+    body: ({ platform, fmt }: { platform: string; fmt: string }) => {
+      const body: Record<string, string> = { format: fmt };
       if (platform) body.platform = platform;
-      const response = await apiClient.post('/exports/csv', body, { responseType: 'blob' });
+      return body;
+    },
+    responseType: 'blob',
+    onSuccess: (blob, { platform, fmt }) => {
       const suffix = fmt === 'platform_native' ? '_native' : '';
       const filename = `campaigns_${platform || 'all'}${suffix}.csv`;
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', filename);
@@ -54,8 +51,6 @@ export default function ExportsPage() {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-    },
-    onSuccess: () => {
       toast.success('Export downloaded');
       refetch();
     },
