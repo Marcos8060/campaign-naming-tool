@@ -40,7 +40,7 @@ export function ActionMenu({ campaign, onAction }: ActionMenuProps) {
           ) : campaign.status !== 'archived' && (
             <button
               onClick={() => { onAction('activate', campaign.id); setOpen(false); }}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-green-700 hover:bg-green-50"
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-positive hover:bg-positive-soft"
             >
               <Play className="w-4 h-4" /> Activate
             </button>

@@ -22,7 +22,7 @@ export function OnboardingChecklist({ onboarding }: OnboardingChecklistProps) {
 
   return (
     <div className="bg-white rounded-2xl card-shadow overflow-hidden">
-      <div className="brand-gradient px-6 py-4">
+      <div className="primary-gradient px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Sparkles className="w-5 h-5 text-white" />
@@ -44,14 +44,14 @@ export function OnboardingChecklist({ onboarding }: OnboardingChecklistProps) {
             <div key={key} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
               <div className="flex items-center gap-3">
                 {isDone
-                  ? <CheckCircle2 className="w-5 h-5 text-[#2e6be4] flex-shrink-0" />
+                  ? <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
                   : <Circle className="w-5 h-5 text-gray-300 flex-shrink-0" />}
                 <span className={`text-sm font-medium ${isDone ? 'line-through text-gray-300' : 'text-gray-700'}`}>
                   {label}
                 </span>
               </div>
               {!isDone && href && (
-                <Link href={href} className="inline-flex items-center gap-1 text-xs text-[#2e6be4] font-semibold hover:underline">
+                <Link href={href} className="inline-flex items-center gap-1 text-xs text-primary font-semibold hover:underline">
                   Go <ArrowRight className="w-3 h-3" />
                 </Link>
               )}

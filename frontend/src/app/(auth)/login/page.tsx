@@ -75,7 +75,7 @@ export default function LoginPage() {
         </div>
         <button
           type="submit" disabled={loading}
-          className="w-full py-3 px-4 brand-gradient text-white font-bold rounded-xl hover:opacity-90 disabled:opacity-50 transition-opacity shadow-sm shadow-blue-200 text-sm mt-2"
+          className="w-full py-3 px-4 primary-gradient text-white font-bold rounded-xl hover:opacity-90 disabled:opacity-50 transition-opacity shadow-sm shadow-primary/20 text-sm mt-2"
         >
           {loading ? 'Signing in…' : 'Sign In'}
         </button>
@@ -83,7 +83,7 @@ export default function LoginPage() {
 
       <p className="mt-6 text-center text-sm text-t2">
         Don&apos;t have an account?{' '}
-        <Link href="/register" className="text-brand font-semibold hover:underline">
+        <Link href="/register" className="text-primary font-semibold hover:underline">
           Create one free
         </Link>
       </p>

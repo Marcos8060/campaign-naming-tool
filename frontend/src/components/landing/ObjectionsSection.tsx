@@ -5,7 +5,7 @@ const OBJECTIONS = [
     icon: Clock,
     q: '"We don\'t have time to implement another tool."',
     a: 'Setup takes 10 minutes. Seriously. Create your workspace, define your taxonomy, invite your team. First campaign can go live in your first session. There\'s no implementation project — just a login.',
-    color: '#2e6be4',
+    color: `var(--color-primary)`,
   },
   {
     icon: BookOpen,

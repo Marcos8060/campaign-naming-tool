@@ -20,7 +20,7 @@ interface InviteForm {
 
 const ROLE_COLORS: Record<string, string> = {
   admin: 'bg-purple-100 text-purple-700',
-  manager: 'bg-blue-100 text-blue-700',
+  manager: 'bg-blue-100 text-primary',
   viewer: 'bg-gray-100 text-gray-700',
 };
 
@@ -124,7 +124,7 @@ export default function SettingsPage() {
               value={wsName}
               onChange={(e) => setWsName(e.target.value)}
               disabled={!isAdmin}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-50 disabled:text-gray-500"
             />
           </div>
           <div className="text-sm text-gray-500">
@@ -135,7 +135,7 @@ export default function SettingsPage() {
             <button
               onClick={() => updateMutation.mutate({ name: wsName })}
               disabled={updateMutation.isPending}
-              className="px-4 py-2 bg-[#2e6be4] text-white text-sm font-medium rounded-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-sm hover:bg-primary-hover disabled:opacity-50 transition-colors"
             >
               {updateMutation.isPending ? 'Saving…' : 'Save Changes'}
             </button>
@@ -149,7 +149,7 @@ export default function SettingsPage() {
             {isAdmin && (
               <button
                 onClick={() => setShowInvite(!showInvite)}
-                className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#2e6be4] text-white text-sm font-medium rounded-sm hover:bg-blue-700 transition-colors"
+                className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary text-white text-sm font-medium rounded-sm hover:bg-primary-hover transition-colors"
               >
                 <UserPlus className="w-4 h-4" />
                 Invite Member
@@ -158,7 +158,7 @@ export default function SettingsPage() {
           </div>
 
           {showInvite && isAdmin && (
-            <div className="px-6 py-4 bg-blue-50 border-b border-blue-100">
+            <div className="px-6 py-4 bg-primary-soft border-b border-blue-100">
               <h4 className="text-sm font-semibold text-gray-900 mb-3">Invite Team Member</h4>
               <div className="grid grid-cols-3 gap-3 mb-3">
                 <div>
@@ -166,7 +166,7 @@ export default function SettingsPage() {
                   <input
                     value={invite.name}
                     onChange={(e) => setInvite({ ...invite, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="Jane Smith"
                   />
                 </div>
@@ -176,7 +176,7 @@ export default function SettingsPage() {
                     type="email"
                     value={invite.email}
                     onChange={(e) => setInvite({ ...invite, email: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="jane@company.com"
                   />
                 </div>
@@ -185,7 +185,7 @@ export default function SettingsPage() {
                   <select
                     value={invite.role}
                     onChange={(e) => setInvite({ ...invite, role: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     {['admin', 'manager', 'viewer'].map((r) => (
                       <option key={r} value={r} className="capitalize">
@@ -205,7 +205,7 @@ export default function SettingsPage() {
                 <button
                   onClick={() => inviteMutation.mutate(invite)}
                   disabled={!invite.email || inviteMutation.isPending}
-                  className="px-4 py-2 bg-[#2e6be4] text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-hover disabled:opacity-50 transition-colors"
                 >
                   {inviteMutation.isPending ? 'Sending…' : 'Send Invite'}
                 </button>
@@ -231,7 +231,7 @@ export default function SettingsPage() {
                     <select
                       value={u.role}
                       onChange={(e) => roleMutation.mutate({ id: u.id, role: e.target.value })}
-                      className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary"
                     >
                       {['admin', 'manager', 'viewer'].map((r) => (
                         <option key={r} value={r}>

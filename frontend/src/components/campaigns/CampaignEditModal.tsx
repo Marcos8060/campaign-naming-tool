@@ -42,7 +42,7 @@ export function CampaignEditModal({ campaign, taxonomies, onClose, onSave, isPen
             <input
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary font-mono"
             />
           </div>
 
@@ -51,7 +51,7 @@ export function CampaignEditModal({ campaign, taxonomies, onClose, onSave, isPen
             <select
               value={form.objective}
               onChange={(e) => setForm({ ...form, objective: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="">Select objective…</option>
               {OBJECTIVES.map((o) => (
@@ -68,7 +68,7 @@ export function CampaignEditModal({ campaign, taxonomies, onClose, onSave, isPen
               <input
                 type="number" min="0" value={form.budget_total}
                 onChange={(e) => setForm({ ...form, budget_total: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="10000"
               />
             </div>
@@ -77,7 +77,7 @@ export function CampaignEditModal({ campaign, taxonomies, onClose, onSave, isPen
               <input
                 type="number" min="0" value={form.budget_daily}
                 onChange={(e) => setForm({ ...form, budget_daily: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="500"
               />
             </div>
@@ -88,14 +88,14 @@ export function CampaignEditModal({ campaign, taxonomies, onClose, onSave, isPen
               <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
               <input type="date" value={form.start_date}
                 onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
               <input type="date" value={form.end_date}
                 onChange={(e) => setForm({ ...form, end_date: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
           </div>
@@ -112,7 +112,7 @@ export function CampaignEditModal({ campaign, taxonomies, onClose, onSave, isPen
                       onChange={(e) =>
                         setForm({ ...form, taxonomy_values: { ...form.taxonomy_values, [type]: e.target.value } })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                     >
                       <option value="">— none —</option>
                       {taxonomies
@@ -142,7 +142,7 @@ export function CampaignEditModal({ campaign, taxonomies, onClose, onSave, isPen
               end_date: form.end_date || null,
             })}
             disabled={!form.name || isPending}
-            className="inline-flex items-center gap-2 px-5 py-2 bg-[#2e6be4] text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="inline-flex items-center gap-2 px-5 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-hover disabled:opacity-50 transition-colors"
           >
             <Save className="w-4 h-4" />
             {isPending ? 'Saving…' : 'Save Changes'}
