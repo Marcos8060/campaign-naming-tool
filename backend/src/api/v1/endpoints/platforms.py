@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from uuid import UUID
 import asyncpg
-import json
 
 from src.api.deps import get_current_user, get_workspace_id, require_role
 from src.db.session import get_pool
@@ -76,6 +75,6 @@ async def create_or_update_platform(
         body.get("id_format"),
         body.get("separator", "_"),
         body.get("max_length", 255),
-        json.dumps(body.get("validation_rules", {})),
+        body.get("validation_rules", {}),
     )
     return {k: str(v) if isinstance(v, UUID) else v for k, v in dict(row).items()}
