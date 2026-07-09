@@ -1,4 +1,5 @@
 import asyncpg
+import json
 from src.config import settings
 import re
 
@@ -11,6 +12,27 @@ def get_db_url() -> str:
     return url
 
 
+async def _init_connection(conn: asyncpg.Connection) -> None:
+    # asyncpg has no built-in json/jsonb <-> dict conversion — without this,
+    # every JSONB column (taxonomies.metadata, campaigns.taxonomy_values,
+    # campaigns.configuration, platform_configs.validation_rules,
+    # workspaces.settings, audit_logs.changes, ...) either throws on write
+    # (passing a raw Python dict crashes with an unhandled 500 that then
+    # LOOKS like a CORS error in the browser, since Starlette's error
+    # middleware sits outside CORSMiddleware) or comes back as an unparsed
+    # JSON string on read. Registering the codec once here fixes both
+    # directions for every endpoint, instead of hand-rolling json.dumps/
+    # json.loads at each call site.
+    for pg_type in ("json", "jsonb"):
+        await conn.set_type_codec(
+            pg_type,
+            encoder=json.dumps,
+            decoder=json.loads,
+            schema="pg_catalog",
+            format="text",
+        )
+
+
 async def init_db():
     global pool
     pool = await asyncpg.create_pool(
@@ -18,6 +40,7 @@ async def init_db():
         min_size=5,
         max_size=20,
         command_timeout=60,
+        init=_init_connection,
     )
     await run_migrations()
 
