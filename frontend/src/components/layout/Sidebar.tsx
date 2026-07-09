@@ -11,6 +11,7 @@ import {
   Image, Settings, ChevronLeft, ChevronRight, Users2, Sparkles, X,
 } from 'lucide-react';
 import type { NavItemProps } from '@/types/layout';
+import { Button } from '@/components/ui/Button';
 
 const NAV_ALL = [
   { href: '/dashboard',                  label: 'Dashboard',        icon: LayoutDashboard, roles: ['admin', 'manager', 'viewer'] },
@@ -101,12 +102,14 @@ function DesktopSidebar() {
             <Sparkles className="w-4 h-4 text-white" />
           </div>
         )}
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={() => dispatch(toggleSidebar())}
-          className="p-1.5 rounded-lg hover:bg-[var(--color-primary-soft)] text-t3 hover:text-primary transition-colors flex-shrink-0"
+          className="rounded-lg hover:bg-[var(--color-primary-soft)] text-t3 hover:text-primary transition-colors flex-shrink-0"
         >
           {sidebarOpen ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-        </button>
+        </Button>
       </div>
 
       {/* Nav */}
@@ -177,9 +180,9 @@ function MobileDrawer() {
               )}
             </div>
           </div>
-          <button onClick={close} className="p-1.5 rounded-lg hover:bg-[var(--color-primary-soft)] text-t3">
+          <Button variant="ghost" size="icon" onClick={close} className="rounded-lg hover:bg-[var(--color-primary-soft)] text-t3 hover:text-t3">
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">

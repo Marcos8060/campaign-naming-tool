@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 
 export interface TaxonomyNodeData {
   id: string;
@@ -54,30 +56,27 @@ export function TaxonomyEditModal({ node, allTaxonomies, onClose, onSave, isPend
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-          <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Code</label>
-          <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" />
+          <Input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
+            className="font-mono" />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-          <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+          <Select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
             {TYPES.map((t) => <option key={t} value={t} className="capitalize">{t}</option>)}
-          </select>
+          </Select>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Parent (optional)</label>
-          <select value={form.parent_id} onChange={(e) => setForm({ ...form, parent_id: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+          <Select value={form.parent_id} onChange={(e) => setForm({ ...form, parent_id: e.target.value })}>
             <option value="">No parent (root)</option>
             {allTaxonomies.filter((t) => t.id !== node.id).map((t) => (
               <option key={t.id} value={t.id}>{t.name} ({t.code})</option>
             ))}
-          </select>
+          </Select>
         </div>
       </div>
     </Modal>

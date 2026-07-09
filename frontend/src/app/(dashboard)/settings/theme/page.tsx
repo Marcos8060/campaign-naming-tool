@@ -8,6 +8,7 @@ import { useGet, usePatch, usePost } from '@/lib/hooks/api';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { Input } from '@/components/ui/Input';
 
 const COLOR_FIELDS = [
   { key: 'primary_color', label: 'Primary Color' },
@@ -170,11 +171,11 @@ export default function ThemePage() {
                       className="h-10 mb-2 object-contain"
                     />
                   )}
-                  <input
+                  <Input
                     type="file"
                     accept="image/png,image/jpeg,image/svg+xml"
                     onChange={(e) => e.target.files?.[0] && uploadLogo(e.target.files[0], type)}
-                    className="text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-primary-soft file:text-primary hover:file:bg-primary-soft"
+                    className="border-0 p-0 focus:ring-0 text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-primary-soft file:text-primary hover:file:bg-primary-soft"
                   />
                 </div>
               ))}
@@ -187,11 +188,11 @@ export default function ThemePage() {
             <div className="grid grid-cols-2 gap-4">
               {COLOR_FIELDS.map(({ key, label }) => (
                 <div key={key} className="flex items-center gap-3">
-                  <input
+                  <Input
                     type="color"
                     value={colors[key] || '#3b82f6'}
                     onChange={(e) => setColors({ ...colors, [key]: e.target.value })}
-                    className="w-10 h-10 rounded cursor-pointer border border-gray-300 p-0.5"
+                    className="w-10 h-10 rounded cursor-pointer p-0.5"
                   />
                   <div>
                     <label className="text-sm font-medium text-gray-700">{label}</label>

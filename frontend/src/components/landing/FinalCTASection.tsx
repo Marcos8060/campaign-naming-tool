@@ -1,5 +1,5 @@
-import Link from 'next/link';
 import { ArrowRight, CheckCircle2, TrendingDown } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 
 const PROMISES = [
   'Detect audience overlap in your first session',
@@ -50,18 +50,22 @@ export function FinalCTASection() {
 
             {/* CTA buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
-              <Link
+              <Button
                 href="/register"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-primary font-extrabold rounded-xl hover:bg-blue-50 transition-colors shadow-xl text-sm"
+                variant="text"
+                icon={<ArrowRight className="w-4 h-4" />}
+                iconPosition="right"
+                className="px-8 py-4 bg-white text-primary hover:text-primary font-extrabold rounded-xl hover:bg-blue-50 transition-colors shadow-xl text-sm"
               >
-                Find My Wasted Spend Now <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link
+                Find My Wasted Spend Now
+              </Button>
+              <Button
                 href="/login"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/15 text-white font-semibold rounded-xl border border-white/25 hover:bg-white/20 transition-colors text-sm"
+                variant="text"
+                className="px-8 py-4 bg-white/15 text-white hover:text-white font-semibold rounded-xl border border-white/25 hover:bg-white/20 transition-colors text-sm"
               >
                 Already have an account? Sign In
-              </Link>
+              </Button>
             </div>
 
             <p className="mt-5 text-xs text-white/50">

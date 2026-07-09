@@ -14,6 +14,8 @@ import { ActionMenu } from '@/components/campaigns/ActionMenu';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge, type BadgeProps } from '@/components/ui/Badge';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 
 const STATUS_TONE: Record<string, BadgeProps['tone']> = {
   active: 'success',
@@ -129,37 +131,31 @@ export default function CampaignsPage() {
           </p>
         </div>
         {canCreate && (
-          <Link
-            href="/campaigns/create"
-            className="inline-flex text-sm items-center gap-2 px-4 py-2 bg-primary text-white font-medium rounded-lg hover:bg-primary-hover transition-colors"
-          >
-            <Plus className="w-4 h-4" />
+          <Button href="/campaigns/create" icon={<Plus className="w-4 h-4" />}>
             New Campaign
-          </Link>
+          </Button>
         )}
       </div>
 
       {/* Filters */}
       <div className="flex gap-3 flex-wrap items-center">
         <div className="relative flex-1 min-w-48">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
+          <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search campaigns..."
-            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            className="pl-9 pr-3"
           />
         </div>
-        <select value={platform} onChange={(e) => setPlatform(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+        <Select value={platform} onChange={(e) => setPlatform(e.target.value)} className="w-auto">
           <option value="">All Platforms</option>
           {['meta', 'google_ads', 'tiktok', 'dv360', 'linkedin'].map(p => <option key={p} value={p}>{p.replace('_', ' ')}</option>)}
-        </select>
-        <select value={status} onChange={(e) => setStatus(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+        </Select>
+        <Select value={status} onChange={(e) => setStatus(e.target.value)} className="w-auto">
           <option value="">All Statuses</option>
           {['draft', 'active', 'paused', 'completed'].map(s => <option key={s} value={s} className="capitalize">{s}</option>)}
-        </select>
+        </Select>
         {(platform || status || search) && (
           <Button variant="text" className="text-gray-500 hover:text-gray-700 underline"
             onClick={() => { setPlatform(''); setStatus(''); setSearch(''); }}>Clear filters</Button>
@@ -197,8 +193,8 @@ export default function CampaignsPage() {
               <tr>
                 {canCreate && (
                   <th className="px-4 py-3 w-10">
-                    <input type="checkbox" checked={selected.size === campaigns.length && campaigns.length > 0}
-                      onChange={toggleAll} className="rounded border-gray-300" />
+                    <Input type="checkbox" checked={selected.size === campaigns.length && campaigns.length > 0}
+                      onChange={toggleAll} className="w-4 h-4 p-0 rounded focus:ring-0" />
                   </th>
                 )}
                 {[
@@ -220,8 +216,8 @@ export default function CampaignsPage() {
                 <tr key={campaign.id} className={`hover:bg-gray-50 ${selected.has(campaign.id) ? 'bg-blue-50' : ''}`}>
                   {canCreate && (
                     <td className="px-4 py-3">
-                      <input type="checkbox" checked={selected.has(campaign.id)}
-                        onChange={() => toggleSelect(campaign.id)} className="rounded border-gray-300" />
+                      <Input type="checkbox" checked={selected.has(campaign.id)}
+                        onChange={() => toggleSelect(campaign.id)} className="w-4 h-4 p-0 rounded focus:ring-0" />
                     </td>
                   )}
                   <td className="px-4 py-3">

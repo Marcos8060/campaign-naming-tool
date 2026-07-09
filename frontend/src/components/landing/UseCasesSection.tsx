@@ -1,5 +1,6 @@
-import Link from 'next/link';
 import { ArrowRight, Building2, Briefcase, BarChart2 } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 
 const USE_CASES = [
   {
@@ -56,7 +57,7 @@ export function UseCasesSection() {
         {/* Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {USE_CASES.map(({ icon: Icon, tag, headline, pain, solution, result, color, bg, border }) => (
-            <div key={tag} className={`bg-white rounded-2xl border ${border} overflow-hidden`}>
+            <Card key={tag} variant="outlined" padding="none" className={`${border} overflow-hidden`}>
               {/* Top band */}
               <div className={`${bg} px-6 py-5 border-b ${border}`}>
                 <div className="flex items-center gap-2.5 mb-3">
@@ -87,18 +88,21 @@ export function UseCasesSection() {
                   📈 {result}
                 </div>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
 
         {/* Bottom CTA */}
         <div className="text-center mt-12">
-          <Link
+          <Button
             href="/register"
-            className="inline-flex items-center gap-2 px-7 py-3.5 primary-gradient text-white font-bold rounded-xl hover:opacity-90 transition-opacity shadow-lg shadow-primary/20/60 text-sm"
+            variant="text"
+            icon={<ArrowRight className="w-4 h-4" />}
+            iconPosition="right"
+            className="px-7 py-3.5 primary-gradient text-white hover:text-white font-bold rounded-xl hover:opacity-90 transition-opacity shadow-lg shadow-primary/20/60 text-sm"
           >
-            See How It Works For Your Team <ArrowRight className="w-4 h-4" />
-          </Link>
+            See How It Works For Your Team
+          </Button>
         </div>
 
       </div>

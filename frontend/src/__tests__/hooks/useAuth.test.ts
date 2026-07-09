@@ -22,7 +22,7 @@ function wrapper(store: ReturnType<typeof makeStore>) {
     React.createElement(
       QueryClientProvider,
       { client: queryClient },
-      React.createElement(Provider, { store }, children),
+      React.createElement(Provider, { store, children }),
     );
 }
 

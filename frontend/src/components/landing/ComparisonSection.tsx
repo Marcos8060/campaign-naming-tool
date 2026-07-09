@@ -1,4 +1,5 @@
 import { CheckCircle2, X } from 'lucide-react';
+import { Card } from '@/components/ui/Card';
 
 type CellValue = string | boolean;
 
@@ -51,7 +52,7 @@ export function ComparisonSection() {
         </div>
 
         {/* Table */}
-        <div className="overflow-hidden rounded-2xl border border-gray-200 shadow-sm">
+        <Card variant="outlined" padding="none" className="overflow-hidden shadow-sm">
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200">
@@ -91,7 +92,7 @@ export function ComparisonSection() {
               ))}
             </tbody>
           </table>
-        </div>
+        </Card>
 
         <p className="text-center text-xs text-gray-400 mt-5">
           * Enterprise pricing estimates based on publicly available Maaten/CM360 pricing. Analyst salary based on $95K/yr average.

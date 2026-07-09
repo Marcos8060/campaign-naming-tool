@@ -16,6 +16,9 @@ import {
 import type { AnalyticsOverview, TopCampaign, CampaignsListResponse, PlatformStat } from '@/types';
 import { KpiCard } from '@/components/dashboard/KpiCard';
 import { OnboardingChecklist } from '@/components/dashboard/OnboardingChecklist';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Badge, type BadgeProps } from '@/components/ui/Badge';
 
 const PLATFORM_COLORS: Record<string, string> = {
   meta:       '#6C5CE7',
@@ -25,12 +28,12 @@ const PLATFORM_COLORS: Record<string, string> = {
   linkedin:   '#74b9ff',
 };
 
-const STATUS_STYLES: Record<string, string> = {
-  active:   'bg-emerald-50 text-emerald-700 border border-emerald-100',
-  draft:    'bg-gray-100 text-gray-600 border border-gray-200',
-  paused:   'bg-amber-50 text-amber-700 border border-amber-100',
-  archived: 'bg-red-50 text-red-600 border border-red-100',
-  completed:'bg-blue-50 text-primary border border-blue-100',
+const STATUS_TONE: Record<string, BadgeProps['tone']> = {
+  active: 'success',
+  draft: 'neutral',
+  paused: 'warning',
+  archived: 'danger',
+  completed: 'primary',
 };
 
 
@@ -91,15 +94,15 @@ export default function DashboardPage() {
         </div>
         <div className="relative z-10 hidden md:flex gap-3 flex-shrink-0">
           {canCreate && (
-            <Link href="/campaigns/create"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-primary font-bold rounded-sm hover:bg-blue-50 transition-colors text-sm shadow-lg">
-              <Plus className="w-4 h-4" /> New Campaign
-            </Link>
+            <Button href="/campaigns/create" variant="text" icon={<Plus className="w-4 h-4" />}
+              className="px-5 py-2.5 bg-white text-primary font-bold rounded-sm hover:bg-blue-50 hover:text-primary transition-colors text-sm shadow-lg">
+              New Campaign
+            </Button>
           )}
-          <Link href="/analytics"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/15 text-white font-semibold rounded-xl hover:bg-white/25 transition-colors text-sm border border-white/20">
-            <BarChart2 className="w-4 h-4" /> Analytics
-          </Link>
+          <Button href="/analytics" variant="text" icon={<BarChart2 className="w-4 h-4" />}
+            className="px-5 py-2.5 bg-white/15 text-white hover:text-white font-semibold rounded-xl hover:bg-white/25 transition-colors text-sm border border-white/20">
+            Analytics
+          </Button>
         </div>
       </div>
 
@@ -141,7 +144,7 @@ export default function DashboardPage() {
       {/* ── Charts row ── */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Platform bar chart */}
-        <div className="lg:col-span-3 bg-white rounded-2xl card-shadow p-6">
+        <Card variant="elevated" padding="lg" className="lg:col-span-3">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="font-bold text-gray-900">Campaigns by Platform</h3>
@@ -182,10 +185,10 @@ export default function DashboardPage() {
               )}
             </div>
           )}
-        </div>
+        </Card>
 
         {/* Top campaigns */}
-        <div className="lg:col-span-2 bg-white rounded-2xl card-shadow p-6">
+        <Card variant="elevated" padding="lg" className="lg:col-span-2">
           <div className="flex items-center justify-between mb-5">
             <div>
               <h3 className="font-bold text-gray-900">Top Campaigns</h3>
@@ -229,11 +232,11 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* ── Recent Campaigns Table ── */}
-      <div className="bg-white rounded-2xl card-shadow overflow-hidden">
+      <Card variant="elevated" padding="none" className="overflow-hidden">
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-50">
           <div>
             <h3 className="font-bold text-gray-900">Recent Campaigns</h3>
@@ -241,10 +244,10 @@ export default function DashboardPage() {
           </div>
           <div className="flex items-center gap-3">
             {canCreate && (
-              <Link href="/campaigns/create"
-                className="inline-flex items-center gap-2 px-4 py-2 primary-gradient text-white text-sm font-semibold rounded-sm hover:opacity-90 transition-opacity shadow-sm shadow-primary/20">
-                <Plus className="w-4 h-4" /> New Campaigns
-              </Link>
+              <Button href="/campaigns/create" variant="text" icon={<Plus className="w-4 h-4" />}
+                className="px-4 py-2 primary-gradient text-white text-sm font-semibold rounded-sm hover:opacity-90 hover:text-white transition-opacity shadow-sm shadow-primary/20">
+                New Campaigns
+              </Button>
             )}
             <Link href="/campaigns"
               className="text-sm text-primary font-semibold hover:underline flex items-center gap-1">
@@ -281,9 +284,7 @@ export default function DashboardPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_STYLES[c.status] || STATUS_STYLES.draft}`}>
-                      {c.status}
-                    </span>
+                    <Badge tone={STATUS_TONE[c.status] || STATUS_TONE.draft}>{c.status}</Badge>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600 font-medium">
                     {c.budget_total ? `$${Number(c.budget_total).toLocaleString()}` : '—'}
@@ -305,14 +306,14 @@ export default function DashboardPage() {
               {canCreate ? 'Launch your first campaign using the wizard' : 'No campaigns have been created yet'}
             </p>
             {canCreate && (
-              <Link href="/campaigns/create"
-                className="inline-flex items-center gap-2 px-5 py-2.5 primary-gradient text-white font-semibold rounded-sm hover:opacity-90 transition-opacity text-sm">
-                <Plus className="w-4 h-4" /> Create First Campaign
-              </Link>
+              <Button href="/campaigns/create" variant="text" icon={<Plus className="w-4 h-4" />}
+                className="px-5 py-2.5 primary-gradient text-white font-semibold rounded-sm hover:opacity-90 hover:text-white transition-opacity text-sm">
+                Create First Campaign
+              </Button>
             )}
           </div>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

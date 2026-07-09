@@ -1,6 +1,7 @@
 import {
   Tag, BarChart3, Users, Target, Download, Palette,
 } from 'lucide-react';
+import { Card } from '@/components/ui/Card';
 
 const FEATURES = [
   {
@@ -75,9 +76,11 @@ export function FeaturesSection() {
         {/* Feature grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {FEATURES.map(({ icon: Icon, outcome, title, body, color, bg }) => (
-            <div
+            <Card
               key={title}
-              className="group relative bg-white rounded-2xl p-6 border border-gray-100 hover:border-gray-200 hover:shadow-lg hover:shadow-gray-100/80 transition-all duration-300"
+              variant="outlined"
+              padding="lg"
+              className="group relative hover:border-gray-200 hover:shadow-lg hover:shadow-gray-100/80 transition-all duration-300"
             >
               {/* Icon */}
               <div
@@ -96,7 +99,7 @@ export function FeaturesSection() {
 
               <h3 className="font-bold text-gray-900 mb-2 text-sm leading-snug">{title}</h3>
               <p className="text-gray-500 text-xs leading-relaxed">{body}</p>
-            </div>
+            </Card>
           ))}
         </div>
 

@@ -7,6 +7,9 @@ import Link from 'next/link';
 import { TrendingUp, TrendingDown, DollarSign, Eye, Target, AlertTriangle } from 'lucide-react';
 import type { PlatformStat, TopCampaign } from '@/types';
 import type { KPICardProps } from '@/types/analytics';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { cn } from '@/lib/utils/cn';
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'];
 
@@ -17,9 +20,9 @@ const DATE_PRESETS = [
 ];
 
 function KPICard({ title, value, change, icon: Icon, color }: KPICardProps) {
-  const isPositive = change >= 0;
+  const isPositive = (change ?? 0) >= 0;
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6">
+    <Card variant="outlined" padding="lg">
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm font-medium text-gray-600">{title}</p>
         <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${color}`}>
@@ -33,7 +36,7 @@ function KPICard({ title, value, change, icon: Icon, color }: KPICardProps) {
           {Math.abs(change)}% vs prev period
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -72,10 +75,10 @@ export default function AnalyticsPage() {
         </div>
         <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
           {DATE_PRESETS.map(({ label, days: d }) => (
-            <button key={label} onClick={() => setDays(d)}
-              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${days === d ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+            <Button key={label} variant="ghost" size="sm" onClick={() => setDays(d)}
+              className={cn('rounded-md px-3 py-1.5 text-sm font-medium', days === d ? 'bg-white text-gray-900 shadow-sm hover:bg-white hover:text-gray-900' : 'text-gray-500 hover:text-gray-700')}>
               {label}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
@@ -90,7 +93,7 @@ export default function AnalyticsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Performance over time */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 lg:col-span-2">
+        <Card variant="outlined" padding="lg" className="lg:col-span-2">
           <h3 className="font-semibold text-gray-900 mb-4">Performance Over Time</h3>
           {performance && performance.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
@@ -111,10 +114,10 @@ export default function AnalyticsPage() {
               <p className="text-xs mt-1">Import campaign data to see metrics</p>
             </div>
           )}
-        </div>
+        </Card>
 
         {/* Platform distribution */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <Card variant="outlined" padding="lg">
           <h3 className="font-semibold text-gray-900 mb-4">Campaigns by Platform</h3>
           {platformData.length > 0 ? (
             <ResponsiveContainer width="100%" height={220}>
@@ -128,10 +131,10 @@ export default function AnalyticsPage() {
           ) : (
             <div className="h-48 flex items-center justify-center text-gray-400 text-sm">No data</div>
           )}
-        </div>
+        </Card>
 
         {/* Budget by platform */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <Card variant="outlined" padding="lg">
           <h3 className="font-semibold text-gray-900 mb-4">Budget Allocation</h3>
           {budget && budget.length > 0 ? (
             <ResponsiveContainer width="100%" height={220}>
@@ -146,11 +149,11 @@ export default function AnalyticsPage() {
           ) : (
             <div className="h-48 flex items-center justify-center text-gray-400 text-sm">No budget data</div>
           )}
-        </div>
+        </Card>
       </div>
 
       {/* Top campaigns table */}
-      <div className="bg-white rounded-xl border border-gray-200">
+      <Card variant="outlined" padding="none">
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <h3 className="font-semibold text-gray-900">Top Performing Campaigns</h3>
           <Link href="/analytics/audience-overlap" className="flex items-center gap-2 text-sm text-orange-600 hover:text-orange-800 font-medium">
@@ -191,7 +194,7 @@ export default function AnalyticsPage() {
         ) : (
           <div className="p-8 text-center text-gray-400 text-sm">No performance data yet</div>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
+import Link from 'next/link';
 import { cn } from '@/lib/utils/cn';
 import { Spinner } from './Spinner';
 
@@ -45,27 +46,48 @@ export interface ButtonProps
   loading?: boolean;
   icon?: ReactNode;
   iconPosition?: 'left' | 'right';
+  /**
+   * When set, renders as a Next.js `<Link>` instead of a `<button>` — for
+   * the CTA-style nav links across the app (dashboard hero, campaigns list
+   * "New Campaign") that were previously hand-styled anchors rather than
+   * going through a shared component.
+   */
+  href?: string;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { children, variant, size, loading = false, disabled, icon, iconPosition = 'left', className, type = 'button', ...props },
+  { children, variant, size, loading = false, disabled, icon, iconPosition = 'left', className, type = 'button', href, ...props },
   ref,
 ) {
   const isDisabled = disabled || loading;
+  const classes = cn(buttonStyles({ variant, size }), className);
+  const content = (
+    <>
+      {loading ? <Spinner /> : icon && iconPosition === 'left' ? icon : null}
+      {children}
+      {!loading && icon && iconPosition === 'right' ? icon : null}
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link href={href} className={classes} aria-disabled={isDisabled} {...(props as Record<string, unknown>)}>
+        {content}
+      </Link>
+    );
+  }
 
   return (
     <button
       ref={ref}
       type={type}
-      className={cn(buttonStyles({ variant, size }), className)}
+      className={classes}
       disabled={isDisabled}
       aria-busy={loading}
       aria-disabled={isDisabled}
       {...props}
     >
-      {loading ? <Spinner /> : icon && iconPosition === 'left' ? icon : null}
-      {children}
-      {!loading && icon && iconPosition === 'right' ? icon : null}
+      {content}
     </button>
   );
 });

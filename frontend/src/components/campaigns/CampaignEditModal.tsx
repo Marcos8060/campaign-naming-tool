@@ -4,6 +4,8 @@ import type { Campaign, Taxonomy } from '@/types';
 import type { CampaignUpdatePayload } from '@/types/campaign-detail';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 
 const OBJECTIVES = ['awareness', 'consideration', 'conversion', 'retention', 'traffic', 'leads'];
 
@@ -57,19 +59,18 @@ export function CampaignEditModal({ campaign, taxonomies, onClose, onSave, isPen
       <div className="space-y-5">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Campaign Name</label>
-          <input
+          <Input
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary font-mono"
+            className="font-mono"
           />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Objective</label>
-          <select
+          <Select
             value={form.objective}
             onChange={(e) => setForm({ ...form, objective: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           >
             <option value="">Select objective…</option>
             {OBJECTIVES.map((o) => (
@@ -77,25 +78,23 @@ export function CampaignEditModal({ campaign, taxonomies, onClose, onSave, isPen
                 {o.charAt(0).toUpperCase() + o.slice(1)}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Total Budget ($)</label>
-            <input
+            <Input
               type="number" min="0" value={form.budget_total}
               onChange={(e) => setForm({ ...form, budget_total: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="10000"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Daily Budget ($)</label>
-            <input
+            <Input
               type="number" min="0" value={form.budget_daily}
               onChange={(e) => setForm({ ...form, budget_daily: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="500"
             />
           </div>
@@ -104,16 +103,14 @@ export function CampaignEditModal({ campaign, taxonomies, onClose, onSave, isPen
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-            <input type="date" value={form.start_date}
+            <Input type="date" value={form.start_date}
               onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-            <input type="date" value={form.end_date}
+            <Input type="date" value={form.end_date}
               onChange={(e) => setForm({ ...form, end_date: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
         </div>
@@ -125,12 +122,11 @@ export function CampaignEditModal({ campaign, taxonomies, onClose, onSave, isPen
               {taxonomyTypes.map((type) => (
                 <div key={type}>
                   <label className="block text-xs text-gray-500 mb-1 capitalize">{type}</label>
-                  <select
+                  <Select
                     value={form.taxonomy_values[type] || ''}
                     onChange={(e) =>
                       setForm({ ...form, taxonomy_values: { ...form.taxonomy_values, [type]: e.target.value } })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     <option value="">— none —</option>
                     {taxonomies
@@ -138,7 +134,7 @@ export function CampaignEditModal({ campaign, taxonomies, onClose, onSave, isPen
                       .map((t) => (
                         <option key={t.id} value={t.code}>{t.name} ({t.code})</option>
                       ))}
-                  </select>
+                  </Select>
                 </div>
               ))}
             </div>

@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { Input } from '@/components/ui/Input';
 
 const PLATFORMS = ['meta', 'google_ads', 'tiktok', 'dv360', 'linkedin'];
 
@@ -69,10 +70,10 @@ export default function PlatformsSettingsPage() {
               <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Naming Template</label>
-                  <input
+                  <Input
                     value={form.naming_template}
                     onChange={(e) => setForm({ ...form, naming_template: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="font-mono"
                     placeholder="{brand}_{product}_{region}_{objective}"
                   />
                   <p className="text-xs text-gray-500 mt-1">Use {'{variable}'} placeholders matching your taxonomy types</p>
@@ -80,20 +81,18 @@ export default function PlatformsSettingsPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Separator</label>
-                    <input
+                    <Input
                       value={form.separator}
                       onChange={(e) => setForm({ ...form, separator: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                       maxLength={3}
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Max Length</label>
-                    <input
+                    <Input
                       type="number"
                       value={form.max_length}
                       onChange={(e) => setForm({ ...form, max_length: Number(e.target.value) })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
                 </div>

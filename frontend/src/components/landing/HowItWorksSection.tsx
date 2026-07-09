@@ -1,5 +1,5 @@
-import Link from 'next/link';
 import { ArrowRight, Settings2, Rocket, BarChart3 } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 
 const STEPS = [
   {
@@ -93,12 +93,15 @@ export function HowItWorksSection() {
 
         {/* CTA */}
         <div className="text-center mt-14">
-          <Link
+          <Button
             href="/register"
-            className="inline-flex items-center gap-2 px-8 py-4 primary-gradient text-white font-bold rounded-xl hover:opacity-90 transition-opacity shadow-lg shadow-primary/20/60 text-sm"
+            variant="text"
+            icon={<ArrowRight className="w-4 h-4" />}
+            iconPosition="right"
+            className="px-8 py-4 primary-gradient text-white hover:text-white font-bold rounded-xl hover:opacity-90 transition-opacity shadow-lg shadow-primary/20/60 text-sm"
           >
-            Start Your 14-Day Free Trial <ArrowRight className="w-4 h-4" />
-          </Link>
+            Start Your 14-Day Free Trial
+          </Button>
           <p className="text-xs text-gray-400 mt-3">No credit card. No sales call. Just results.</p>
         </div>
 

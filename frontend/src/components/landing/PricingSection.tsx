@@ -1,5 +1,6 @@
-import Link from 'next/link';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 
 const PLANS = [
   {
@@ -81,12 +82,14 @@ export function PricingSection() {
         {/* Plans */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {PLANS.map(({ name, price, period, desc, features, cta, ctaHref, highlight, badge }) => (
-            <div
+            <Card
               key={name}
-              className={`relative rounded-2xl p-7 border flex flex-col ${
+              variant="outlined"
+              padding="lg"
+              className={`relative flex flex-col ${
                 highlight
-                  ? 'border-[var(--color-primary)] bg-white shadow-xl shadow-primary/10'
-                  : 'border-gray-200 bg-white hover:border-gray-300 transition-colors'
+                  ? 'border-[var(--color-primary)] shadow-xl shadow-primary/10'
+                  : 'hover:border-gray-300 transition-colors'
               }`}
             >
               {badge && (
@@ -122,17 +125,20 @@ export function PricingSection() {
               </ul>
 
               {/* CTA */}
-              <Link
+              <Button
                 href={ctaHref}
-                className={`w-full text-center py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+                variant="text"
+                icon={highlight ? <ArrowRight className="w-3.5 h-3.5" /> : undefined}
+                iconPosition="right"
+                className={`w-full py-3 rounded-xl text-sm font-bold transition-all ${
                   highlight
-                    ? 'primary-gradient text-white hover:opacity-90 shadow-md shadow-primary/20/50'
+                    ? 'primary-gradient text-white hover:text-white hover:opacity-90 shadow-md shadow-primary/20/50'
                     : 'border border-gray-200 text-gray-700 hover:border-[var(--color-primary)] hover:text-primary hover:bg-primary-soft/50'
                 }`}
               >
-                {cta} {highlight && <ArrowRight className="w-3.5 h-3.5" />}
-              </Link>
-            </div>
+                {cta}
+              </Button>
+            </Card>
           ))}
         </div>
 

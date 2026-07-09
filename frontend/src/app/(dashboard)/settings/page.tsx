@@ -13,6 +13,8 @@ import { ConfirmDeleteModal, type TeamMember } from '@/components/settings/Confi
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 
 interface InviteForm {
   email: string;
@@ -110,11 +112,10 @@ export default function SettingsPage() {
           <h3 className="font-semibold text-gray-900">Workspace</h3>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Workspace Name</label>
-            <input
+            <Input
               value={wsName}
               onChange={(e) => setWsName(e.target.value)}
               disabled={!isAdmin}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-50 disabled:text-gray-500"
             />
           </div>
           <div className="text-sm text-gray-500">
@@ -145,36 +146,33 @@ export default function SettingsPage() {
               <div className="grid grid-cols-3 gap-3 mb-3">
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">Name</label>
-                  <input
+                  <Input
                     value={invite.name}
                     onChange={(e) => setInvite({ ...invite, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="Jane Smith"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">Email</label>
-                  <input
+                  <Input
                     type="email"
                     value={invite.email}
                     onChange={(e) => setInvite({ ...invite, email: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="jane@company.com"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">Role</label>
-                  <select
+                  <Select
                     value={invite.role}
                     onChange={(e) => setInvite({ ...invite, role: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     {['admin', 'manager', 'viewer'].map((r) => (
                       <option key={r} value={r} className="capitalize">
                         {r}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
               </div>
               {invite.role && (
@@ -205,17 +203,18 @@ export default function SettingsPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   {isAdmin && u.id !== user?.id ? (
-                    <select
+                    <Select
+                      uiSize="sm"
                       value={u.role}
                       onChange={(e) => roleMutation.mutate({ id: u.id, role: e.target.value })}
-                      className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary"
+                      className="w-auto"
                     >
                       {['admin', 'manager', 'viewer'].map((r) => (
                         <option key={r} value={r}>
                           {r}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   ) : (
                     <Badge tone="neutral" className={ROLE_COLORS[u.role] || ''}>
                       {u.role}

@@ -1,4 +1,5 @@
 import { Clock, DollarSign, AlertOctagon } from 'lucide-react';
+import { Card } from '@/components/ui/Card';
 
 const PROBLEMS = [
   {
@@ -61,9 +62,11 @@ export function ProblemSection() {
         {/* Problem cards */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {PROBLEMS.map(({ icon: Icon, stat, statLabel, headline, body, bg, border, iconBg, iconColor }) => (
-            <div
+            <Card
               key={headline}
-              className={`rounded-2xl p-7 border ${bg} ${border} flex flex-col`}
+              variant="outlined"
+              padding="lg"
+              className={`${bg} ${border} flex flex-col`}
             >
               <div className={`w-12 h-12 rounded-2xl ${iconBg} flex items-center justify-center mb-5 flex-shrink-0`}>
                 <Icon className={`w-6 h-6 ${iconColor}`} />
@@ -76,12 +79,12 @@ export function ProblemSection() {
 
               <h3 className="text-base font-bold text-gray-900 mb-3 leading-snug">{headline}</h3>
               <p className="text-sm text-gray-600 leading-relaxed flex-1">{body}</p>
-            </div>
+            </Card>
           ))}
         </div>
 
         {/* Callout */}
-        <div className="mt-10 bg-gray-900 rounded-2xl px-8 py-7 text-center">
+        <Card variant="outlined" padding="lg" className="mt-10 bg-gray-900 border-none text-center">
           <p className="text-white text-lg font-bold mb-1.5">
             If you spend $500K/month on ads, you're likely wasting{' '}
             <span className="text-[#ff7675] font-extrabold">$175,000</span>{' '}
@@ -90,7 +93,7 @@ export function ProblemSection() {
           <p className="text-gray-400 text-sm">
             That's not a rounding error — that's a full-time hire or three months of creative production.
           </p>
-        </div>
+        </Card>
 
       </div>
     </section>
