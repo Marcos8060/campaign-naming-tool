@@ -88,8 +88,8 @@ export default function CreateCampaignPage() {
 
   const generatedName = useMemo(() => {
     if (!form.platform) return '';
-    const sep = platformConfig?.separator ?? '_';
-    const template = platformConfig?.naming_template ?? `{platform}${sep}{objective}${sep}{date}`;
+    const sep = platformConfig?.separator || '_';
+    const template = platformConfig?.naming_template || `{platform}${sep}{objective}${sep}{date}`;
     const now = new Date();
     const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
     let name = template
@@ -103,7 +103,7 @@ export default function CreateCampaignPage() {
   }, [form.platform, form.objective, form.taxonomy_values, platformConfig]);
 
   const finalName = form.name || generatedName || `Campaign_${Date.now()}`;
-  const maxLen = platformConfig?.max_length ?? 100;
+  const maxLen = platformConfig?.max_length || 100;
 
   const validationChecks: ValidationCheck[] = useMemo(() => [
     { label: 'Platform selected',             pass: !!form.platform,                                           required: true },
