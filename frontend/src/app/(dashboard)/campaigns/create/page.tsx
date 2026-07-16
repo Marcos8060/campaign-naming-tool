@@ -38,11 +38,11 @@ const STEPS = [
 export default function CreateCampaignPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { isViewer } = useRole();
+  const { isViewer, isReady } = useRole();
 
   useEffect(() => {
-    if (isViewer) router.replace('/campaigns');
-  }, [isViewer, router]);
+    if (isReady && isViewer) router.replace('/campaigns');
+  }, [isReady, isViewer, router]);
 
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<CampaignFormData>({

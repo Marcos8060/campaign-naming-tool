@@ -15,13 +15,13 @@ const PLATFORMS = ['meta', 'google_ads', 'tiktok', 'dv360', 'linkedin'];
 
 export default function PlatformsSettingsPage() {
   const router = useRouter();
-  const { isViewer } = useRole();
+  const { isViewer, isReady } = useRole();
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isViewer) router.replace('/dashboard');
-  }, [isViewer, router]);
+    if (isReady && isViewer) router.replace('/dashboard');
+  }, [isReady, isViewer, router]);
   const [form, setForm] = useState({ naming_template: '', separator: '_', max_length: 255 });
 
   const { data: platforms } = useGet({ url: '/platforms' });

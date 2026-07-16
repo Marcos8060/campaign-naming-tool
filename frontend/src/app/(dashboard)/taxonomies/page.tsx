@@ -17,7 +17,7 @@ import { Select } from '@/components/ui/Select';
 
 export default function TaxonomiesPage() {
   const router = useRouter();
-  const { canManage, canAdmin, isViewer } = useRole();
+  const { canManage, canAdmin, isViewer, isReady } = useRole();
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editingNode, setEditingNode] = useState<TaxonomyNodeData | null>(null);
@@ -25,8 +25,8 @@ export default function TaxonomiesPage() {
   const [form, setForm] = useState({ name: '', type: 'brand', code: '', parent_id: '' });
 
   useEffect(() => {
-    if (isViewer) router.replace('/dashboard');
-  }, [isViewer, router]);
+    if (isReady && isViewer) router.replace('/dashboard');
+  }, [isReady, isViewer, router]);
 
   const { data: tree, isLoading } = useGet<TaxonomyNodeData[]>({ url: '/taxonomies/tree' });
 
