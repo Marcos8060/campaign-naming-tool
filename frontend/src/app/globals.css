@@ -25,11 +25,16 @@
     --shadow-card:    0 1px 3px rgba(46,107,228,0.06), 0 4px 16px rgba(46,107,228,0.08);
     --shadow-card-lg: 0 4px 24px rgba(46,107,228,0.12), 0 1px 4px rgba(46,107,228,0.06);
 
-    /* Brand */
-    --brand:       #2e6be4;
-    --brand-light: #5b8ef0;
-    --brand-soft:  #e8f0fd;
-    --brand-hover: #1d55cc;
+    /* Primary */
+    --color-primary:       #2e6be4;
+    --color-primary-light: #5b8ef0;
+    --color-primary-soft:  #e8f0fd;
+    --color-primary-hover: #1d55cc;
+
+    /* Positive / success */
+    --color-positive:       #069454;
+    --color-positive-soft:  #e6f5ee;
+    --color-positive-hover: #057a44;
 
     /* Radix / shadcn tokens */
     --background: 0 0% 100%;
@@ -71,7 +76,7 @@
     --shadow-card:    0 1px 3px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.25);
     --shadow-card-lg: 0 4px 24px rgba(0,0,0,0.4), 0 1px 4px rgba(0,0,0,0.3);
 
-    --brand-soft: rgba(46,107,228,0.18);
+    --color-primary-soft: rgba(46,107,228,0.18);
 
     /* Radix dark overrides */
     --background: 222 47% 8%;
@@ -106,15 +111,20 @@
 
 /* ── Utilities ─────────────────────────────────────────────── */
 @layer utilities {
-  .brand-gradient {
-    background: linear-gradient(135deg, #2e6be4 0%, #5b8ef0 100%);
+  .primary-gradient {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
   }
-  .brand-gradient-soft {
-    background: linear-gradient(135deg, var(--brand-soft) 0%, #dbeafe 100%);
+  .primary-gradient-soft {
+    background: linear-gradient(135deg, var(--color-primary-soft) 0%, #dbeafe 100%);
   }
-  .text-brand  { color: var(--brand); }
-  .bg-brand    { background-color: var(--brand); }
-  .border-brand { border-color: var(--brand); }
+  .text-primary-color   { color: var(--color-primary); }
+  .bg-primary-color     { background-color: var(--color-primary); }
+  .border-primary-color { border-color: var(--color-primary); }
+
+  .text-positive        { color: var(--color-positive); }
+  .bg-positive          { background-color: var(--color-positive); }
+  .bg-positive-soft     { background-color: var(--color-positive-soft); }
+  .border-positive      { border-color: var(--color-positive); }
 
   .card-shadow    { box-shadow: var(--shadow-card); }
   .card-shadow-lg { box-shadow: var(--shadow-card-lg); }

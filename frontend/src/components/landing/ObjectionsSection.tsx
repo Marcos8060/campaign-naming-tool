@@ -1,11 +1,12 @@
 import { Clock, BookOpen, Lock, Globe2, Package } from 'lucide-react';
+import { Card } from '@/components/ui/Card';
 
 const OBJECTIONS = [
   {
     icon: Clock,
     q: '"We don\'t have time to implement another tool."',
     a: 'Setup takes 10 minutes. Seriously. Create your workspace, define your taxonomy, invite your team. First campaign can go live in your first session. There\'s no implementation project — just a login.',
-    color: '#2e6be4',
+    color: `var(--color-primary)`,
   },
   {
     icon: BookOpen,
@@ -38,7 +39,6 @@ export function ObjectionsSection() {
     <section className="py-20 bg-[#f8faff]">
       <div className="max-w-4xl mx-auto px-6">
 
-        {/* Header */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 text-xs font-bold text-gray-600 bg-gray-100 border border-gray-200 px-3 py-1.5 rounded-full mb-4 uppercase tracking-wider">
             Common Questions
@@ -49,10 +49,9 @@ export function ObjectionsSection() {
           <p className="text-gray-500 text-sm">Here are the real answers to what's holding you back.</p>
         </div>
 
-        {/* Q&A */}
         <div className="space-y-4">
           {OBJECTIONS.map(({ icon: Icon, q, a, color }) => (
-            <div key={q} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex gap-5">
+            <Card key={q} variant="outlined" padding="lg" className="shadow-sm flex gap-5">
               <div
                 className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
                 style={{ backgroundColor: color + '15' }}
@@ -63,7 +62,7 @@ export function ObjectionsSection() {
                 <p className="font-bold text-gray-900 mb-2 text-sm leading-snug">{q}</p>
                 <p className="text-gray-500 text-sm leading-relaxed">{a}</p>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
 

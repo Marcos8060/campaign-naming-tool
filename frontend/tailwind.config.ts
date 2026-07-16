@@ -22,8 +22,17 @@ const config: Config = {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
+          DEFAULT: 'var(--color-primary)',
+          light: 'var(--color-primary-light)',
+          soft: 'var(--color-primary-soft)',
+          hover: 'var(--color-primary-hover)',
+          foreground: '#ffffff',
+        },
+        positive: {
+          DEFAULT: 'var(--color-positive)',
+          soft: 'var(--color-positive-soft)',
+          hover: 'var(--color-positive-hover)',
+          foreground: '#ffffff',
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
@@ -44,10 +53,6 @@ const config: Config = {
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
-        },
-        brand: {
-          DEFAULT: 'var(--color-primary)',
-          hover: 'var(--color-primary-hover)',
         },
       },
       borderRadius: {

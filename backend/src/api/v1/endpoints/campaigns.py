@@ -1,12 +1,29 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from uuid import UUID
 from typing import Optional
+from datetime import date
 import asyncpg
 
 from src.api.deps import get_current_user, get_workspace_id, require_role
 from src.db.session import get_pool
 
 router = APIRouter()
+
+
+# Body-based endpoints here take a raw `body: dict` (no Pydantic model),
+# so unlike analytics.py's typed `date` query params, FastAPI never gets a
+# chance to coerce these — they arrive as whatever JSON the frontend sent
+# (e.g. the wizard's `<input type="date">` value, a plain "YYYY-MM-DD"
+# string). asyncpg needs an actual `datetime.date` for a DATE column, so
+# without this conversion every campaign create/update with a date set
+# crashes with an unhandled 500 (which shows up in the browser as a CORS
+# error, same as the earlier JSONB issue).
+def _parse_date(value) -> Optional[date]:
+    if not value:
+        return None
+    if isinstance(value, date):
+        return value
+    return date.fromisoformat(value)
 
 ALLOWED_SORT = {"name", "budget_total", "created_at", "start_date", "status", "platform"}
 
@@ -81,14 +98,13 @@ async def create_campaign(
         body.get("objective"),
         float(body["budget_total"]) if body.get("budget_total") else None,
         float(body["budget_daily"]) if body.get("budget_daily") else None,
-        body.get("start_date"),
-        body.get("end_date"),
+        _parse_date(body.get("start_date")),
+        _parse_date(body.get("end_date")),
         body.get("configuration", {}),
         body.get("status", "draft"),
         current_user["id"],
     )
 
-    # Create audit log
     await pool.execute(
         """INSERT INTO audit_logs (workspace_id, user_id, action, resource_type, resource_id, changes)
            VALUES ($1, $2, 'create', 'campaign', $3, $4)""",
@@ -130,6 +146,9 @@ async def update_campaign(
     updates = {k: v for k, v in body.items() if k in allowed}
     if not updates:
         raise HTTPException(status_code=400, detail="No valid fields")
+    for date_field in ("start_date", "end_date"):
+        if date_field in updates:
+            updates[date_field] = _parse_date(updates[date_field])
 
     set_clause = ", ".join([f"{k} = ${i+3}" for i, k in enumerate(updates.keys())])
     values = list(updates.values())

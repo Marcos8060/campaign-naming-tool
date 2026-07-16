@@ -6,8 +6,9 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { toast } from 'sonner';
 import { Eye, EyeOff, CheckCircle2 } from 'lucide-react';
-import { AxiosError } from 'axios';
-import type { ApiErrorResponse } from '@/types';
+import { ApiError } from '@/lib/api/request';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
 
 const FIELDS = [
   { key: 'name',           label: 'Full Name',                type: 'text',     placeholder: 'Jane Smith' },
@@ -27,7 +28,7 @@ export default function RegisterPage() {
     : form.password.length < 8 ? 1
     : form.password.length < 12 ? 2 : 3;
 
-  const pwColors = ['', 'bg-red-400', 'bg-amber-400', 'bg-green-500'];
+  const pwColors = ['', 'bg-red-400', 'bg-amber-400', 'bg-positive'];
   const pwLabels = ['', 'Too short', 'Good', 'Strong'];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,17 +40,15 @@ export default function RegisterPage() {
       toast.success('Workspace created!');
       router.push('/dashboard');
     } catch (err) {
-      const message = err instanceof AxiosError
-        ? (err.response?.data as ApiErrorResponse)?.detail
-        : undefined;
+      const message = err instanceof ApiError ? err.message : undefined;
       toast.error(message || 'Registration failed');
     } finally {
       setLoading(false);
     }
   };
 
-  const inputCls = `w-full px-3 py-2.5 border rounded-xl text-sm text-t1 placeholder:text-t3
-    focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all`;
+  const inputCls = `rounded-xl py-2.5 text-t1 placeholder:text-t3
+    focus:border-brand focus:ring-brand/20 transition-all`;
 
   return (
     <>
@@ -61,7 +60,7 @@ export default function RegisterPage() {
           <div key={key}>
             <label className="block text-sm font-semibold text-t1 mb-1.5">{label}</label>
             <div className="relative">
-              <input
+              <Input
                 type={key === 'password' ? (showPw ? 'text' : 'password') : type}
                 required
                 value={form[key as keyof typeof form]}
@@ -71,13 +70,15 @@ export default function RegisterPage() {
                 placeholder={placeholder}
               />
               {key === 'password' && (
-                <button
+                <Button
                   type="button"
+                  variant="text"
+                  size="icon"
                   onClick={() => setShowPw(!showPw)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-t3 hover:text-t2"
                 >
                   {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
+                </Button>
               )}
             </div>
             {key === 'password' && form.password.length > 0 && (
@@ -87,7 +88,7 @@ export default function RegisterPage() {
                     <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${pwStrength >= i ? pwColors[pwStrength] : 'bg-[var(--bd)]'}`} />
                   ))}
                 </div>
-                <p className={`text-xs mt-1 font-medium ${pwStrength === 3 ? 'text-green-500' : pwStrength === 2 ? 'text-amber-500' : 'text-red-400'}`}>
+                <p className={`text-xs mt-1 font-medium ${pwStrength === 3 ? 'text-positive' : pwStrength === 2 ? 'text-amber-500' : 'text-red-400'}`}>
                   {pwLabels[pwStrength]}
                 </p>
               </div>
@@ -96,23 +97,25 @@ export default function RegisterPage() {
         ))}
 
         <div className="flex items-start gap-2 pt-1">
-          <CheckCircle2 className="w-4 h-4 text-brand mt-0.5 flex-shrink-0" />
+          <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
           <p className="text-xs text-t2">
             By creating an account you agree to our Terms of Service and Privacy Policy.
           </p>
         </div>
 
-        <button
-          type="submit" disabled={loading}
-          className="w-full py-3 px-4 brand-gradient text-white font-bold rounded-xl hover:opacity-90 disabled:opacity-50 transition-opacity shadow-sm shadow-blue-200 text-sm"
+        <Button
+          type="submit"
+          variant="text"
+          loading={loading}
+          className="w-full py-3 px-4 primary-gradient text-white font-bold rounded-xl hover:opacity-90 shadow-sm shadow-primary/20 text-sm"
         >
-          {loading ? 'Creating workspace…' : 'Create Free Account'}
-        </button>
+          Create Free Account
+        </Button>
       </form>
 
       <p className="mt-6 text-center text-sm text-t2">
         Already have an account?{' '}
-        <Link href="/login" className="text-brand font-semibold hover:underline">Sign in</Link>
+        <Link href="/login" className="text-primary font-semibold hover:underline">Sign in</Link>
       </p>
     </>
   );

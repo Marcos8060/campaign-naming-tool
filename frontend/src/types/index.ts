@@ -1,4 +1,3 @@
-// ── Domain models ─────────────────────────────────────────────────────────────
 
 export interface Workspace {
   id: string;
@@ -57,8 +56,6 @@ export interface Taxonomy {
   updated_at: string | null;
 }
 
-// ── API response shapes ────────────────────────────────────────────────────────
-
 export interface CampaignsListResponse {
   campaigns: Campaign[];
   total: number;
@@ -115,8 +112,6 @@ export interface BudgetAllocation {
   platform: string;
   total_budget: number;
 }
-
-// ── API error shape ────────────────────────────────────────────────────────────
 
 export interface ApiErrorResponse {
   detail: string;

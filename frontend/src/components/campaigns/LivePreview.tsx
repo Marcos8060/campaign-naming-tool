@@ -4,19 +4,19 @@ export function LivePreview({ generatedName, platformConfig, form }: LivePreview
   const maxLen = platformConfig?.max_length ?? 100;
   const charCount = generatedName.length;
   const pct = Math.min((charCount / maxLen) * 100, 100);
-  const barColor = pct > 90 ? 'bg-red-500' : pct > 70 ? 'bg-yellow-500' : 'bg-green-500';
+  const barColor = pct > 90 ? 'bg-red-500' : pct > 70 ? 'bg-yellow-500' : 'bg-positive';
 
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 space-y-4 sticky top-4">
+    <div className="bg-blue-50 border border-primary/20 rounded-xl p-5 space-y-4 sticky top-4">
       <div className="flex items-center gap-2">
-        <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-        <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Live Preview</span>
+        <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+        <span className="text-xs font-semibold text-primary uppercase tracking-wide">Live Preview</span>
       </div>
 
       <div>
         <p className="text-xs text-gray-500 mb-1">Generated Name</p>
         {generatedName ? (
-          <div className="bg-white border border-blue-200 rounded-lg px-3 py-2 font-mono text-sm text-gray-900 break-all">
+          <div className="bg-white border border-primary/20 rounded-lg px-3 py-2 font-mono text-sm text-gray-900 break-all">
             {generatedName}
           </div>
         ) : (
@@ -55,7 +55,7 @@ export function LivePreview({ generatedName, platformConfig, form }: LivePreview
               {Object.entries(form.taxonomy_values)
                 .filter(([, v]) => v)
                 .map(([k, v]) => (
-                  <span key={k} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-800 font-medium">
+                  <span key={k} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-primary-soft text-primary font-medium">
                     {String(v)}
                   </span>
                 ))}

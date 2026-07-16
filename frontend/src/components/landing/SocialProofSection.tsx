@@ -1,4 +1,5 @@
 import { Quote } from 'lucide-react';
+import { Card } from '@/components/ui/Card';
 
 const METRICS = [
   { value: '$353B', label: 'wasted globally in ad spend annually', sub: 'Source: Forrester Research, 2024' },
@@ -14,7 +15,7 @@ const TESTIMONIALS = [
     role: 'Performance Director',
     company: 'Growth Labs Agency',
     initials: 'MC',
-    color: '#2e6be4',
+    color: `var(--color-primary)`,
   },
   {
     quote: 'We white-labeled it for three of our biggest clients. They think we built it in-house. Our retention improved because clients see more value from our service.',
@@ -47,18 +48,16 @@ export function SocialProofSection() {
     <section className="py-20 bg-[#f8faff]">
       <div className="max-w-7xl mx-auto px-6">
 
-        {/* Stats banner */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-16">
           {METRICS.map(({ value, label, sub }) => (
-            <div key={label} className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm text-center">
-              <p className="text-4xl font-extrabold tracking-tight mb-1" style={{ color: '#2e6be4' }}>{value}</p>
+            <Card key={label} variant="outlined" padding="md" className="shadow-sm text-center">
+              <p className="text-4xl font-extrabold tracking-tight mb-1" style={{ color: `var(--color-primary)` }}>{value}</p>
               <p className="text-xs font-semibold text-gray-700 mb-1 leading-snug">{label}</p>
               <p className="text-[10px] text-gray-400">{sub}</p>
-            </div>
+            </Card>
           ))}
         </div>
 
-        {/* Testimonials */}
         <div className="text-center mb-10">
           <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-2">
             Teams that stopped wasting budget.
@@ -68,7 +67,7 @@ export function SocialProofSection() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-14">
           {TESTIMONIALS.map(({ quote, name, role, company, initials, color }) => (
-            <div key={name} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col">
+            <Card key={name} variant="outlined" padding="lg" className="shadow-sm flex flex-col">
               <Quote className="w-6 h-6 mb-4 flex-shrink-0" style={{ color: color + '60' }} />
               <p className="text-gray-700 text-sm leading-relaxed flex-1 mb-5 italic">"{quote}"</p>
               <div className="flex items-center gap-3 pt-4 border-t border-gray-50">
@@ -83,12 +82,11 @@ export function SocialProofSection() {
                   <p className="text-xs text-gray-400">{role}, {company}</p>
                 </div>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
 
-        {/* Trust badges */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
+        <Card variant="outlined" padding="lg">
           <p className="text-center text-xs font-bold text-gray-400 uppercase tracking-wider mb-5">Security & Trust</p>
           <div className="flex flex-wrap justify-center gap-4">
             {TRUST_BADGES.map(({ label, icon }) => (
@@ -98,7 +96,7 @@ export function SocialProofSection() {
               </div>
             ))}
           </div>
-        </div>
+        </Card>
 
       </div>
     </section>

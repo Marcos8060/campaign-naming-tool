@@ -2,14 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { useGet, usePost, usePatch, useDelete } from '@/lib/hooks/api';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRole } from '@/lib/hooks/useRole';
-import { TaxonomyEditModal, type TaxonomyNodeData } from '@/components/taxonomies/TaxonomyEditModal';
+import { TaxonomyEditModal, TYPES, type TaxonomyNodeData } from '@/components/taxonomies/TaxonomyEditModal';
 import { TaxonomyDeleteModal } from '@/components/taxonomies/TaxonomyDeleteModal';
 import { TaxonomyNode } from '@/components/taxonomies/TaxonomyNode';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 
 export default function TaxonomiesPage() {
   const router = useRouter();
@@ -24,24 +28,12 @@ export default function TaxonomiesPage() {
     if (isViewer) router.replace('/dashboard');
   }, [isViewer, router]);
 
-  const { data: tree, isLoading } = useQuery<TaxonomyNodeData[]>({
-    queryKey: ['taxonomies', 'tree'],
-    queryFn: async () => {
-      const { data } = await apiClient.get('/taxonomies/tree');
-      return data;
-    },
-  });
+  const { data: tree, isLoading } = useGet<TaxonomyNodeData[]>({ url: '/taxonomies/tree' });
 
-  const { data: allTaxonomies = [] } = useQuery<TaxonomyNodeData[]>({
-    queryKey: ['taxonomies'],
-    queryFn: async () => {
-      const { data } = await apiClient.get('/taxonomies');
-      return data;
-    },
-  });
+  const { data: allTaxonomies = [] } = useGet<TaxonomyNodeData[]>({ url: '/taxonomies' });
 
-  const createMutation = useMutation({
-    mutationFn: (payload: Omit<TaxonomyNodeData, 'id' | 'children'>) => apiClient.post('/taxonomies', payload),
+  const createMutation = usePost<TaxonomyNodeData, Omit<TaxonomyNodeData, 'id' | 'children'>>({
+    url: '/taxonomies',
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['taxonomies'] });
       setShowForm(false);
@@ -51,9 +43,9 @@ export default function TaxonomiesPage() {
     onError: () => toast.error('Failed to create taxonomy'),
   });
 
-  const updateMutation = useMutation({
-    mutationFn: ({ id, ...body }: Partial<TaxonomyNodeData> & { id: string }) =>
-      apiClient.patch(`/taxonomies/${id}`, body),
+  const updateMutation = usePatch<TaxonomyNodeData, Partial<TaxonomyNodeData> & { id: string }>({
+    url: ({ id }) => `/taxonomies/${id}`,
+    body: ({ id, ...body }: Partial<TaxonomyNodeData> & { id: string }) => body,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['taxonomies'] });
       setEditingNode(null);
@@ -62,8 +54,8 @@ export default function TaxonomiesPage() {
     onError: () => toast.error('Failed to update taxonomy'),
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => apiClient.delete(`/taxonomies/${id}`),
+  const deleteMutation = useDelete<void, string>({
+    url: (id) => `/taxonomies/${id}`,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['taxonomies'] });
       setDeleteTarget(null);
@@ -95,64 +87,57 @@ export default function TaxonomiesPage() {
             <p className="text-gray-500 mt-1">Define your campaign naming hierarchy</p>
           </div>
           {canManage && (
-            <button onClick={() => setShowForm(!showForm)}
-              className="inline-flex text-sm items-center gap-2 px-4 py-2 bg-[#2e6be4] text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
-              <Plus className="w-4 h-4" />
+            <Button size="sm" icon={<Plus className="w-4 h-4" />} onClick={() => setShowForm(!showForm)}>
               Add Taxonomy
-            </button>
+            </Button>
           )}
         </div>
 
         {showForm && canManage && (
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <Card variant="outlined" padding="lg">
             <h3 className="font-semibold text-gray-900 mb-4">New Taxonomy Node</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
                   placeholder="e.g. North America" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Code</label>
-                <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                <Input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
+                  className="font-mono"
                   placeholder="e.g. NA" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <Select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
                   {TYPES.map((t) => <option key={t} value={t} className="capitalize">{t}</option>)}
-                </select>
+                </Select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Parent (optional)</label>
-                <select value={form.parent_id} onChange={(e) => setForm({ ...form, parent_id: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <Select value={form.parent_id} onChange={(e) => setForm({ ...form, parent_id: e.target.value })}>
                   <option value="">No parent (root)</option>
                   {allTaxonomies.map((t) => (
                     <option key={t.id} value={t.id}>{t.name} ({t.code})</option>
                   ))}
-                </select>
+                </Select>
               </div>
             </div>
             <div className="flex gap-3 mt-4">
-              <button
+              <Button
                 onClick={() => createMutation.mutate({ ...form, parent_id: form.parent_id || undefined })}
-                disabled={!form.name || !form.code || createMutation.isPending}
-                className="px-4 py-2 bg-[#2e6be4] text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors">
-                {createMutation.isPending ? 'Creating…' : 'Create'}
-              </button>
-              <button onClick={() => setShowForm(false)}
-                className="px-4 py-2 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 transition-colors">
-                Cancel
-              </button>
+                disabled={!form.name || !form.code}
+                loading={createMutation.isPending}
+              >
+                Create
+              </Button>
+              <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
             </div>
-          </div>
+          </Card>
         )}
 
-        <div className="bg-white rounded-xl border border-gray-200">
+        <Card variant="outlined" padding="none">
           <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
             <span className="text-sm font-medium text-gray-700">
               {allTaxonomies.length} {allTaxonomies.length === 1 ? 'taxonomy' : 'taxonomies'}
@@ -179,7 +164,7 @@ export default function TaxonomiesPage() {
               ))
             )}
           </div>
-        </div>
+        </Card>
       </div>
     </>
   );

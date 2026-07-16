@@ -8,7 +8,7 @@ import { setUser } from '@/lib/store/slices/authSlice';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { useWorkspace } from '@/lib/hooks/useWorkspace';
-import { apiClient } from '@/lib/api/client';
+import { useGet } from '@/lib/hooks/api';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -21,12 +21,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (!isAuthenticated) router.push('/login');
   }, [isAuthenticated, router]);
 
-  // Rehydrate user after page refresh
+  const { data: me } = useGet({
+    url: '/auth/me',
+    enabled: isAuthenticated && !user,
+    retry: false,
+  });
+
   useEffect(() => {
-    if (isAuthenticated && !user) {
-      apiClient.get('/auth/me').then(({ data }) => dispatch(setUser(data))).catch(() => {});
-    }
-  }, [isAuthenticated, user, dispatch]);
+    if (me) dispatch(setUser(me));
+  }, [me, dispatch]);
 
   if (!isAuthenticated) return null;
 
@@ -34,7 +37,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="flex h-screen overflow-hidden" style={{ backgroundColor: 'var(--surface)' }}>
       <Sidebar />
 
-      {/* Content — offset by sidebar on lg+ */}
       <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${sidebarOpen ? 'lg:ml-60' : 'lg:ml-[70px]'}`}>
         <Header />
         <main className="flex-1 overflow-y-auto p-4 md:p-6">

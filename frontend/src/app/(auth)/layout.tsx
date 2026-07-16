@@ -3,8 +3,7 @@ import { Sparkles } from 'lucide-react';
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex">
-      {/* Left branding panel — desktop only */}
-      <div className="hidden lg:flex lg:w-[45%] brand-gradient flex-col justify-between p-12 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-[45%] primary-gradient flex-col justify-between p-12 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full translate-x-24 -translate-y-24" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full -translate-x-16 translate-y-16" />
 
@@ -37,15 +36,13 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </p>
       </div>
 
-      {/* Right: form */}
       <div
         className="flex-1 flex items-center justify-center p-6 md:p-8"
         style={{ backgroundColor: 'var(--surface)' }}
       >
         <div className="w-full max-w-md">
-          {/* Mobile logo */}
           <div className="flex items-center gap-2.5 justify-center mb-8 lg:hidden">
-            <div className="w-9 h-9 rounded-xl brand-gradient flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl primary-gradient flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <span className="font-extrabold text-t1 text-xl">Camparc</span>

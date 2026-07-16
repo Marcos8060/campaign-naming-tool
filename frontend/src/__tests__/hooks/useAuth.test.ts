@@ -1,20 +1,11 @@
 import { renderHook, act } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 import authReducer from '@/lib/store/slices/authSlice';
 import uiReducer from '@/lib/store/slices/uiSlice';
 import { useAuth } from '@/lib/hooks/useAuth';
-import { apiClient } from '@/lib/api/client';
-
-// Mock the API client
-jest.mock('@/lib/api/client', () => ({
-  apiClient: {
-    post: jest.fn(),
-  },
-}));
-
-const mockApiClient = apiClient as jest.Mocked<typeof apiClient>;
 
 function makeStore() {
   return configureStore({
@@ -22,9 +13,25 @@ function makeStore() {
   });
 }
 
+// useAuth now goes through usePost -> useMutation, which needs a
+// QueryClientProvider ancestor. Mutations are also given retry: false so
+// failed-login assertions don't hang waiting on React Query's retry backoff.
 function wrapper(store: ReturnType<typeof makeStore>) {
+  const queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
   return ({ children }: { children: React.ReactNode }) =>
-    React.createElement(Provider, { store }, children);
+    React.createElement(
+      QueryClientProvider,
+      { client: queryClient },
+      React.createElement(Provider, { store, children }),
+    );
+}
+
+function mockFetchOnce(response: { ok: boolean; status: number; body: unknown }) {
+  (global.fetch as jest.Mock).mockResolvedValueOnce({
+    ok: response.ok,
+    status: response.status,
+    json: async () => response.body,
+  });
 }
 
 describe('useAuth', () => {
@@ -34,6 +41,7 @@ describe('useAuth', () => {
     store = makeStore();
     jest.clearAllMocks();
     localStorage.clear();
+    global.fetch = jest.fn();
   });
 
   it('starts unauthenticated with no user', () => {
@@ -45,9 +53,7 @@ describe('useAuth', () => {
 
   it('login dispatches setAuth and stores token', async () => {
     const fakeUser = { id: 'u1', email: 'a@b.com', name: 'Alice', role: 'admin', workspace_id: 'ws1' };
-    (mockApiClient.post as jest.Mock).mockResolvedValueOnce({
-      data: { access_token: 'tok_abc', user: fakeUser },
-    });
+    mockFetchOnce({ ok: true, status: 200, body: { access_token: 'tok_abc', user: fakeUser } });
 
     const { result } = renderHook(() => useAuth(), { wrapper: wrapper(store) });
 
@@ -62,7 +68,7 @@ describe('useAuth', () => {
   });
 
   it('login propagates API errors', async () => {
-    (mockApiClient.post as jest.Mock).mockRejectedValueOnce(new Error('Invalid credentials'));
+    mockFetchOnce({ ok: false, status: 401, body: { detail: 'Invalid credentials' } });
 
     const { result } = renderHook(() => useAuth(), { wrapper: wrapper(store) });
 
@@ -75,9 +81,7 @@ describe('useAuth', () => {
 
   it('register dispatches setAuth', async () => {
     const fakeUser = { id: 'u2', email: 'b@c.com', name: 'Bob', role: 'admin', workspace_id: 'ws2' };
-    (mockApiClient.post as jest.Mock).mockResolvedValueOnce({
-      data: { access_token: 'reg_tok', user: fakeUser },
-    });
+    mockFetchOnce({ ok: true, status: 200, body: { access_token: 'reg_tok', user: fakeUser } });
 
     const { result } = renderHook(() => useAuth(), { wrapper: wrapper(store) });
 
@@ -92,7 +96,6 @@ describe('useAuth', () => {
   it('signOut clears auth state and redirects', () => {
     const { result } = renderHook(() => useAuth(), { wrapper: wrapper(store) });
 
-    // set logged in state manually first
     act(() => {
       store.dispatch({
         type: 'auth/setAuth',

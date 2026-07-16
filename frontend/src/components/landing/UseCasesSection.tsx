@@ -1,5 +1,6 @@
-import Link from 'next/link';
 import { ArrowRight, Building2, Briefcase, BarChart2 } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 
 const USE_CASES = [
   {
@@ -9,7 +10,7 @@ const USE_CASES = [
     pain: 'You\'re running Meta, Google, and TikTok simultaneously. But no one has a clear view of audience overlap — so you\'re paying three platforms to reach the same 200K customers.',
     solution: 'Camparc maps the overlap in real time, shows you the exact dollar waste, and lets you reallocate budget to net-new audiences that actually expand your reach.',
     result: 'Typical outcome: 15–25% reduction in cost-per-acquisition within the first 30 days.',
-    color: '#2e6be4',
+    color: `var(--color-primary)`,
     bg: 'bg-blue-50',
     border: 'border-blue-100',
   },
@@ -42,22 +43,19 @@ export function UseCasesSection() {
     <section className="py-20 bg-[#f8faff]">
       <div className="max-w-7xl mx-auto px-6">
 
-        {/* Header */}
         <div className="max-w-2xl mx-auto text-center mb-14">
-          <div className="inline-flex items-center gap-2 text-xs font-bold text-[#2e6be4] bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-full mb-4 uppercase tracking-wider">
+          <div className="inline-flex items-center gap-2 text-xs font-bold text-primary bg-primary-soft border border-blue-100 px-3 py-1.5 rounded-full mb-4 uppercase tracking-wider">
             Who It's For
           </div>
           <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight mb-4">
             If this sounds like your team,{' '}
-            <span className="text-transparent bg-clip-text brand-gradient">you're in the right place.</span>
+            <span className="text-transparent bg-clip-text primary-gradient">you're in the right place.</span>
           </h2>
         </div>
 
-        {/* Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {USE_CASES.map(({ icon: Icon, tag, headline, pain, solution, result, color, bg, border }) => (
-            <div key={tag} className={`bg-white rounded-2xl border ${border} overflow-hidden`}>
-              {/* Top band */}
+            <Card key={tag} variant="outlined" padding="none" className={`${border} overflow-hidden`}>
               <div className={`${bg} px-6 py-5 border-b ${border}`}>
                 <div className="flex items-center gap-2.5 mb-3">
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: color + '20' }}>
@@ -70,7 +68,6 @@ export function UseCasesSection() {
                 <h3 className="font-extrabold text-gray-900 text-base leading-snug">{headline}</h3>
               </div>
 
-              {/* Body */}
               <div className="px-6 py-5 space-y-4">
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">The Pain</p>
@@ -87,18 +84,20 @@ export function UseCasesSection() {
                   📈 {result}
                 </div>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
 
-        {/* Bottom CTA */}
         <div className="text-center mt-12">
-          <Link
+          <Button
             href="/register"
-            className="inline-flex items-center gap-2 px-7 py-3.5 brand-gradient text-white font-bold rounded-xl hover:opacity-90 transition-opacity shadow-lg shadow-blue-200/60 text-sm"
+            variant="text"
+            icon={<ArrowRight className="w-4 h-4" />}
+            iconPosition="right"
+            className="px-7 py-3.5 primary-gradient text-white hover:text-white font-bold rounded-xl hover:opacity-90 transition-opacity shadow-lg shadow-primary/20/60 text-sm"
           >
-            See How It Works For Your Team <ArrowRight className="w-4 h-4" />
-          </Link>
+            See How It Works For Your Team
+          </Button>
         </div>
 
       </div>

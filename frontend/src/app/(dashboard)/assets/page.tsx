@@ -1,49 +1,47 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { useGet, usePost } from '@/lib/hooks/api';
 import { Upload, Image } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRole } from '@/lib/hooks/useRole';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Input } from '@/components/ui/Input';
 
 export default function AssetsPage() {
   const router = useRouter();
   const { isViewer } = useRole();
   const queryClient = useQueryClient();
-  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isViewer) router.replace('/dashboard');
   }, [isViewer, router]);
 
-  const { data: assets, isLoading } = useQuery({
-    queryKey: ['assets'],
-    queryFn: async () => {
-      const { data } = await apiClient.get('/assets');
-      return data;
-    },
-  });
+  const { data: assets, isLoading } = useGet({ url: '/assets' });
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    try {
+  const uploadMutation = usePost<unknown, File>({
+    url: '/assets/upload',
+    body: (file: File) => {
       const formData = new FormData();
       formData.append('file', file);
-      await apiClient.post('/assets/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      return formData;
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
       toast.success('Asset uploaded');
-    } catch {
-      toast.error('Upload failed');
-    } finally {
-      setUploading(false);
-      e.target.value = '';
-    }
+    },
+    onError: () => toast.error('Upload failed'),
+  });
+
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    uploadMutation.mutate(file);
+    e.target.value = '';
   };
 
   return (
@@ -53,11 +51,22 @@ export default function AssetsPage() {
           <h1 className="text-2xl font-bold text-gray-900">Asset Library</h1>
           <p className="text-gray-500 mt-1">Manage creative assets for your campaigns</p>
         </div>
-        <label className={`inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium text-sm rounded-sm hover:bg-blue-700 cursor-pointer transition-colors ${uploading ? 'opacity-50' : ''}`}>
-          <Upload className="w-4 h-4" />
-          {uploading ? 'Uploading...' : 'Upload Asset'}
-          <input type="file" className="hidden" accept="image/*" onChange={handleUpload} disabled={uploading} />
-        </label>
+        <Button
+          onClick={() => fileInputRef.current?.click()}
+          loading={uploadMutation.isPending}
+          icon={<Upload className="w-4 h-4" />}
+          className="px-4 py-2"
+        >
+          {uploadMutation.isPending ? 'Uploading...' : 'Upload Asset'}
+        </Button>
+        <Input
+          ref={fileInputRef}
+          type="file"
+          className="hidden"
+          accept="image/*"
+          onChange={handleUpload}
+          disabled={uploadMutation.isPending}
+        />
       </div>
 
       {isLoading ? (
@@ -67,10 +76,10 @@ export default function AssetsPage() {
           ))}
         </div>
       ) : assets?.length === 0 ? (
-        <div className="bg-white rounded-xl border-2 border-dashed border-gray-300 p-12 text-center">
+        <Card variant="outlined" padding="lg" className="border-2 border-dashed border-gray-300 text-center py-12">
           <Image className="w-12 h-12 text-gray-300 mx-auto mb-3" />
           <p className="text-gray-500">No assets yet. Upload your first creative.</p>
-        </div>
+        </Card>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {assets?.map((asset: any) => (

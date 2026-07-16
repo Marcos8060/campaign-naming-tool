@@ -1,7 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api/client';
+import { useGet } from '@/lib/hooks/api';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell,
@@ -17,6 +16,9 @@ import {
 import type { AnalyticsOverview, TopCampaign, CampaignsListResponse, PlatformStat } from '@/types';
 import { KpiCard } from '@/components/dashboard/KpiCard';
 import { OnboardingChecklist } from '@/components/dashboard/OnboardingChecklist';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Badge, type BadgeProps } from '@/components/ui/Badge';
 
 const PLATFORM_COLORS: Record<string, string> = {
   meta:       '#6C5CE7',
@@ -26,43 +28,27 @@ const PLATFORM_COLORS: Record<string, string> = {
   linkedin:   '#74b9ff',
 };
 
-const STATUS_STYLES: Record<string, string> = {
-  active:   'bg-emerald-50 text-emerald-700 border border-emerald-100',
-  draft:    'bg-gray-100 text-gray-600 border border-gray-200',
-  paused:   'bg-amber-50 text-amber-700 border border-amber-100',
-  archived: 'bg-red-50 text-red-600 border border-red-100',
-  completed:'bg-blue-50 text-blue-700 border border-blue-100',
+const STATUS_TONE: Record<string, BadgeProps['tone']> = {
+  active: 'success',
+  draft: 'neutral',
+  paused: 'warning',
+  archived: 'danger',
+  completed: 'primary',
 };
-
 
 export default function DashboardPage() {
   const { user } = useSelector((state: RootState) => state.auth);
   const { canManage: canCreate } = useRole();
   const firstName = user?.name?.split(' ')[0] || 'there';
 
-  const { data: overview, isLoading } = useQuery<AnalyticsOverview>({
-    queryKey: ['analytics', 'overview'],
-    queryFn: async () => {
-      const { data } = await apiClient.get<AnalyticsOverview>('/analytics/overview');
-      return data;
-    },
-  });
+  const { data: overview, isLoading } = useGet<AnalyticsOverview>({ url: '/analytics/overview' });
 
-  const { data: campaigns } = useQuery<CampaignsListResponse>({
+  const { data: campaigns } = useGet<CampaignsListResponse>({
+    url: '/campaigns?limit=5&sort_by=created_at&sort_order=desc',
     queryKey: ['campaigns', { limit: 5 }],
-    queryFn: async () => {
-      const { data } = await apiClient.get<CampaignsListResponse>('/campaigns?limit=5&sort_by=created_at&sort_order=desc');
-      return data;
-    },
   });
 
-  const { data: topCampaigns } = useQuery<TopCampaign[]>({
-    queryKey: ['analytics', 'top-campaigns'],
-    queryFn: async () => {
-      const { data } = await apiClient.get<TopCampaign[]>('/analytics/top-campaigns?limit=5');
-      return data;
-    },
-  });
+  const { data: topCampaigns } = useGet<TopCampaign[]>({ url: '/analytics/top-campaigns?limit=5' });
 
   if (isLoading) {
     return (
@@ -88,10 +74,9 @@ export default function DashboardPage() {
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
   return (
-    <div className="space-y-6 max-w-[1400px]">
+    <div className="space-y-6">
 
-      {/* ── Welcome Banner ── */}
-      <div className="brand-gradient rounded-2xl p-7 flex items-center justify-between overflow-hidden relative">
+      <div className="primary-gradient rounded-2xl p-7 flex items-center justify-between overflow-hidden relative">
         <div className="absolute right-0 top-0 w-64 h-64 bg-white/5 rounded-full translate-x-20 -translate-y-20" />
         <div className="absolute right-32 bottom-0 w-40 h-40 bg-white/5 rounded-full translate-y-12" />
         <div className="relative z-10">
@@ -107,22 +92,20 @@ export default function DashboardPage() {
         </div>
         <div className="relative z-10 hidden md:flex gap-3 flex-shrink-0">
           {canCreate && (
-            <Link href="/campaigns/create"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-[#2e6be4] font-bold rounded-sm hover:bg-blue-50 transition-colors text-sm shadow-lg">
-              <Plus className="w-4 h-4" /> New Campaign
-            </Link>
+            <Button href="/campaigns/create" variant="text" icon={<Plus className="w-4 h-4" />}
+              className="px-5 py-2.5 bg-white text-primary font-bold rounded-sm hover:bg-blue-50 hover:text-primary transition-colors text-sm shadow-lg">
+              New Campaign
+            </Button>
           )}
-          <Link href="/analytics"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/15 text-white font-semibold rounded-xl hover:bg-white/25 transition-colors text-sm border border-white/20">
-            <BarChart2 className="w-4 h-4" /> Analytics
-          </Link>
+          <Button href="/analytics" variant="text" icon={<BarChart2 className="w-4 h-4" />}
+            className="px-5 py-2.5 bg-white/15 text-white hover:text-white font-semibold rounded-xl hover:bg-white/25 transition-colors text-sm border border-white/20">
+            Analytics
+          </Button>
         </div>
       </div>
 
-      {/* ── Onboarding ── */}
       {canCreate && <OnboardingChecklist onboarding={overview?.onboarding} />}
 
-      {/* ── KPI Cards ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
           title="Total Campaigns"
@@ -154,16 +137,14 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* ── Charts row ── */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* Platform bar chart */}
-        <div className="lg:col-span-3 bg-white rounded-2xl card-shadow p-6">
+        <Card variant="elevated" padding="lg" className="lg:col-span-3">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="font-bold text-gray-900">Campaigns by Platform</h3>
               <p className="text-xs text-gray-400 mt-0.5">Campaign count per ad channel</p>
             </div>
-            <Link href="/analytics" className="text-xs text-[#2e6be4] font-semibold hover:underline flex items-center gap-1">
+            <Link href="/analytics" className="text-xs text-primary font-semibold hover:underline flex items-center gap-1">
               Full report <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
@@ -186,28 +167,27 @@ export default function DashboardPage() {
             </ResponsiveContainer>
           ) : (
             <div className="h-48 flex flex-col items-center justify-center">
-              <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-3">
-                <BarChart2 className="w-6 h-6 text-[#2e6be4]" />
+              <div className="w-12 h-12 bg-primary-soft rounded-2xl flex items-center justify-center mb-3">
+                <BarChart2 className="w-6 h-6 text-primary" />
               </div>
               <p className="text-sm text-gray-400 font-medium">No campaigns yet</p>
               {canCreate && (
                 <Link href="/campaigns/create"
-                  className="text-[#2e6be4] text-sm font-semibold mt-2 hover:underline flex items-center gap-1">
+                  className="text-primary text-sm font-semibold mt-2 hover:underline flex items-center gap-1">
                   Create first campaign <ArrowRight className="w-3 h-3" />
                 </Link>
               )}
             </div>
           )}
-        </div>
+        </Card>
 
-        {/* Top campaigns */}
-        <div className="lg:col-span-2 bg-white rounded-2xl card-shadow p-6">
+        <Card variant="elevated" padding="lg" className="lg:col-span-2">
           <div className="flex items-center justify-between mb-5">
             <div>
               <h3 className="font-bold text-gray-900">Top Campaigns</h3>
               <p className="text-xs text-gray-400 mt-0.5">By ROAS performance</p>
             </div>
-            <Link href="/analytics" className="text-xs text-[#2e6be4] font-semibold hover:underline">
+            <Link href="/analytics" className="text-xs text-primary font-semibold hover:underline">
               See all
             </Link>
           </div>
@@ -221,7 +201,7 @@ export default function DashboardPage() {
                       {i + 1}
                     </span>
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate group-hover:text-[#2e6be4] transition-colors">
+                      <p className="text-sm font-semibold text-gray-900 truncate group-hover:text-primary transition-colors">
                         {c.name}
                       </p>
                       <p className="text-xs text-gray-400 capitalize">{c.platform?.replace('_', ' ')}</p>
@@ -245,11 +225,10 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
-        </div>
+        </Card>
       </div>
 
-      {/* ── Recent Campaigns Table ── */}
-      <div className="bg-white rounded-2xl card-shadow overflow-hidden">
+      <Card variant="elevated" padding="none" className="overflow-hidden">
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-50">
           <div>
             <h3 className="font-bold text-gray-900">Recent Campaigns</h3>
@@ -257,19 +236,19 @@ export default function DashboardPage() {
           </div>
           <div className="flex items-center gap-3">
             {canCreate && (
-              <Link href="/campaigns/create"
-                className="inline-flex items-center gap-2 px-4 py-2 brand-gradient text-white text-sm font-semibold rounded-sm hover:opacity-90 transition-opacity shadow-sm shadow-blue-200">
-                <Plus className="w-4 h-4" /> New Campaigns
-              </Link>
+              <Button href="/campaigns/create" variant="text" icon={<Plus className="w-4 h-4" />}
+                className="px-4 py-2 primary-gradient text-white text-sm font-semibold rounded-sm hover:opacity-90 hover:text-white transition-opacity shadow-sm shadow-primary/20">
+                New Campaigns
+              </Button>
             )}
             <Link href="/campaigns"
-              className="text-sm text-[#2e6be4] font-semibold hover:underline flex items-center gap-1">
+              className="text-sm text-primary font-semibold hover:underline flex items-center gap-1">
               View all <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
         </div>
 
-        {Array.isArray(campaigns) && campaigns?.campaigns?.length > 0 ? (
+        {Array.isArray(campaigns?.campaigns) && campaigns.campaigns.length > 0 ? (
           <table className="w-full">
             <thead>
               <tr className="bg-[#F8F7FF]">
@@ -285,7 +264,7 @@ export default function DashboardPage() {
                 <tr key={c.id} className="hover:bg-[#F8F7FF] transition-colors group">
                   <td className="px-6 py-4">
                     <Link href={`/campaigns/${c.id}`}
-                      className="text-sm font-semibold text-gray-900 group-hover:text-[#2e6be4] transition-colors font-mono truncate max-w-[280px] block">
+                      className="text-sm font-semibold text-gray-900 group-hover:text-primary transition-colors font-mono truncate max-w-[280px] block">
                       {c.name}
                     </Link>
                   </td>
@@ -297,9 +276,7 @@ export default function DashboardPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_STYLES[c.status] || STATUS_STYLES.draft}`}>
-                      {c.status}
-                    </span>
+                    <Badge tone={STATUS_TONE[c.status] || STATUS_TONE.draft}>{c.status}</Badge>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600 font-medium">
                     {c.budget_total ? `$${Number(c.budget_total).toLocaleString()}` : '—'}
@@ -313,22 +290,22 @@ export default function DashboardPage() {
           </table>
         ) : (
           <div className="text-center py-16">
-            <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Megaphone className="w-7 h-7 text-[#2e6be4]" />
+            <div className="w-14 h-14 bg-primary-soft rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Megaphone className="w-7 h-7 text-primary" />
             </div>
             <p className="text-gray-700 font-semibold mb-1">No campaigns yet</p>
             <p className="text-gray-400 text-sm mb-5">
               {canCreate ? 'Launch your first campaign using the wizard' : 'No campaigns have been created yet'}
             </p>
             {canCreate && (
-              <Link href="/campaigns/create"
-                className="inline-flex items-center gap-2 px-5 py-2.5 brand-gradient text-white font-semibold rounded-sm hover:opacity-90 transition-opacity text-sm">
-                <Plus className="w-4 h-4" /> Create First Campaign
-              </Link>
+              <Button href="/campaigns/create" variant="text" icon={<Plus className="w-4 h-4" />}
+                className="px-5 py-2.5 primary-gradient text-white font-semibold rounded-sm hover:opacity-90 hover:text-white transition-opacity text-sm">
+                Create First Campaign
+              </Button>
             )}
           </div>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

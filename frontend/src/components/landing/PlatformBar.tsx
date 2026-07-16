@@ -1,8 +1,10 @@
+import { Badge } from '@/components/ui/Badge';
+
 const PLATFORMS = [
-  { name: 'Meta', color: 'border-blue-200 text-blue-700 bg-blue-50' },
+  { name: 'Meta', color: 'border-blue-200 text-primary bg-blue-50' },
   { name: 'Google Ads', color: 'border-yellow-200 text-yellow-700 bg-yellow-50' },
   { name: 'TikTok', color: 'border-pink-200 text-pink-700 bg-pink-50' },
-  { name: 'DV360', color: 'border-green-200 text-green-700 bg-green-50' },
+  { name: 'DV360', color: 'border-positive/20 text-positive bg-positive-soft' },
   { name: 'LinkedIn', color: 'border-sky-200 text-sky-700 bg-sky-50' },
 ];
 
@@ -16,12 +18,12 @@ export function PlatformBar() {
           </p>
           <div className="flex flex-wrap justify-center gap-2">
             {PLATFORMS.map(({ name, color }) => (
-              <span
+              <Badge
                 key={name}
-                className={`inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold border ${color}`}
+                className={`px-3.5 py-1.5 text-xs font-bold border ${color}`}
               >
                 {name}
-              </span>
+              </Badge>
             ))}
           </div>
         </div>

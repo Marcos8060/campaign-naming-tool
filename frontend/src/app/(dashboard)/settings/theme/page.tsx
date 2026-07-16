@@ -3,9 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useRole } from '@/lib/hooks/useRole';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { useGet, usePatch, usePost } from '@/lib/hooks/api';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Input } from '@/components/ui/Input';
 
 const COLOR_FIELDS = [
   { key: 'primary_color', label: 'Primary Color' },
@@ -31,7 +34,6 @@ function ThemePreview({ colors, logoUrl }: { colors: Record<string, string>; log
 
   return (
     <div className="rounded-xl overflow-hidden border" style={{ borderColor: border, backgroundColor: bg, color: text }}>
-      {/* Mock sidebar */}
       <div className="flex" style={{ minHeight: '200px' }}>
         <div className="w-28 flex-shrink-0 p-3 space-y-1" style={{ backgroundColor: primary + '18', borderRight: `1px solid ${border}` }}>
           {logoUrl ? (
@@ -53,7 +55,6 @@ function ThemePreview({ colors, logoUrl }: { colors: Record<string, string>; log
           ))}
         </div>
 
-        {/* Mock content */}
         <div className="flex-1 p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="text-sm font-semibold" style={{ color: text }}>Dashboard</div>
@@ -62,7 +63,6 @@ function ThemePreview({ colors, logoUrl }: { colors: Record<string, string>; log
             </div>
           </div>
 
-          {/* Stat cards */}
           <div className="grid grid-cols-3 gap-2">
             {[
               { label: 'Campaigns', val: '24', color: primary },
@@ -76,7 +76,6 @@ function ThemePreview({ colors, logoUrl }: { colors: Record<string, string>; log
             ))}
           </div>
 
-          {/* Mock table row */}
           <div className="rounded-lg p-2" style={{ border: `1px solid ${border}` }}>
             <div className="flex items-center gap-2 py-1">
               <div className="w-2 h-2 rounded-full" style={{ backgroundColor: success }} />
@@ -106,18 +105,17 @@ export default function ThemePage() {
     if (!isAdmin) router.replace('/dashboard');
   }, [isAdmin, router]);
 
-  const { data: branding } = useQuery({
-    queryKey: ['branding'],
-    queryFn: async () => {
-      const { data } = await apiClient.get('/branding');
-      setColors(data);
-      setLogoUrl(data.logo_url);
-      return data;
-    },
-  });
+  const { data: branding } = useGet({ url: '/branding' });
 
-  const updateMutation = useMutation({
-    mutationFn: (body: any) => apiClient.patch('/branding', body),
+  useEffect(() => {
+    if (branding) {
+      setColors(branding);
+      setLogoUrl(branding.logo_url);
+    }
+  }, [branding]);
+
+  const updateMutation = usePatch({
+    url: '/branding',
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['branding', 'workspace'] });
       toast.success('Theme saved');
@@ -125,20 +123,22 @@ export default function ThemePage() {
     onError: () => toast.error('Failed to save theme'),
   });
 
-  const uploadLogo = async (file: File, type: 'light' | 'dark') => {
-    const formData = new FormData();
-    formData.append('file', file);
-    try {
-      const { data } = await apiClient.post(`/branding/logo?logo_type=${type}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+  const uploadLogoMutation = usePost<{ logo_url?: string }, { file: File; type: 'light' | 'dark' }>({
+    url: ({ type }) => `/branding/logo?logo_type=${type}`,
+    body: ({ file }: { file: File; type: 'light' | 'dark' }) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      return formData;
+    },
+    onSuccess: (data, { type }) => {
       queryClient.invalidateQueries({ queryKey: ['branding'] });
       if (type === 'light' && data.logo_url) setLogoUrl(data.logo_url);
       toast.success(`${type === 'light' ? 'Logo' : 'Dark logo'} uploaded`);
-    } catch {
-      toast.error('Upload failed');
-    }
-  };
+    },
+    onError: () => toast.error('Upload failed'),
+  });
+
+  const uploadLogo = (file: File, type: 'light' | 'dark') => uploadLogoMutation.mutate({ file, type });
 
   return (
     <div className="space-y-6">
@@ -148,10 +148,8 @@ export default function ThemePage() {
       </div>
 
       <div className="grid grid-cols-5 gap-6">
-        {/* Left: controls */}
         <div className="col-span-3 space-y-6">
-          {/* Logo */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+          <Card variant="outlined" padding="lg" className="space-y-4">
             <h3 className="font-semibold text-gray-900">Logo</h3>
             <div className="grid grid-cols-2 gap-4">
               {[
@@ -167,28 +165,27 @@ export default function ThemePage() {
                       className="h-10 mb-2 object-contain"
                     />
                   )}
-                  <input
+                  <Input
                     type="file"
                     accept="image/png,image/jpeg,image/svg+xml"
                     onChange={(e) => e.target.files?.[0] && uploadLogo(e.target.files[0], type)}
-                    className="text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100"
+                    className="border-0 p-0 focus:ring-0 text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-primary-soft file:text-primary hover:file:bg-primary-soft"
                   />
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
 
-          {/* Colors */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+          <Card variant="outlined" padding="lg" className="space-y-4">
             <h3 className="font-semibold text-gray-900">Brand Colors</h3>
             <div className="grid grid-cols-2 gap-4">
               {COLOR_FIELDS.map(({ key, label }) => (
                 <div key={key} className="flex items-center gap-3">
-                  <input
+                  <Input
                     type="color"
                     value={colors[key] || '#3b82f6'}
                     onChange={(e) => setColors({ ...colors, [key]: e.target.value })}
-                    className="w-10 h-10 rounded cursor-pointer border border-gray-300 p-0.5"
+                    className="w-10 h-10 rounded cursor-pointer p-0.5"
                   />
                   <div>
                     <label className="text-sm font-medium text-gray-700">{label}</label>
@@ -197,21 +194,16 @@ export default function ThemePage() {
                 </div>
               ))}
             </div>
-            <button
-              onClick={() => updateMutation.mutate(colors)}
-              disabled={updateMutation.isPending}
-              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-            >
-              {updateMutation.isPending ? 'Saving…' : 'Save Theme'}
-            </button>
-          </div>
+            <Button loading={updateMutation.isPending} onClick={() => updateMutation.mutate(colors)}>
+              Save Theme
+            </Button>
+          </Card>
         </div>
 
-        {/* Right: live preview */}
         <div className="col-span-2">
           <div className="sticky top-4 space-y-3">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <div className="w-2 h-2 rounded-full bg-positive animate-pulse" />
               <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Live Preview</span>
             </div>
             <ThemePreview colors={colors} logoUrl={logoUrl} />

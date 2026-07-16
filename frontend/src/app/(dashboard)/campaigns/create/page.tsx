@@ -3,17 +3,19 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useRole } from '@/lib/hooks/useRole';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { useGet, usePost } from '@/lib/hooks/api';
 import { toast } from 'sonner';
-import { ChevronRight } from 'lucide-react';
+import { CheckCircle, ChevronRight } from 'lucide-react';
 import type { Taxonomy } from '@/types';
-import type { PlatformConfig, CampaignFormData } from '@/types/campaign-create';
+import type { PlatformConfig, CampaignFormData, ValidationCheck } from '@/types/campaign-create';
 import { ValidationChecklist } from '@/components/campaigns/ValidationChecklist';
 import { LivePreview } from '@/components/campaigns/LivePreview';
-
-
-// ── Constants ─────────────────────────────────────────────────────────────────
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
+import { cn } from '@/lib/utils/cn';
 
 const PLATFORMS = [
   { id: 'meta',       label: 'Meta',       desc: 'Facebook & Instagram' },
@@ -32,8 +34,6 @@ const STEPS = [
   { label: 'Validation', desc: 'Review name & checks' },
   { label: 'Confirm',    desc: 'Create campaign' },
 ];
-
-// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function CreateCampaignPage() {
   const router = useRouter();
@@ -57,45 +57,34 @@ export default function CreateCampaignPage() {
     taxonomy_values: {},
   });
 
-  const { data: taxonomies = [] } = useQuery<Taxonomy[]>({
-    queryKey: ['taxonomies', 'all'],
-    queryFn: async () => {
-      const { data } = await apiClient.get<Taxonomy[]>('/taxonomies');
-      return data;
-    },
-  });
+  const { data: taxonomies = [] } = useGet<Taxonomy[]>({ url: '/taxonomies', queryKey: ['taxonomies', 'all'] });
 
-  const { data: platformConfig } = useQuery<PlatformConfig | null>({
-    queryKey: ['platform', form.platform],
-    queryFn: async () => {
-      if (!form.platform) return null;
-      const { data } = await apiClient.get<PlatformConfig[]>('/platforms');
-      return data.find((p) => p.platform === form.platform) ?? null;
-    },
-    enabled: !!form.platform,
-  });
+  // Shares the ['platforms'] cache entry with settings/platforms/page.tsx —
+  // filtering client-side means selecting a different platform in the wizard
+  // doesn't refire the request once the list's been fetched once.
+  const { data: allPlatforms } = useGet<PlatformConfig[]>({ url: '/platforms', enabled: !!form.platform });
+  const platformConfig = allPlatforms?.find((p) => p.platform === form.platform) ?? null;
 
-  const mutation = useMutation({
-    mutationFn: (payload: Omit<CampaignFormData, 'budget_total' | 'budget_daily'> & {
-      name: string;
-      budget_total: number | null;
-      budget_daily: number | null;
-    }) => apiClient.post('/campaigns', payload),
+  type CreateCampaignPayload = Omit<CampaignFormData, 'budget_total' | 'budget_daily'> & {
+    name: string;
+    budget_total: number | null;
+    budget_daily: number | null;
+  };
+
+  const mutation = usePost<{ id: string }, CreateCampaignPayload>({
+    url: '/campaigns',
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
       toast.success('Campaign created successfully!');
-      router.push(`/campaigns/${res.data.id}`);
+      router.push(`/campaigns/${res.id}`);
     },
-    onError: (err: unknown) => {
-      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      toast.error(detail || 'Failed to create campaign');
-    },
+    onError: (err) => toast.error(err.message || 'Failed to create campaign'),
   });
 
   const generatedName = useMemo(() => {
     if (!form.platform) return '';
-    const sep = platformConfig?.separator ?? '_';
-    const template = platformConfig?.naming_template ?? `{platform}${sep}{objective}${sep}{date}`;
+    const sep = platformConfig?.separator || '_';
+    const template = platformConfig?.naming_template || `{platform}${sep}{objective}${sep}{date}`;
     const now = new Date();
     const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
     let name = template
@@ -109,7 +98,7 @@ export default function CreateCampaignPage() {
   }, [form.platform, form.objective, form.taxonomy_values, platformConfig]);
 
   const finalName = form.name || generatedName || `Campaign_${Date.now()}`;
-  const maxLen = platformConfig?.max_length ?? 100;
+  const maxLen = platformConfig?.max_length || 100;
 
   const validationChecks: ValidationCheck[] = useMemo(() => [
     { label: 'Platform selected',             pass: !!form.platform,                                           required: true },
@@ -141,44 +130,40 @@ export default function CreateCampaignPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      {/* Header */}
       <div>
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-          <button onClick={() => router.push('/campaigns')} className="hover:text-gray-700">Campaigns</button>
+          <Button variant="text" onClick={() => router.push('/campaigns')} className="text-gray-500 hover:text-gray-700">Campaigns</Button>
           <ChevronRight className="w-4 h-4" />
           <span className="text-gray-900 font-medium">Create Campaign</span>
         </div>
         <h1 className="text-2xl font-bold text-gray-900">Create New Campaign</h1>
       </div>
 
-      {/* Stepper */}
       <div className="flex items-start gap-0">
         {STEPS.map((s, i) => (
           <div key={s.label} className="flex items-center flex-1 last:flex-none">
             <div className="flex flex-col items-center gap-1">
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all
-                  ${step > i + 1 ? 'bg-green-500 text-white' : step === i + 1 ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 text-gray-400 border border-gray-200'}`}
+                  ${step > i + 1 ? 'bg-positive text-white' : step === i + 1 ? 'bg-primary text-white shadow-md' : 'bg-gray-100 text-gray-400 border border-gray-200'}`}
               >
                 {step > i + 1 ? '✓' : i + 1}
               </div>
-              <span className={`text-xs whitespace-nowrap ${step === i + 1 ? 'font-semibold text-blue-600' : step > i + 1 ? 'text-green-600' : 'text-gray-400'}`}>
+              <span className={`text-xs whitespace-nowrap ${step === i + 1 ? 'font-semibold text-primary' : step > i + 1 ? 'text-positive' : 'text-gray-400'}`}>
                 {s.label}
               </span>
             </div>
             {i < STEPS.length - 1 && (
-              <div className={`flex-1 h-0.5 mt-[-14px] mx-1 transition-colors ${step > i + 1 ? 'bg-green-400' : 'bg-gray-200'}`} />
+              <div className={`flex-1 h-0.5 mt-[-14px] mx-1 transition-colors ${step > i + 1 ? 'bg-positive' : 'bg-gray-200'}`} />
             )}
           </div>
         ))}
       </div>
 
-      {/* Main content */}
       <div className={`grid gap-6 ${showPreviewPanel ? 'grid-cols-5' : 'grid-cols-1'}`}>
         <div className={showPreviewPanel ? 'col-span-3' : 'col-span-1'}>
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <Card variant="outlined" padding="lg">
 
-            {/* Step 1: Platform */}
             {step === 1 && (
               <div className="space-y-4">
                 <div>
@@ -187,29 +172,30 @@ export default function CreateCampaignPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {PLATFORMS.map((p) => (
-                    <button
+                    <Button
                       key={p.id}
+                      variant="outline"
                       onClick={() => setForm({ ...form, platform: p.id })}
-                      className={`p-4 rounded-xl border-2 text-left transition-all ${
+                      className={cn(
+                        'block w-full h-auto rounded-xl border-2 p-4 text-left transition-all',
                         form.platform === p.id
-                          ? 'border-blue-600 bg-blue-50 shadow-sm'
-                          : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
-                      }`}
+                          ? 'border-primary bg-primary-soft shadow-sm'
+                          : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50',
+                      )}
                     >
                       <p className="font-semibold text-gray-900">{p.label}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">{p.desc}</p>
+                      <p className="text-xs text-gray-500 mt-0.5 font-normal">{p.desc}</p>
                       {form.platform === p.id && (
-                        <div className="mt-2 flex items-center gap-1 text-xs text-blue-600 font-medium">
+                        <div className="mt-2 flex items-center gap-1 text-xs text-primary font-medium">
                           <CheckCircle className="w-3 h-3" /> Selected
                         </div>
                       )}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Step 2: Taxonomy */}
             {step === 2 && (
               <div className="space-y-4">
                 <div>
@@ -220,28 +206,26 @@ export default function CreateCampaignPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Campaign Objective</label>
-                  <select
+                  <Select
                     value={form.objective}
                     onChange={(e) => setForm({ ...form, objective: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Select objective…</option>
                     {OBJECTIVES.map((o) => (
                       <option key={o} value={o} className="capitalize">{o.charAt(0).toUpperCase() + o.slice(1)}</option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
                 {taxonomyTypes.length > 0 ? (
                   <div className="space-y-3">
                     {taxonomyTypes.map((type) => (
                       <div key={type}>
                         <label className="block text-sm font-medium text-gray-700 mb-1 capitalize">{type}</label>
-                        <select
+                        <Select
                           value={form.taxonomy_values[type] || ''}
                           onChange={(e) =>
                             setForm({ ...form, taxonomy_values: { ...form.taxonomy_values, [type]: e.target.value } })
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           <option value="">Select {type}…</option>
                           {taxonomies
@@ -251,23 +235,22 @@ export default function CreateCampaignPage() {
                                 {t.name} ({t.code})
                               </option>
                             ))}
-                        </select>
+                        </Select>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
                     No taxonomies configured yet. You can still create a campaign — go to{' '}
-                    <button className="underline font-medium" onClick={() => router.push('/taxonomies')}>
+                    <Button variant="text" className="underline font-medium" onClick={() => router.push('/taxonomies')}>
                       Taxonomies
-                    </button>{' '}
+                    </Button>{' '}
                     to set them up.
                   </div>
                 )}
               </div>
             )}
 
-            {/* Step 3: Details */}
             {step === 3 && (
               <div className="space-y-4">
                 <div>
@@ -278,15 +261,14 @@ export default function CreateCampaignPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Campaign Name <span className="text-gray-400 font-normal">(optional — auto-generated if empty)</span>
                   </label>
-                  <input
+                  <Input
                     type="text"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     placeholder={generatedName || 'Auto-generated from template'}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   {!form.name && generatedName && (
-                    <p className="text-xs text-blue-600 mt-1">
+                    <p className="text-xs text-primary mt-1">
                       Will use: <span className="font-mono font-medium">{generatedName}</span>
                     </p>
                   )}
@@ -294,19 +276,17 @@ export default function CreateCampaignPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Total Budget ($)</label>
-                    <input
+                    <Input
                       type="number" min="0" value={form.budget_total}
                       onChange={(e) => setForm({ ...form, budget_total: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="10000"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Daily Budget ($)</label>
-                    <input
+                    <Input
                       type="number" min="0" value={form.budget_daily}
                       onChange={(e) => setForm({ ...form, budget_daily: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="500"
                     />
                   </div>
@@ -314,23 +294,20 @@ export default function CreateCampaignPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                    <input type="date" value={form.start_date}
+                    <Input type="date" value={form.start_date}
                       onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                    <input type="date" value={form.end_date}
+                    <Input type="date" value={form.end_date}
                       onChange={(e) => setForm({ ...form, end_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Step 4: Validation */}
             {step === 4 && (
               <div className="space-y-5">
                 <div>
@@ -357,7 +334,7 @@ export default function CreateCampaignPage() {
                   </div>
                 )}
                 {validationChecks.filter((c) => c.required).every((c) => c.pass) && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-700 flex items-center gap-2">
+                  <div className="bg-positive-soft border border-positive/20 rounded-lg p-3 text-sm text-positive flex items-center gap-2">
                     <CheckCircle className="w-4 h-4" />
                     All required checks passed. Ready to create!
                   </div>
@@ -365,14 +342,13 @@ export default function CreateCampaignPage() {
               </div>
             )}
 
-            {/* Step 5: Confirm */}
             {step === 5 && (
               <div className="space-y-5">
                 <div>
                   <h2 className="font-semibold text-gray-900 text-lg">Confirm & Create</h2>
                   <p className="text-sm text-gray-500 mt-1">Review your campaign summary before creating.</p>
                 </div>
-                <div className="bg-gray-50 rounded-xl border border-gray-200 divide-y divide-gray-200">
+                <Card variant="outlined" padding="none" className="bg-gray-50 divide-y divide-gray-200">
                   {([
                     ['Platform',       PLATFORMS.find((p) => p.id === form.platform)?.label ?? form.platform],
                     ['Campaign Name',  finalName],
@@ -388,7 +364,7 @@ export default function CreateCampaignPage() {
                       <span className="font-medium text-gray-900 text-right max-w-xs break-all">{value}</span>
                     </div>
                   ))}
-                </div>
+                </Card>
                 {Object.entries(form.taxonomy_values).some(([, v]) => v) && (
                   <div>
                     <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Taxonomy Values</p>
@@ -396,20 +372,19 @@ export default function CreateCampaignPage() {
                       {Object.entries(form.taxonomy_values)
                         .filter(([, v]) => v)
                         .map(([k, v]) => (
-                          <div key={k} className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-xs">
+                          <Card key={k} variant="outlined" padding="none" className="rounded-lg px-3 py-1.5 text-xs">
                             <span className="text-gray-500 capitalize">{k}:</span>{' '}
                             <span className="font-semibold text-gray-900">{String(v)}</span>
-                          </div>
+                          </Card>
                         ))}
                     </div>
                   </div>
                 )}
               </div>
             )}
-          </div>
+          </Card>
         </div>
 
-        {/* Live preview panel (steps 2 & 3) */}
         {showPreviewPanel && (
           <div className="col-span-2">
             <LivePreview generatedName={generatedName} platformConfig={platformConfig} form={form} />
@@ -417,34 +392,33 @@ export default function CreateCampaignPage() {
         )}
       </div>
 
-      {/* Navigation */}
       <div className="flex justify-between items-center">
-        <button
+        <Button
+          variant="outline"
           onClick={() => setStep((s) => Math.max(1, s - 1))}
           disabled={step === 1}
-          className="px-5 py-2 border border-gray-300 text-gray-700 rounded-sm hover:bg-gray-50 disabled:opacity-40 transition-colors text-sm font-medium"
         >
           Back
-        </button>
+        </Button>
         <div className="flex items-center gap-2 text-xs text-gray-400">
           Step {step} of {STEPS.length}
         </div>
         {step < STEPS.length ? (
-          <button
+          <Button
             onClick={() => setStep((s) => s + 1)}
             disabled={!canAdvance}
-            className="px-6 py-2 bg-blue-600 text-white font-medium rounded-sm hover:bg-blue-700 disabled:opacity-50 transition-colors text-sm"
+            className="px-6"
           >
             Continue
-          </button>
+          </Button>
         ) : (
-          <button
+          <Button
             onClick={handleSubmit}
-            disabled={mutation.isPending}
-            className="px-6 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors text-sm"
+            loading={mutation.isPending}
+            className="px-6"
           >
             {mutation.isPending ? 'Creating…' : 'Create Campaign'}
-          </button>
+          </Button>
         )}
       </div>
     </div>

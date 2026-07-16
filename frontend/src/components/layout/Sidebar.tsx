@@ -11,6 +11,7 @@ import {
   Image, Settings, ChevronLeft, ChevronRight, Users2, Sparkles, X,
 } from 'lucide-react';
 import type { NavItemProps } from '@/types/layout';
+import { Button } from '@/components/ui/Button';
 
 const NAV_ALL = [
   { href: '/dashboard',                  label: 'Dashboard',        icon: LayoutDashboard, roles: ['admin', 'manager', 'viewer'] },
@@ -22,7 +23,6 @@ const NAV_ALL = [
   { href: '/assets',                     label: 'Assets',           icon: Image,            roles: ['admin', 'manager'] },
 ];
 const BOTTOM_NAV_ALL = [{ href: '/settings', label: 'Settings', icon: Settings, roles: ['admin', 'manager'] }];
-
 
 function NavItem({
   href, label, icon: Icon, indent, active, collapsed, onClick,
@@ -37,8 +37,8 @@ function NavItem({
         collapsed ? 'px-0 py-2.5 justify-center' : 'px-3 py-2.5',
         indent && !collapsed ? 'ml-5 py-2' : '',
         active
-          ? 'brand-gradient text-white shadow-sm shadow-blue-400/30'
-          : 'text-t2 hover:bg-[var(--brand-soft)] hover:text-brand dark:hover:text-blue-300'
+          ? 'primary-gradient text-white shadow-sm shadow-primary/30'
+          : 'text-t2 hover:bg-[var(--color-primary-soft)] hover:text-primary dark:hover:text-blue-300'
       )}
     >
       <Icon className={cn(
@@ -59,7 +59,6 @@ function NavItem({
   );
 }
 
-/* ── Desktop sidebar ─────────────────────────────────────────── */
 function DesktopSidebar() {
   const pathname = usePathname();
   const dispatch = useDispatch();
@@ -82,11 +81,10 @@ function DesktopSidebar() {
         sidebarOpen ? 'w-60' : 'w-[70px]'
       )}
     >
-      {/* Logo */}
       <div className="h-16 flex items-center justify-between px-4 border-b flex-shrink-0" style={{ borderColor: 'var(--bd)' }}>
         {sidebarOpen ? (
           <div className="flex items-center gap-2.5 overflow-hidden">
-            <div className="w-8 h-8 rounded-lg brand-gradient flex-shrink-0 flex items-center justify-center shadow-sm">
+            <div className="w-8 h-8 rounded-lg primary-gradient flex-shrink-0 flex items-center justify-center shadow-sm">
               <Sparkles className="w-4 h-4 text-white" />
             </div>
             <div className="overflow-hidden">
@@ -97,19 +95,20 @@ function DesktopSidebar() {
             </div>
           </div>
         ) : (
-          <div className="w-8 h-8 rounded-lg brand-gradient mx-auto flex items-center justify-center shadow-sm">
+          <div className="w-8 h-8 rounded-lg primary-gradient mx-auto flex items-center justify-center shadow-sm">
             <Sparkles className="w-4 h-4 text-white" />
           </div>
         )}
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={() => dispatch(toggleSidebar())}
-          className="p-1.5 rounded-lg hover:bg-[var(--brand-soft)] text-t3 hover:text-brand transition-colors flex-shrink-0"
+          className="rounded-lg hover:bg-[var(--color-primary-soft)] text-t3 hover:text-primary transition-colors flex-shrink-0"
         >
           {sidebarOpen ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-        </button>
+        </Button>
       </div>
 
-      {/* Nav */}
       <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
         {NAV.map(({ href, label, icon, indent }) => {
           if (indent && !sidebarOpen) return null;
@@ -120,7 +119,6 @@ function DesktopSidebar() {
         })}
       </nav>
 
-      {/* Bottom */}
       <div className="p-3 border-t" style={{ borderColor: 'var(--bd)' }}>
         {BOTTOM_NAV.map(({ href, label, icon }) => (
           <NavItem key={href} href={href} label={label} icon={icon}
@@ -134,7 +132,6 @@ function DesktopSidebar() {
   );
 }
 
-/* ── Mobile drawer ───────────────────────────────────────────── */
 function MobileDrawer() {
   const pathname = usePathname();
   const dispatch = useDispatch();
@@ -155,19 +152,17 @@ function MobileDrawer() {
 
   return (
     <>
-      {/* Backdrop */}
       <div
         className="lg:hidden fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
         onClick={close}
       />
-      {/* Drawer */}
       <aside
         style={{ backgroundColor: 'var(--sidebar-bg)' }}
         className="lg:hidden fixed left-0 top-0 h-full w-72 z-50 flex flex-col shadow-2xl"
       >
         <div className="h-16 flex items-center justify-between px-5 border-b" style={{ borderColor: 'var(--bd)' }}>
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg brand-gradient flex items-center justify-center shadow-sm">
+            <div className="w-8 h-8 rounded-lg primary-gradient flex items-center justify-center shadow-sm">
               <Sparkles className="w-4 h-4 text-white" />
             </div>
             <div>
@@ -177,9 +172,9 @@ function MobileDrawer() {
               )}
             </div>
           </div>
-          <button onClick={close} className="p-1.5 rounded-lg hover:bg-[var(--brand-soft)] text-t3">
+          <Button variant="ghost" size="icon" onClick={close} className="rounded-lg hover:bg-[var(--color-primary-soft)] text-t3 hover:text-t3">
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">

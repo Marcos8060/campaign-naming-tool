@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { useGet, usePatch, usePost, useDelete } from '@/lib/hooks/api';
 import Link from 'next/link';
 import { Plus, Search } from 'lucide-react';
 import { toast } from 'sonner';
@@ -11,12 +11,25 @@ import { useDebounce } from '@/lib/hooks/useDebounce';
 import type { Campaign, CampaignsListResponse } from '@/types';
 import { SortButton } from '@/components/campaigns/SortButton';
 import { ActionMenu } from '@/components/campaigns/ActionMenu';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Badge, type BadgeProps } from '@/components/ui/Badge';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
+
+const STATUS_TONE: Record<string, BadgeProps['tone']> = {
+  active: 'success',
+  draft: 'neutral',
+  paused: 'warning',
+  completed: 'primary',
+  archived: 'danger',
+};
 
 const PLATFORM_COLORS: Record<string, string> = {
-  meta: 'bg-blue-100 text-blue-700',
+  meta: 'bg-blue-100 text-primary',
   google_ads: 'bg-yellow-100 text-yellow-700',
   tiktok: 'bg-pink-100 text-pink-700',
-  dv360: 'bg-green-100 text-green-700',
+  dv360: 'bg-positive-soft text-positive',
   linkedin: 'bg-indigo-100 text-indigo-700',
 };
 
@@ -31,16 +44,14 @@ export default function CampaignsPage() {
   const [sortOrder, setSortOrder] = useState('desc');
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
-  const { data, isLoading } = useQuery<CampaignsListResponse>({
+  const params = new URLSearchParams({ sort_by: sortBy, sort_order: sortOrder, limit: '100' });
+  if (platform) params.set('platform', platform);
+  if (status) params.set('status', status);
+  if (debouncedSearch) params.set('search', debouncedSearch);
+
+  const { data, isLoading } = useGet<CampaignsListResponse>({
+    url: `/campaigns?${params}`,
     queryKey: ['campaigns', { platform, status, search: debouncedSearch, sortBy, sortOrder }],
-    queryFn: async () => {
-      const params = new URLSearchParams({ sort_by: sortBy, sort_order: sortOrder, limit: '100' });
-      if (platform) params.set('platform', platform);
-      if (status) params.set('status', status);
-      if (debouncedSearch) params.set('search', debouncedSearch);
-      const { data } = await apiClient.get<CampaignsListResponse>(`/campaigns?${params}`);
-      return data;
-    },
   });
 
   const campaigns: Campaign[] = data?.campaigns ?? [];
@@ -54,25 +65,26 @@ export default function CampaignsPage() {
     }
   }, [sortBy]);
 
-  const statusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: string }) =>
-      apiClient.patch(`/campaigns/${id}/status`, { status }),
+  const statusMutation = usePatch<Campaign, { id: string; status: string }>({
+    url: ({ id }) => `/campaigns/${id}/status`,
+    body: ({ status }: { id: string; status: string }) => ({ status }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
       toast.success('Status updated');
     },
   });
 
-  const duplicateMutation = useMutation({
-    mutationFn: (id: string) => apiClient.post(`/campaigns/${id}/duplicate`, {}),
+  const duplicateMutation = usePost<Campaign, string>({
+    url: (id) => `/campaigns/${id}/duplicate`,
+    body: {},
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
       toast.success('Campaign duplicated');
     },
   });
 
-  const archiveMutation = useMutation({
-    mutationFn: (id: string) => apiClient.delete(`/campaigns/${id}`),
+  const archiveMutation = useDelete<void, string>({
+    url: (id) => `/campaigns/${id}`,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
       toast.success('Campaign archived');
@@ -119,64 +131,56 @@ export default function CampaignsPage() {
           </p>
         </div>
         {canCreate && (
-          <Link
-            href="/campaigns/create"
-            className="inline-flex text-sm items-center gap-2 px-4 py-2 bg-[#2e6be4] text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
+          <Button href="/campaigns/create" icon={<Plus className="w-4 h-4" />}>
             New Campaign
-          </Link>
+          </Button>
         )}
       </div>
 
-      {/* Filters */}
       <div className="flex gap-3 flex-wrap items-center">
         <div className="relative flex-1 min-w-48">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
+          <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search campaigns..."
-            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="pl-9 pr-3"
           />
         </div>
-        <select value={platform} onChange={(e) => setPlatform(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <Select value={platform} onChange={(e) => setPlatform(e.target.value)} className="w-auto">
           <option value="">All Platforms</option>
           {['meta', 'google_ads', 'tiktok', 'dv360', 'linkedin'].map(p => <option key={p} value={p}>{p.replace('_', ' ')}</option>)}
-        </select>
-        <select value={status} onChange={(e) => setStatus(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </Select>
+        <Select value={status} onChange={(e) => setStatus(e.target.value)} className="w-auto">
           <option value="">All Statuses</option>
           {['draft', 'active', 'paused', 'completed'].map(s => <option key={s} value={s} className="capitalize">{s}</option>)}
-        </select>
+        </Select>
         {(platform || status || search) && (
-          <button onClick={() => { setPlatform(''); setStatus(''); setSearch(''); }}
-            className="text-sm text-gray-500 hover:text-gray-700 underline">Clear filters</button>
+          <Button variant="text" className="text-gray-500 hover:text-gray-700 underline"
+            onClick={() => { setPlatform(''); setStatus(''); setSearch(''); }}>Clear filters</Button>
         )}
       </div>
 
-      {/* Bulk actions bar — managers/admins only */}
       {canCreate && selected.size > 0 && (
-        <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
-          <span className="text-sm font-medium text-blue-800">{selected.size} selected</span>
+        <div className="flex items-center gap-3 bg-primary-soft border border-primary/20 rounded-lg px-4 py-2">
+          <span className="text-sm font-medium text-primary">{selected.size} selected</span>
           <div className="flex gap-2 ml-2">
-            <button onClick={() => handleBulkAction('activate')} className="px-3 py-1 bg-green-600 text-white text-xs rounded font-medium hover:bg-green-700">Activate</button>
-            <button onClick={() => handleBulkAction('pause')} className="px-3 py-1 bg-yellow-500 text-white text-xs rounded font-medium hover:bg-yellow-600">Pause</button>
-            <button onClick={() => handleBulkAction('archive')} className="px-3 py-1 bg-red-600 text-white text-xs rounded font-medium hover:bg-red-700">Archive</button>
+            <Button size="sm" className="bg-positive hover:bg-positive-hover" onClick={() => handleBulkAction('activate')}>Activate</Button>
+            <Button size="sm" className="bg-yellow-500 hover:bg-yellow-600" onClick={() => handleBulkAction('pause')}>Pause</Button>
+            <Button size="sm" variant="destructive" onClick={() => handleBulkAction('archive')}>Archive</Button>
           </div>
-          <button onClick={() => setSelected(new Set())} className="ml-auto text-xs text-blue-600 hover:underline">Clear</button>
+          <Button variant="text" size="sm" className="ml-auto" onClick={() => setSelected(new Set())}>Clear</Button>
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <Card variant="outlined" padding="none" className="overflow-hidden">
         {isLoading ? (
           <div className="p-8 text-center text-gray-400">Loading campaigns...</div>
         ) : campaigns.length === 0 ? (
           <div className="p-12 text-center">
             <p className="text-gray-500 mb-4">{search || platform || status ? 'No campaigns match your filters.' : 'No campaigns yet.'}</p>
             {!search && !platform && !status && canCreate && (
-              <Link href="/campaigns/create" className="text-blue-600 hover:underline text-sm font-medium">
+              <Link href="/campaigns/create" className="text-primary hover:underline text-sm font-medium">
                 Create your first campaign →
               </Link>
             )}
@@ -187,8 +191,8 @@ export default function CampaignsPage() {
               <tr>
                 {canCreate && (
                   <th className="px-4 py-3 w-10">
-                    <input type="checkbox" checked={selected.size === campaigns.length && campaigns.length > 0}
-                      onChange={toggleAll} className="rounded border-gray-300" />
+                    <Input type="checkbox" checked={selected.size === campaigns.length && campaigns.length > 0}
+                      onChange={toggleAll} className="w-4 h-4 p-0 rounded focus:ring-0" />
                   </th>
                 )}
                 {[
@@ -210,29 +214,23 @@ export default function CampaignsPage() {
                 <tr key={campaign.id} className={`hover:bg-gray-50 ${selected.has(campaign.id) ? 'bg-blue-50' : ''}`}>
                   {canCreate && (
                     <td className="px-4 py-3">
-                      <input type="checkbox" checked={selected.has(campaign.id)}
-                        onChange={() => toggleSelect(campaign.id)} className="rounded border-gray-300" />
+                      <Input type="checkbox" checked={selected.has(campaign.id)}
+                        onChange={() => toggleSelect(campaign.id)} className="w-4 h-4 p-0 rounded focus:ring-0" />
                     </td>
                   )}
                   <td className="px-4 py-3">
-                    <Link href={`/campaigns/${campaign.id}`} className="font-medium text-gray-900 hover:text-blue-600 text-sm block truncate max-w-56">
+                    <Link href={`/campaigns/${campaign.id}`} className="font-medium text-gray-900 hover:text-primary text-sm block truncate max-w-56">
                       {campaign.name}
                     </Link>
                     {campaign.platform_id && <p className="text-xs text-gray-400 font-mono">{campaign.platform_id}</p>}
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${PLATFORM_COLORS[campaign.platform] || 'bg-gray-100 text-gray-700'}`}>
+                    <Badge tone="neutral" className={PLATFORM_COLORS[campaign.platform] || ''}>
                       {campaign.platform?.replace('_', ' ')}
-                    </span>
+                    </Badge>
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium
-                      ${campaign.status === 'active' ? 'bg-green-100 text-green-700' :
-                        campaign.status === 'draft' ? 'bg-gray-100 text-gray-700' :
-                        campaign.status === 'paused' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'}`}>
-                      {campaign.status}
-                    </span>
+                    <Badge tone={STATUS_TONE[campaign.status] ?? 'neutral'}>{campaign.status}</Badge>
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-600">
                     {campaign.budget_total ? `$${Number(campaign.budget_total).toLocaleString()}` : '—'}
@@ -251,7 +249,7 @@ export default function CampaignsPage() {
             </tbody>
           </table>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

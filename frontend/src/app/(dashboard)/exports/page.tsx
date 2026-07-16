@@ -2,11 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api/client';
+import { useGet, usePost } from '@/lib/hooks/api';
 import { Download, FileText, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRole } from '@/lib/hooks/useRole';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
+import { Select } from '@/components/ui/Select';
 
 const PLATFORMS = [
   { id: 'meta', label: 'Meta' },
@@ -31,22 +34,20 @@ export default function ExportsPage() {
     if (isViewer) router.replace('/dashboard');
   }, [isViewer, router]);
 
-  const { data: history, refetch } = useQuery({
-    queryKey: ['exports'],
-    queryFn: async () => {
-      const { data } = await apiClient.get('/exports');
-      return data;
-    },
-  });
+  const { data: history, refetch } = useGet({ url: '/exports' });
 
-  const exportMutation = useMutation({
-    mutationFn: async ({ platform, fmt }: { platform: string; fmt: string }) => {
-      const body: any = { format: fmt };
+  const exportMutation = usePost<Blob, { platform: string; fmt: string }>({
+    url: '/exports/csv',
+    body: ({ platform, fmt }: { platform: string; fmt: string }) => {
+      const body: Record<string, string> = { format: fmt };
       if (platform) body.platform = platform;
-      const response = await apiClient.post('/exports/csv', body, { responseType: 'blob' });
+      return body;
+    },
+    responseType: 'blob',
+    onSuccess: (blob, { platform, fmt }) => {
       const suffix = fmt === 'platform_native' ? '_native' : '';
       const filename = `campaigns_${platform || 'all'}${suffix}.csv`;
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', filename);
@@ -54,8 +55,6 @@ export default function ExportsPage() {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-    },
-    onSuccess: () => {
       toast.success('Export downloaded');
       refetch();
     },
@@ -71,48 +70,46 @@ export default function ExportsPage() {
         <p className="text-gray-500 mt-1">Download platform-specific campaign files for upload or reporting</p>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
+      <Card variant="outlined" padding="lg" className="space-y-5">
         <h3 className="font-semibold text-gray-900">Export Campaigns</h3>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Platform</label>
-            <select
+            <Select
               value={selectedPlatform}
               onChange={(e) => {
                 setSelectedPlatform(e.target.value);
                 if (!e.target.value) setFormat('generic');
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">All Platforms</option>
               {PLATFORMS.map((p) => (
                 <option key={p.id} value={p.id}>{p.label}</option>
               ))}
-            </select>
+            </Select>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Format</label>
-            <select
+            <Select
               value={format}
               onChange={(e) => setFormat(e.target.value as any)}
               disabled={!canUseNativeFormat}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-400"
             >
               <option value="generic">Generic CSV</option>
               <option value="platform_native" disabled={!canUseNativeFormat}>Platform Native Format</option>
-            </select>
+            </Select>
           </div>
         </div>
 
         <div className="flex items-start gap-2 text-xs text-gray-500 bg-gray-50 rounded-lg p-3">
-          <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-blue-500" />
+          <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-primary" />
           <span>{FORMAT_DESCRIPTIONS[format]}</span>
         </div>
 
         {format === 'platform_native' && selectedPlatform && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800">
+          <div className="bg-blue-50 border border-primary/20 rounded-lg p-3 text-xs text-primary">
             <strong>
               {PLATFORMS.find((p) => p.id === selectedPlatform)?.label} native format
             </strong>{' '}
@@ -120,39 +117,38 @@ export default function ExportsPage() {
           </div>
         )}
 
-        <button
+        <Button
           onClick={() => exportMutation.mutate({ platform: selectedPlatform, fmt: format })}
-          disabled={exportMutation.isPending}
-          className="inline-flex text-sm items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          loading={exportMutation.isPending}
+          icon={<Download className="w-4 h-4" />}
+          className="px-5 py-2.5"
         >
-          <Download className="w-4 h-4" />
           {exportMutation.isPending ? 'Exporting…' : 'Download CSV'}
-        </button>
-      </div>
+        </Button>
+      </Card>
 
-      {/* Quick export cards */}
       <div>
         <h3 className="font-semibold text-gray-900 mb-3">Quick Export by Platform</h3>
         <div className="grid grid-cols-3 gap-3">
           {PLATFORMS.map((p) => (
-            <button
+            <Button
               key={p.id}
+              variant="outline"
               onClick={() => exportMutation.mutate({ platform: p.id, fmt: 'platform_native' })}
               disabled={exportMutation.isPending}
-              className="bg-white border border-gray-200 rounded-xl p-4 text-left hover:border-blue-300 hover:shadow-sm transition-all group disabled:opacity-50"
+              className="block w-full rounded-xl p-4 text-left hover:border-blue-300 hover:shadow-sm transition-all group h-auto"
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="font-medium text-sm text-gray-900">{p.label}</span>
-                <FileText className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                <FileText className="w-4 h-4 text-gray-400 group-hover:text-primary transition-colors" />
               </div>
-              <p className="text-xs text-gray-500">Native format</p>
-            </button>
+              <p className="text-xs text-gray-500 font-normal">Native format</p>
+            </Button>
           ))}
         </div>
       </div>
 
-      {/* History */}
-      <div className="bg-white rounded-xl border border-gray-200">
+      <Card variant="outlined" padding="none">
         <div className="px-6 py-4 border-b border-gray-200">
           <h3 className="font-semibold text-gray-900">Export History</h3>
         </div>
@@ -179,10 +175,7 @@ export default function ExportsPage() {
                     {exp.platform?.replace('_', ' ') || 'All'}
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium
-                      ${exp.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                      {exp.status}
-                    </span>
+                    <Badge tone={exp.status === 'completed' ? 'success' : 'warning'}>{exp.status}</Badge>
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-500">
                     {new Date(exp.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -192,7 +185,7 @@ export default function ExportsPage() {
             </tbody>
           </table>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

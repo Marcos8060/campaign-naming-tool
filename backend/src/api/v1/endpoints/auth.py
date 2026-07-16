@@ -41,7 +41,6 @@ async def register(body: RegisterRequest, pool: asyncpg.Pool = Depends(get_pool)
     async with pool.acquire() as conn:
         async with conn.transaction():
             slug = body.workspace_name.lower().strip().replace(" ", "-")
-            # Remove non-alphanumeric except hyphens
             import re
             slug = re.sub(r"[^a-z0-9-]", "", slug)
             slug = slug[:50]
