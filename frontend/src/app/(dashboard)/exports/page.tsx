@@ -26,13 +26,13 @@ const FORMAT_DESCRIPTIONS: Record<string, string> = {
 
 export default function ExportsPage() {
   const router = useRouter();
-  const { isViewer } = useRole();
+  const { isViewer, isReady } = useRole();
   const [selectedPlatform, setSelectedPlatform] = useState('');
   const [format, setFormat] = useState<'generic' | 'platform_native'>('generic');
 
   useEffect(() => {
-    if (isViewer) router.replace('/dashboard');
-  }, [isViewer, router]);
+    if (isReady && isViewer) router.replace('/dashboard');
+  }, [isReady, isViewer, router]);
 
   const { data: history, refetch } = useGet({ url: '/exports' });
 

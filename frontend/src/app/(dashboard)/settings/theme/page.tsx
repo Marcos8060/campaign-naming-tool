@@ -96,14 +96,14 @@ function ThemePreview({ colors, logoUrl }: { colors: Record<string, string>; log
 
 export default function ThemePage() {
   const router = useRouter();
-  const { isAdmin } = useRole();
+  const { isAdmin, isReady } = useRole();
   const queryClient = useQueryClient();
   const [colors, setColors] = useState<Record<string, string>>({});
   const [logoUrl, setLogoUrl] = useState<string | undefined>();
 
   useEffect(() => {
-    if (!isAdmin) router.replace('/dashboard');
-  }, [isAdmin, router]);
+    if (isReady && !isAdmin) router.replace('/dashboard');
+  }, [isReady, isAdmin, router]);
 
   const { data: branding } = useGet({ url: '/branding' });
 

@@ -1,6 +1,7 @@
 from pydantic_settings import BaseSettings
 from pydantic import field_validator
 from typing import List
+from cryptography.fernet import Fernet
 import secrets
 import logging
 import sys
@@ -23,6 +24,38 @@ class Settings(BaseSettings):
     smtp_user: str = ""
     smtp_password: str = ""
     email_from: str = ""
+
+    frontend_url: str = "http://localhost:3000"
+    oauth_redirect_base_url: str = "http://localhost:8000"
+
+    encryption_key: str = ""
+
+    meta_app_id: str = ""
+    meta_app_secret: str = ""
+    meta_api_version: str = "v21.0"
+
+    @field_validator("encryption_key", mode="before")
+    @classmethod
+    def validate_encryption_key(cls, v: str) -> str:
+        if not v:
+            generated = Fernet.generate_key().decode("utf-8")
+            logger.warning(
+                "\n"
+                "⚠️  ENCRYPTION_KEY is not set. A random key has been generated for this session.\n"
+                "   Unlike JWT_SECRET, losing this key is destructive: any platform connection\n"
+                "   tokens already encrypted with it become permanently unreadable on restart,\n"
+                "   and every connected ad account will need to be reconnected.\n"
+                f"   Add to your .env:  ENCRYPTION_KEY={generated}\n"
+            )
+            return generated
+        try:
+            Fernet(v.encode("utf-8"))
+        except Exception:
+            raise ValueError(
+                "ENCRYPTION_KEY must be a valid 32-byte urlsafe-base64 Fernet key. "
+                "Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\""
+            )
+        return v
 
     @field_validator("jwt_secret", mode="before")
     @classmethod
