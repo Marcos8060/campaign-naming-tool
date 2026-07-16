@@ -1,3 +1,5 @@
+import json
+
 import httpx
 
 from src.config import settings
@@ -151,3 +153,58 @@ async def create_campaign(
     if resp.status_code != 200 or "id" not in data:
         raise MetaAPIError(_error_message(data, "Failed to create campaign on Meta"), resp.status_code)
     return data
+
+
+# Meta reports "conversions" through a generic `actions` list keyed by
+# action_type (e.g. "purchase", "lead", "link_click") rather than a single
+# flat number — which action_type actually counts as *the* conversion
+# depends on what the campaign is optimizing for, which Camparc doesn't
+# track yet since it doesn't create ad sets (that's where an optimization
+# goal actually lives). This picks the common commerce/lead action types as
+# a reasonable default so a first sync produces something sensible; refining
+# it per-objective is a natural follow-up once real ad sets exist.
+CONVERSION_ACTION_TYPES = {"purchase", "lead", "complete_registration", "submit_application"}
+
+
+def _sum_actions(actions: list[dict] | None, types: set[str]) -> float:
+    if not actions:
+        return 0.0
+    return sum(float(a["value"]) for a in actions if a.get("action_type") in types)
+
+
+async def get_campaign_insights(access_token: str, meta_campaign_id: str, since: str, until: str) -> list[dict]:
+    async with httpx.AsyncClient(timeout=20) as client:
+        resp = await client.get(f"{GRAPH_BASE}/{meta_campaign_id}/insights", params={
+            "fields": "spend,impressions,clicks,ctr,cpc,actions,action_values",
+            # Daily breakdown rather than one summed total — campaign_performance
+            # is keyed by (campaign_id, date), so this maps directly onto it.
+            "time_increment": "1",
+            "time_range": json.dumps({"since": since, "until": until}),
+            "access_token": access_token,
+        })
+    data = resp.json()
+    if resp.status_code != 200:
+        raise MetaAPIError(_error_message(data, "Failed to fetch performance data from Meta"), resp.status_code)
+
+    # Meta simply omits days with zero delivery rather than returning
+    # zero-filled rows for them — a paused/undelivered campaign (like a test
+    # account) can legitimately come back with an empty data list. That's a
+    # correct "nothing happened yet" result, not an error.
+    rows = []
+    for r in data.get("data", []):
+        spend = float(r.get("spend", 0) or 0)
+        conversions = _sum_actions(r.get("actions"), CONVERSION_ACTION_TYPES)
+        revenue = _sum_actions(r.get("action_values"), {"purchase"})
+        rows.append({
+            "date": r["date_start"],
+            "spend": spend,
+            "impressions": int(float(r.get("impressions", 0) or 0)),
+            "clicks": int(float(r.get("clicks", 0) or 0)),
+            "conversions": conversions,
+            "revenue": revenue,
+            "ctr": float(r.get("ctr", 0) or 0),
+            "cpc": float(r.get("cpc", 0) or 0),
+            "cpa": round(spend / conversions, 2) if conversions else None,
+            "roas": round(revenue / spend, 2) if spend else None,
+        })
+    return rows
