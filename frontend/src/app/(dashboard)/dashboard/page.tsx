@@ -36,7 +36,6 @@ const STATUS_TONE: Record<string, BadgeProps['tone']> = {
   completed: 'primary',
 };
 
-
 export default function DashboardPage() {
   const { user } = useSelector((state: RootState) => state.auth);
   const { canManage: canCreate } = useRole();
@@ -77,7 +76,6 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
 
-      {/* ── Welcome Banner ── */}
       <div className="primary-gradient rounded-2xl p-7 flex items-center justify-between overflow-hidden relative">
         <div className="absolute right-0 top-0 w-64 h-64 bg-white/5 rounded-full translate-x-20 -translate-y-20" />
         <div className="absolute right-32 bottom-0 w-40 h-40 bg-white/5 rounded-full translate-y-12" />
@@ -106,10 +104,8 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── Onboarding ── */}
       {canCreate && <OnboardingChecklist onboarding={overview?.onboarding} />}
 
-      {/* ── KPI Cards ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
           title="Total Campaigns"
@@ -141,9 +137,7 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* ── Charts row ── */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* Platform bar chart */}
         <Card variant="elevated" padding="lg" className="lg:col-span-3">
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -187,7 +181,6 @@ export default function DashboardPage() {
           )}
         </Card>
 
-        {/* Top campaigns */}
         <Card variant="elevated" padding="lg" className="lg:col-span-2">
           <div className="flex items-center justify-between mb-5">
             <div>
@@ -235,7 +228,6 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* ── Recent Campaigns Table ── */}
       <Card variant="elevated" padding="none" className="overflow-hidden">
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-50">
           <div>

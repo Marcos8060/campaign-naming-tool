@@ -109,7 +109,6 @@ async def update_taxonomy(
     if not updates and not has_parent_update:
         raise HTTPException(status_code=400, detail="No valid fields")
 
-    # Recalculate level if parent_id changes
     extra_sets = []
     extra_vals = []
     if has_parent_update:

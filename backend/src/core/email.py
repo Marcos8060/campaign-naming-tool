@@ -16,7 +16,6 @@ async def send_invitation_email(
     temp_password: str,
     invited_by: str,
 ) -> bool:
-    """Send a workspace invitation email. Returns True on success, False on failure."""
     if not settings.smtp_user or not settings.smtp_password:
         logger.warning("Email credentials not configured — skipping invitation email.")
         return False

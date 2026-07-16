@@ -39,7 +39,6 @@ export function HowItWorksSection() {
     <section id="how-it-works" className="py-20 bg-[#f8faff]">
       <div className="max-w-7xl mx-auto px-6">
 
-        {/* Header */}
         <div className="max-w-2xl mx-auto text-center mb-14">
           <div className="inline-flex items-center gap-2 text-xs font-bold text-primary bg-primary-soft border border-blue-100 px-3 py-1.5 rounded-full mb-4 uppercase tracking-wider">
             How It Works
@@ -52,14 +51,11 @@ export function HowItWorksSection() {
           </p>
         </div>
 
-        {/* Steps */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 relative">
-          {/* Connector line */}
           <div className="hidden lg:block absolute top-[52px] left-[calc(33.33%+32px)] right-[calc(33.33%+32px)] h-px bg-gradient-to-r from-[var(--color-primary)]/20 via-[#6c5ce7]/40 to-[#00b894]/20" />
 
           {STEPS.map(({ num, icon: Icon, badge, title, body, detail, color, bg }, i) => (
             <div key={num} className="relative flex flex-col">
-              {/* Step number circle */}
               <div
                 className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 flex-shrink-0"
                 style={{ backgroundColor: color + '18' }}
@@ -81,7 +77,6 @@ export function HowItWorksSection() {
               <p className="text-gray-500 text-sm leading-relaxed mb-4 flex-1">{body}</p>
               <p className="text-xs text-gray-400 italic">{detail}</p>
 
-              {/* Mobile arrow */}
               {i < STEPS.length - 1 && (
                 <div className="lg:hidden mt-6 flex justify-center">
                   <ArrowRight className="w-5 h-5 text-gray-300 rotate-90" />
@@ -91,7 +86,6 @@ export function HowItWorksSection() {
           ))}
         </div>
 
-        {/* CTA */}
         <div className="text-center mt-14">
           <Button
             href="/register"

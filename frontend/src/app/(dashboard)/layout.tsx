@@ -21,7 +21,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (!isAuthenticated) router.push('/login');
   }, [isAuthenticated, router]);
 
-  // Rehydrate user after page refresh
   const { data: me } = useGet({
     url: '/auth/me',
     enabled: isAuthenticated && !user,
@@ -38,7 +37,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="flex h-screen overflow-hidden" style={{ backgroundColor: 'var(--surface)' }}>
       <Sidebar />
 
-      {/* Content — offset by sidebar on lg+ */}
       <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${sidebarOpen ? 'lg:ml-60' : 'lg:ml-[70px]'}`}>
         <Header />
         <main className="flex-1 overflow-y-auto p-4 md:p-6">

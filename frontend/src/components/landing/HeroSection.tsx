@@ -11,16 +11,13 @@ const TRUST_BADGES = [
 export function HeroSection() {
   return (
     <section className="relative overflow-hidden bg-white">
-      {/* Subtle background gradient */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_60%_-10%,rgba(46,107,228,0.08),transparent)]" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_40%_at_100%_100%,rgba(108,92,231,0.04),transparent)]" />
 
       <div className="max-w-7xl mx-auto px-6 pt-14 pb-16 lg:pt-20 lg:pb-24">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
 
-          {/* ── Left: Copy ── */}
           <div>
-            {/* Eyebrow */}
             <div className="inline-flex items-center gap-2 text-xs font-bold text-primary bg-primary-soft border border-blue-100 px-3 py-1.5 rounded-full mb-6 uppercase tracking-wider">
               <Sparkles className="w-3 h-3" />
               Campaign Intelligence Platform
@@ -38,7 +35,6 @@ export function HeroSection() {
               Duplicate audiences, inconsistent campaign naming, and hours of manual cleanup are silently draining your budget. Camparc detects the waste, standardizes your operations, and gives you back control — across every ad platform.
             </p>
 
-            {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-3 mb-7">
               <Button
                 href="/register"
@@ -58,7 +54,6 @@ export function HeroSection() {
               </Button>
             </div>
 
-            {/* Trust badges */}
             <div className="flex flex-wrap gap-x-5 gap-y-2">
               {TRUST_BADGES.map((badge) => (
                 <div key={badge} className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
@@ -69,14 +64,11 @@ export function HeroSection() {
             </div>
           </div>
 
-          {/* ── Right: Product Mockup ── */}
           <div className="hidden lg:block">
             <div className="relative">
-              {/* Glow */}
               <div className="absolute inset-0 bg-blue-400/10 blur-3xl rounded-3xl scale-95 pointer-events-none" />
 
               <Card variant="elevated" padding="none" className="relative border border-gray-200/80 shadow-2xl shadow-blue-100/50 overflow-hidden">
-                {/* Browser chrome */}
                 <div className="bg-gray-50 border-b border-gray-100 px-4 py-3 flex items-center gap-3">
                   <div className="flex gap-1.5">
                     <div className="w-3 h-3 rounded-full bg-red-400" />
@@ -90,9 +82,7 @@ export function HeroSection() {
                   </div>
                 </div>
 
-                {/* App shell */}
                 <div className="flex" style={{ height: 380 }}>
-                  {/* Sidebar */}
                   <div className="w-44 bg-white border-r border-gray-100 px-3 pt-4 pb-3 flex-shrink-0">
                     <div className="flex items-center gap-2 mb-6 px-1">
                       <div className="w-6 h-6 rounded-lg primary-gradient flex items-center justify-center">
@@ -113,9 +103,7 @@ export function HeroSection() {
                     ))}
                   </div>
 
-                  {/* Content area */}
                   <div className="flex-1 bg-[#f5f8ff] p-3.5 overflow-hidden space-y-3">
-                    {/* Alert banner — the key moment */}
                     <div className="bg-red-50 border border-red-200 rounded-xl px-3.5 py-3 flex items-start gap-3">
                       <div className="w-7 h-7 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                         <AlertTriangle className="w-3.5 h-3.5 text-red-500" />
@@ -127,7 +115,6 @@ export function HeroSection() {
                       </div>
                     </div>
 
-                    {/* KPI cards */}
                     <div className="grid grid-cols-3 gap-2">
                       {[
                         { l: 'Active', v: '24', c: `var(--color-primary)` },
@@ -141,7 +128,6 @@ export function HeroSection() {
                       ))}
                     </div>
 
-                    {/* Campaign naming preview */}
                     <div className="bg-white rounded-xl p-3 border border-gray-100 shadow-sm">
                       <div className="flex items-center justify-between mb-2">
                         <p className="text-[9px] font-bold text-gray-600 uppercase tracking-wide">Live Name Preview</p>
@@ -152,7 +138,6 @@ export function HeroSection() {
                       </div>
                     </div>
 
-                    {/* Platform bars */}
                     <div className="bg-white rounded-xl p-3 border border-gray-100 shadow-sm">
                       <p className="text-[9px] font-bold text-gray-500 mb-2 uppercase tracking-wide">Spend by Platform</p>
                       <div className="space-y-2">
@@ -175,7 +160,6 @@ export function HeroSection() {
                 </div>
               </Card>
 
-              {/* Floating badge */}
               <Card variant="elevated" padding="none" className="absolute -bottom-3 -left-4 border border-gray-200 px-4 py-2.5 flex items-center gap-2.5">
                 <div className="w-8 h-8 bg-emerald-50 rounded-xl flex items-center justify-center">
                   <TrendingDown className="w-4 h-4 text-emerald-500" />

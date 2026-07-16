@@ -34,7 +34,6 @@ function ThemePreview({ colors, logoUrl }: { colors: Record<string, string>; log
 
   return (
     <div className="rounded-xl overflow-hidden border" style={{ borderColor: border, backgroundColor: bg, color: text }}>
-      {/* Mock sidebar */}
       <div className="flex" style={{ minHeight: '200px' }}>
         <div className="w-28 flex-shrink-0 p-3 space-y-1" style={{ backgroundColor: primary + '18', borderRight: `1px solid ${border}` }}>
           {logoUrl ? (
@@ -56,7 +55,6 @@ function ThemePreview({ colors, logoUrl }: { colors: Record<string, string>; log
           ))}
         </div>
 
-        {/* Mock content */}
         <div className="flex-1 p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="text-sm font-semibold" style={{ color: text }}>Dashboard</div>
@@ -65,7 +63,6 @@ function ThemePreview({ colors, logoUrl }: { colors: Record<string, string>; log
             </div>
           </div>
 
-          {/* Stat cards */}
           <div className="grid grid-cols-3 gap-2">
             {[
               { label: 'Campaigns', val: '24', color: primary },
@@ -79,7 +76,6 @@ function ThemePreview({ colors, logoUrl }: { colors: Record<string, string>; log
             ))}
           </div>
 
-          {/* Mock table row */}
           <div className="rounded-lg p-2" style={{ border: `1px solid ${border}` }}>
             <div className="flex items-center gap-2 py-1">
               <div className="w-2 h-2 rounded-full" style={{ backgroundColor: success }} />
@@ -152,9 +148,7 @@ export default function ThemePage() {
       </div>
 
       <div className="grid grid-cols-5 gap-6">
-        {/* Left: controls */}
         <div className="col-span-3 space-y-6">
-          {/* Logo */}
           <Card variant="outlined" padding="lg" className="space-y-4">
             <h3 className="font-semibold text-gray-900">Logo</h3>
             <div className="grid grid-cols-2 gap-4">
@@ -182,7 +176,6 @@ export default function ThemePage() {
             </div>
           </Card>
 
-          {/* Colors */}
           <Card variant="outlined" padding="lg" className="space-y-4">
             <h3 className="font-semibold text-gray-900">Brand Colors</h3>
             <div className="grid grid-cols-2 gap-4">
@@ -207,7 +200,6 @@ export default function ThemePage() {
           </Card>
         </div>
 
-        {/* Right: live preview */}
         <div className="col-span-2">
           <div className="sticky top-4 space-y-3">
             <div className="flex items-center gap-2">

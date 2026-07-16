@@ -43,7 +43,6 @@ export function UseCasesSection() {
     <section className="py-20 bg-[#f8faff]">
       <div className="max-w-7xl mx-auto px-6">
 
-        {/* Header */}
         <div className="max-w-2xl mx-auto text-center mb-14">
           <div className="inline-flex items-center gap-2 text-xs font-bold text-primary bg-primary-soft border border-blue-100 px-3 py-1.5 rounded-full mb-4 uppercase tracking-wider">
             Who It's For
@@ -54,11 +53,9 @@ export function UseCasesSection() {
           </h2>
         </div>
 
-        {/* Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {USE_CASES.map(({ icon: Icon, tag, headline, pain, solution, result, color, bg, border }) => (
             <Card key={tag} variant="outlined" padding="none" className={`${border} overflow-hidden`}>
-              {/* Top band */}
               <div className={`${bg} px-6 py-5 border-b ${border}`}>
                 <div className="flex items-center gap-2.5 mb-3">
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: color + '20' }}>
@@ -71,7 +68,6 @@ export function UseCasesSection() {
                 <h3 className="font-extrabold text-gray-900 text-base leading-snug">{headline}</h3>
               </div>
 
-              {/* Body */}
               <div className="px-6 py-5 space-y-4">
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">The Pain</p>
@@ -92,7 +88,6 @@ export function UseCasesSection() {
           ))}
         </div>
 
-        {/* Bottom CTA */}
         <div className="text-center mt-12">
           <Button
             href="/register"

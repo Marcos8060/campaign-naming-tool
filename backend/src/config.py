@@ -18,7 +18,6 @@ class Settings(BaseSettings):
     allowed_origins: str = "http://localhost:3000"
     environment: str = "development"
 
-    # Email (Gmail SMTP)
     smtp_host: str = "smtp.gmail.com"
     smtp_port: int = 587
     smtp_user: str = ""
@@ -56,10 +55,6 @@ class Settings(BaseSettings):
                 )
                 if v == "your-super-secret-jwt-key-min-32-chars-please-change":
                     logger.error(msg)
-                    # In production, refuse to start
-                    # Uncomment for strict mode:
-                    # if os.getenv("ENVIRONMENT", "development") == "production":
-                    #     sys.exit(1)
         return v
 
     @field_validator("allowed_origins", mode="before")

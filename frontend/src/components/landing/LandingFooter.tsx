@@ -40,10 +40,8 @@ export function LandingFooter() {
     <footer className="bg-[#080f1f] text-gray-400">
       <div className="max-w-7xl mx-auto px-6 pt-14 pb-8">
 
-        {/* Top row */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-10 mb-12">
 
-          {/* Brand */}
           <div className="md:col-span-2">
             <Link href="/" className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 rounded-xl primary-gradient flex items-center justify-center shadow-sm">
@@ -56,7 +54,6 @@ export function LandingFooter() {
               The open-source campaign intelligence platform built for marketing teams that are serious about their ad spend.
             </p>
 
-            {/* Platform pills */}
             <div className="flex flex-wrap gap-1.5">
               {PLATFORMS.map((p) => (
                 <span key={p} className="text-[10px] font-semibold text-gray-600 bg-gray-800 px-2 py-1 rounded">
@@ -66,7 +63,6 @@ export function LandingFooter() {
             </div>
           </div>
 
-          {/* Nav links */}
           {FOOTER_LINKS.map(({ title, links }) => (
             <div key={title}>
               <p className="text-white font-bold text-sm mb-4">{title}</p>
@@ -86,7 +82,6 @@ export function LandingFooter() {
           ))}
         </div>
 
-        {/* Bottom bar */}
         <div className="border-t border-gray-800 pt-7 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-gray-600">
             © {new Date().getFullYear()} Camparc. All rights reserved. Built for the teams who hate wasting budget.

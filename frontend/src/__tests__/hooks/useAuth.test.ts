@@ -96,7 +96,6 @@ describe('useAuth', () => {
   it('signOut clears auth state and redirects', () => {
     const { result } = renderHook(() => useAuth(), { wrapper: wrapper(store) });
 
-    // set logged in state manually first
     act(() => {
       store.dispatch({
         type: 'auth/setAuth',

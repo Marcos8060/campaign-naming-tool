@@ -1,6 +1,5 @@
 import '@testing-library/jest-dom';
 
-// Mock next/navigation
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: jest.fn(),
@@ -12,7 +11,6 @@ jest.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
-// Mock next/image
 jest.mock('next/image', () => ({
   __esModule: true,
   default: ({ src, alt, ...props }: { src: string; alt: string }) => {

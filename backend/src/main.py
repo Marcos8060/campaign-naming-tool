@@ -21,7 +21,6 @@ app = FastAPI(
     description="Multi-tenant B2B SaaS for campaign naming standardization and intelligence",
     version="1.0.0",
     lifespan=lifespan,
-    # Hide docs in production
     docs_url=None if settings.is_production() else "/docs",
     redoc_url=None if settings.is_production() else "/redoc",
 )

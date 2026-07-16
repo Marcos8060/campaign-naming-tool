@@ -40,7 +40,6 @@ async def get_overview(
         workspace_id
     )
 
-    # Performance aggregates from campaign_performance
     perf = await pool.fetchrow(
         """SELECT COALESCE(SUM(spend), 0) as total_spend,
                   COALESCE(SUM(impressions), 0) as total_impressions,
@@ -54,7 +53,6 @@ async def get_overview(
         workspace_id
     )
 
-    # Onboarding checklist
     has_taxonomies = await pool.fetchval(
         "SELECT EXISTS(SELECT 1 FROM taxonomies WHERE workspace_id = $1 AND is_active = true)",
         workspace_id
@@ -196,10 +194,8 @@ async def get_audience_overlap(
     current_user: dict = Depends(get_current_user),
     platform: Optional[str] = None,
 ):
-    """
-    Returns simulated audience overlap data based on taxonomy values.
-    Campaigns sharing the same taxonomy values (brand, product, region) are likely targeting overlapping audiences.
-    """
+    # Returns simulated audience overlap data based on taxonomy values.
+    # Campaigns sharing the same taxonomy values (brand, product, region) are likely targeting overlapping audiences.
     query = """SELECT id, name, platform, taxonomy_values, budget_total
                FROM campaigns WHERE workspace_id = $1 AND status IN ('active', 'paused')"""
     params = [workspace_id]
@@ -212,7 +208,6 @@ async def get_audience_overlap(
     if len(campaigns) < 2:
         return {"campaigns": [], "overlaps": [], "high_overlap_pairs": []}
 
-    # Calculate overlap based on shared taxonomy values
     campaign_list = []
     overlaps = []
     high_overlap_pairs = []
@@ -232,14 +227,12 @@ async def get_audience_overlap(
             tv_a = a["taxonomy_values"] or {}
             tv_b = b["taxonomy_values"] or {}
 
-            # Count matching taxonomy keys
             shared_keys = set(tv_a.keys()) & set(tv_b.keys())
             matching = sum(1 for k in shared_keys if tv_a.get(k) == tv_b.get(k))
             total_keys = len(set(tv_a.keys()) | set(tv_b.keys()))
 
             overlap_pct = round((matching / total_keys * 100) if total_keys > 0 else 0)
 
-            # Estimate wasted spend
             min_budget = min(
                 float(a["budget_total"]) if a["budget_total"] else 0,
                 float(b["budget_total"]) if b["budget_total"] else 0

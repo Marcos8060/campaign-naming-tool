@@ -137,7 +137,6 @@ export default function CampaignsPage() {
         )}
       </div>
 
-      {/* Filters */}
       <div className="flex gap-3 flex-wrap items-center">
         <div className="relative flex-1 min-w-48">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
@@ -162,7 +161,6 @@ export default function CampaignsPage() {
         )}
       </div>
 
-      {/* Bulk actions bar — managers/admins only */}
       {canCreate && selected.size > 0 && (
         <div className="flex items-center gap-3 bg-primary-soft border border-primary/20 rounded-lg px-4 py-2">
           <span className="text-sm font-medium text-primary">{selected.size} selected</span>

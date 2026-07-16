@@ -32,7 +32,6 @@ export function Header() {
       style={{ backgroundColor: 'var(--card)', borderColor: 'var(--bd)' }}
       className="h-16 border-b flex items-center justify-between px-4 md:px-6 flex-shrink-0 gap-3"
     >
-      {/* Mobile hamburger */}
       <Button
         variant="ghost"
         size="icon"
@@ -43,7 +42,6 @@ export function Header() {
         <Menu className="w-5 h-5" />
       </Button>
 
-      {/* Search */}
       <div className="flex-1 max-w-sm hidden sm:block">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-t3 z-10" />
@@ -56,12 +54,9 @@ export function Header() {
         </div>
       </div>
 
-      {/* Spacer on mobile */}
       <div className="flex-1 sm:hidden" />
 
-      {/* Right side */}
       <div className="flex items-center gap-1">
-        {/* Dark mode toggle */}
         <Button
           variant="ghost"
           size="icon"
@@ -72,13 +67,11 @@ export function Header() {
           {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </Button>
 
-        {/* Notification bell */}
         <Button variant="ghost" size="icon" className="relative rounded-xl hover:bg-[var(--color-primary-soft)] text-t2 hover:text-primary transition-colors">
           <Bell className="w-5 h-5" />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full border-2 border-[var(--card)]" />
         </Button>
 
-        {/* User menu */}
         <div className="relative">
           <Button
             variant="ghost"
@@ -106,7 +99,6 @@ export function Header() {
                 boxShadow: '0 12px 40px rgba(0,0,0,0.18), 0 3px 12px rgba(0,0,0,0.10)',
               }}
             >
-              {/* User info header */}
               <div className="px-4 py-3"
                 style={{ borderBottom: darkMode ? '1px solid #252545' : '1px solid #e5e7eb' }}
               >
@@ -118,7 +110,6 @@ export function Header() {
                 </p>
               </div>
 
-              {/* Actions */}
               <div className="p-2">
                 <Button
                   variant="ghost"

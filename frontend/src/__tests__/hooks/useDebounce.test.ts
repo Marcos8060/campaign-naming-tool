@@ -54,7 +54,7 @@ describe('useDebounce', () => {
 
   it('uses 300ms as default delay', () => {
     const { result, rerender } = renderHook(
-      ({ value }) => useDebounce(value),  // no explicit delay
+      ({ value }) => useDebounce(value),
       { initialProps: { value: 'start' } }
     );
 

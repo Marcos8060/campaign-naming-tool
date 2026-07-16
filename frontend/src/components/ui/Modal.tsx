@@ -4,13 +4,6 @@ import { useEffect, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 
-/**
- * The one shell behind ConfirmDeleteModal, CampaignEditModal, and
- * TaxonomyEditModal/TaxonomyDeleteModal (fixed inset-0 backdrop + centered
- * white panel + sticky header/footer). Those components differ only in
- * their body content and footer actions, which stay component-specific —
- * `Modal` just standardizes the chrome around them.
- */
 const sizeStyles = {
   sm: 'max-w-md',
   md: 'max-w-lg',

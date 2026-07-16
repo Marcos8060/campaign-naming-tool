@@ -8,7 +8,6 @@ export function LandingNav() {
   return (
     <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        {/* Logo */}
         <Link href="/" className="flex items-center gap-2 flex-shrink-0">
           <div className="w-8 h-8 rounded-xl primary-gradient flex items-center justify-center shadow-sm">
             <Sparkles className="w-4 h-4 text-white" />
@@ -16,7 +15,6 @@ export function LandingNav() {
           <span className="font-extrabold text-gray-900 text-lg tracking-tight">Camparc</span>
         </Link>
 
-        {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-8">
           {NAV_LINKS.map((l) => (
             <a
@@ -29,7 +27,6 @@ export function LandingNav() {
           ))}
         </div>
 
-        {/* CTAs */}
         <div className="flex items-center gap-2">
           <Button
             href="/login"
