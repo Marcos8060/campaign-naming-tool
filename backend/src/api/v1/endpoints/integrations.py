@@ -32,7 +32,31 @@ async def list_connections(
         "SELECT * FROM platform_connections WHERE workspace_id = $1 AND status != 'revoked' ORDER BY platform",
         workspace_id,
     )
-    return [_serialize(r) for r in rows]
+    results = [_serialize(r) for r in rows]
+
+    # Self-heal: connections made before the currency column existed have
+    # currency = NULL. Rather than requiring every existing user to
+    # disconnect and reconnect just to pick up one new field, backfill it
+    # transparently the next time this list is read. New connections never
+    # hit this path since currency is captured at connect time below.
+    for i, conn in enumerate(results):
+        if conn["platform"] == "meta" and conn["status"] == "connected" and not conn.get("currency"):
+            try:
+                token = decrypt_token(rows[i]["access_token_encrypted"])
+                accounts = await meta.get_ad_accounts(token)
+                match = next((a for a in accounts if a["id"] == conn["external_account_id"]), None)
+                if match and match.get("currency"):
+                    await pool.execute(
+                        "UPDATE platform_connections SET currency = $1 WHERE id = $2",
+                        match["currency"], UUID(conn["id"]),
+                    )
+                    conn["currency"] = match["currency"]
+            except (ValueError, MetaAPIError):
+                # Backfill is a nice-to-have, not load-bearing — leave currency
+                # null for now and it'll be retried on the next list call.
+                pass
+
+    return results
 
 
 @router.post("/meta/connect")
@@ -89,16 +113,17 @@ async def meta_callback(
         await pool.execute(
             """INSERT INTO platform_connections
                (workspace_id, platform, status, external_account_id, external_account_name,
-                access_token_encrypted, token_expires_at, scopes, connected_by)
-               VALUES ($1, 'meta', 'connected', $2, $3, $4, $5, $6, $7)
+                access_token_encrypted, token_expires_at, scopes, connected_by, currency)
+               VALUES ($1, 'meta', 'connected', $2, $3, $4, $5, $6, $7, $8)
                ON CONFLICT (workspace_id, platform, external_account_id) DO UPDATE SET
                  external_account_name = EXCLUDED.external_account_name,
                  access_token_encrypted = EXCLUDED.access_token_encrypted,
                  token_expires_at = EXCLUDED.token_expires_at,
+                 currency = EXCLUDED.currency,
                  status = 'connected',
                  updated_at = NOW()""",
             workspace_id, acct["id"], acct.get("name", acct["id"]),
-            encrypted, expires_at, scopes, user_id,
+            encrypted, expires_at, scopes, user_id, acct.get("currency"),
         )
         await pool.execute(
             """INSERT INTO audit_logs (workspace_id, user_id, action, resource_type, resource_id, changes)
@@ -166,6 +191,19 @@ async def meta_select_account(
     if not pending:
         raise HTTPException(status_code=404, detail="No pending Meta connection found")
 
+    # Look up the account's currency ourselves rather than trusting whatever
+    # the browser sends — this value ends up labeling real money amounts, so
+    # it should come from Meta directly, not from client input that could be
+    # stale or (however unlikely) tampered with in dev tools.
+    currency = None
+    try:
+        token = decrypt_token(pending["access_token_encrypted"])
+        accounts = await meta.get_ad_accounts(token)
+        match = next((a for a in accounts if a["id"] == ad_account_id), None)
+        currency = match.get("currency") if match else None
+    except (ValueError, MetaAPIError):
+        pass  # Non-fatal — connection still proceeds, currency just backfills later via list_connections.
+
     # Same upsert pattern as the single-account auto-connect path in /meta/callback:
     # target the (workspace, platform, ad account) unique key directly rather than
     # this specific pending row's id, so reconnecting an already-connected ad account
@@ -173,18 +211,20 @@ async def meta_select_account(
     updated = await pool.fetchrow(
         """INSERT INTO platform_connections
            (workspace_id, platform, status, external_account_id, external_account_name,
-            access_token_encrypted, token_expires_at, scopes, connected_by)
-           VALUES ($1, 'meta', 'connected', $2, $3, $4, $5, $6, $7)
+            access_token_encrypted, token_expires_at, scopes, connected_by, currency)
+           VALUES ($1, 'meta', 'connected', $2, $3, $4, $5, $6, $7, $8)
            ON CONFLICT (workspace_id, platform, external_account_id) DO UPDATE SET
              external_account_name = EXCLUDED.external_account_name,
              access_token_encrypted = EXCLUDED.access_token_encrypted,
              token_expires_at = EXCLUDED.token_expires_at,
              scopes = EXCLUDED.scopes,
+             currency = EXCLUDED.currency,
              status = 'connected',
              updated_at = NOW()
            RETURNING *""",
         workspace_id, ad_account_id, ad_account_name,
         pending["access_token_encrypted"], pending["token_expires_at"], pending["scopes"], pending["connected_by"],
+        currency,
     )
     # The pending placeholder row is now redundant — either it became the connected
     # row above (no-op here) or a different pre-existing row absorbed the upsert and
