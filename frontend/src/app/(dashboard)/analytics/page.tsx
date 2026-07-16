@@ -83,7 +83,6 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard title="Total Spend" value={`$${(perf.total_spend || 0).toLocaleString()}`} icon={DollarSign} color="bg-blue-50 text-primary" />
         <KPICard title="Impressions" value={(perf.total_impressions || 0) > 1000000 ? `${((perf.total_impressions || 0) / 1000000).toFixed(1)}M` : (perf.total_impressions || 0).toLocaleString()} icon={Eye} color="bg-purple-50 text-purple-600" />
@@ -92,7 +91,6 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Performance over time */}
         <Card variant="outlined" padding="lg" className="lg:col-span-2">
           <h3 className="font-semibold text-gray-900 mb-4">Performance Over Time</h3>
           {performance && performance.length > 0 ? (
@@ -116,7 +114,6 @@ export default function AnalyticsPage() {
           )}
         </Card>
 
-        {/* Platform distribution */}
         <Card variant="outlined" padding="lg">
           <h3 className="font-semibold text-gray-900 mb-4">Campaigns by Platform</h3>
           {platformData.length > 0 ? (
@@ -133,7 +130,6 @@ export default function AnalyticsPage() {
           )}
         </Card>
 
-        {/* Budget by platform */}
         <Card variant="outlined" padding="lg">
           <h3 className="font-semibold text-gray-900 mb-4">Budget Allocation</h3>
           {budget && budget.length > 0 ? (
@@ -152,7 +148,6 @@ export default function AnalyticsPage() {
         </Card>
       </div>
 
-      {/* Top campaigns table */}
       <Card variant="outlined" padding="none">
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <h3 className="font-semibold text-gray-900">Top Performing Campaigns</h3>

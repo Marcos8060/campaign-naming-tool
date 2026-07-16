@@ -45,7 +45,6 @@ export function ProblemSection() {
     <section id="problem" className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-6">
 
-        {/* Header */}
         <div className="max-w-2xl mx-auto text-center mb-14">
           <div className="inline-flex items-center gap-2 text-xs font-bold text-red-600 bg-red-50 border border-red-100 px-3 py-1.5 rounded-full mb-4 uppercase tracking-wider">
             The Problem
@@ -59,7 +58,6 @@ export function ProblemSection() {
           </p>
         </div>
 
-        {/* Problem cards */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {PROBLEMS.map(({ icon: Icon, stat, statLabel, headline, body, bg, border, iconBg, iconColor }) => (
             <Card
@@ -83,7 +81,6 @@ export function ProblemSection() {
           ))}
         </div>
 
-        {/* Callout */}
         <Card variant="outlined" padding="lg" className="mt-10 bg-gray-900 border-none text-center">
           <p className="text-white text-lg font-bold mb-1.5">
             If you spend $500K/month on ads, you're likely wasting{' '}

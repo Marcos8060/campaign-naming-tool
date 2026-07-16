@@ -4,16 +4,8 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils/cn';
 import { Spinner } from './Spinner';
 
-/**
- * Variant/size -> class lookup, derived from the button styles already
- * hand-rolled across the app (CampaignEditModal's "Save Changes", the
- * settings page's "Cancel"/"Invite" pair, ConfirmDeleteModal's "Remove
- * member", the X close icon buttons). Consolidating them here means those
- * four call sites become `variant` props instead of four slightly-different
- * copies of the same Tailwind string.
- */
 const buttonStyles = cva(
-  'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50',
+  'inline-flex items-center justify-center gap-2 rounded font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50',
   {
     variants: {
       variant: {
@@ -46,12 +38,6 @@ export interface ButtonProps
   loading?: boolean;
   icon?: ReactNode;
   iconPosition?: 'left' | 'right';
-  /**
-   * When set, renders as a Next.js `<Link>` instead of a `<button>` — for
-   * the CTA-style nav links across the app (dashboard hero, campaigns list
-   * "New Campaign") that were previously hand-styled anchors rather than
-   * going through a shared component.
-   */
   href?: string;
 }
 

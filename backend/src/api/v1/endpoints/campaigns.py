@@ -10,15 +10,15 @@ from src.db.session import get_pool
 router = APIRouter()
 
 
+# Body-based endpoints here take a raw `body: dict` (no Pydantic model),
+# so unlike analytics.py's typed `date` query params, FastAPI never gets a
+# chance to coerce these — they arrive as whatever JSON the frontend sent
+# (e.g. the wizard's `<input type="date">` value, a plain "YYYY-MM-DD"
+# string). asyncpg needs an actual `datetime.date` for a DATE column, so
+# without this conversion every campaign create/update with a date set
+# crashes with an unhandled 500 (which shows up in the browser as a CORS
+# error, same as the earlier JSONB issue).
 def _parse_date(value) -> Optional[date]:
-    """Body-based endpoints here take a raw `body: dict` (no Pydantic model),
-    so unlike analytics.py's typed `date` query params, FastAPI never gets a
-    chance to coerce these — they arrive as whatever JSON the frontend sent
-    (e.g. the wizard's `<input type="date">` value, a plain "YYYY-MM-DD"
-    string). asyncpg needs an actual `datetime.date` for a DATE column, so
-    without this conversion every campaign create/update with a date set
-    crashes with an unhandled 500 (which shows up in the browser as a CORS
-    error, same as the earlier JSONB issue)."""
     if not value:
         return None
     if isinstance(value, date):
@@ -105,7 +105,6 @@ async def create_campaign(
         current_user["id"],
     )
 
-    # Create audit log
     await pool.execute(
         """INSERT INTO audit_logs (workspace_id, user_id, action, resource_type, resource_id, changes)
            VALUES ($1, $2, 'create', 'campaign', $3, $4)""",

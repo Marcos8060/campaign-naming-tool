@@ -24,7 +24,6 @@ const NAV_ALL = [
 ];
 const BOTTOM_NAV_ALL = [{ href: '/settings', label: 'Settings', icon: Settings, roles: ['admin', 'manager'] }];
 
-
 function NavItem({
   href, label, icon: Icon, indent, active, collapsed, onClick,
 }: NavItemProps) {
@@ -60,7 +59,6 @@ function NavItem({
   );
 }
 
-/* ── Desktop sidebar ─────────────────────────────────────────── */
 function DesktopSidebar() {
   const pathname = usePathname();
   const dispatch = useDispatch();
@@ -83,7 +81,6 @@ function DesktopSidebar() {
         sidebarOpen ? 'w-60' : 'w-[70px]'
       )}
     >
-      {/* Logo */}
       <div className="h-16 flex items-center justify-between px-4 border-b flex-shrink-0" style={{ borderColor: 'var(--bd)' }}>
         {sidebarOpen ? (
           <div className="flex items-center gap-2.5 overflow-hidden">
@@ -112,7 +109,6 @@ function DesktopSidebar() {
         </Button>
       </div>
 
-      {/* Nav */}
       <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
         {NAV.map(({ href, label, icon, indent }) => {
           if (indent && !sidebarOpen) return null;
@@ -123,7 +119,6 @@ function DesktopSidebar() {
         })}
       </nav>
 
-      {/* Bottom */}
       <div className="p-3 border-t" style={{ borderColor: 'var(--bd)' }}>
         {BOTTOM_NAV.map(({ href, label, icon }) => (
           <NavItem key={href} href={href} label={label} icon={icon}
@@ -137,7 +132,6 @@ function DesktopSidebar() {
   );
 }
 
-/* ── Mobile drawer ───────────────────────────────────────────── */
 function MobileDrawer() {
   const pathname = usePathname();
   const dispatch = useDispatch();
@@ -158,12 +152,10 @@ function MobileDrawer() {
 
   return (
     <>
-      {/* Backdrop */}
       <div
         className="lg:hidden fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
         onClick={close}
       />
-      {/* Drawer */}
       <aside
         style={{ backgroundColor: 'var(--sidebar-bg)' }}
         className="lg:hidden fixed left-0 top-0 h-full w-72 z-50 flex flex-col shadow-2xl"

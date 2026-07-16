@@ -44,7 +44,6 @@ export default function AudienceOverlapPage() {
         </Select>
       </div>
 
-      {/* Summary cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card variant="outlined" padding="md">
           <div className="flex items-center gap-3 mb-2">

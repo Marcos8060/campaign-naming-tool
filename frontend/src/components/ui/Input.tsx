@@ -2,13 +2,8 @@ import { forwardRef, type InputHTMLAttributes } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils/cn';
 
-/**
- * Matches the "w-full px-3 py-2 border border-gray-300 rounded-lg text-sm
- * focus:ring-primary" string that was hand-typed on every text/number/date
- * input across the app (modals, forms, filters — dozens of call sites).
- */
 const inputStyles = cva(
-  'w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors',
+  'w-full border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors',
   {
     variants: {
       uiSize: {

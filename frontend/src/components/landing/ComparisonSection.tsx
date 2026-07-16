@@ -38,7 +38,6 @@ export function ComparisonSection() {
     <section id="compare" className="py-20 bg-white">
       <div className="max-w-5xl mx-auto px-6">
 
-        {/* Header */}
         <div className="max-w-2xl mx-auto text-center mb-12">
           <div className="inline-flex items-center gap-2 text-xs font-bold text-primary bg-primary-soft border border-blue-100 px-3 py-1.5 rounded-full mb-4 uppercase tracking-wider">
             Why Camparc
@@ -51,7 +50,6 @@ export function ComparisonSection() {
           </p>
         </div>
 
-        {/* Table */}
         <Card variant="outlined" padding="none" className="overflow-hidden shadow-sm">
           <table className="w-full">
             <thead>

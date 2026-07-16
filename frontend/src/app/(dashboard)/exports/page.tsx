@@ -127,7 +127,6 @@ export default function ExportsPage() {
         </Button>
       </Card>
 
-      {/* Quick export cards */}
       <div>
         <h3 className="font-semibold text-gray-900 mb-3">Quick Export by Platform</h3>
         <div className="grid grid-cols-3 gap-3">
@@ -149,7 +148,6 @@ export default function ExportsPage() {
         </div>
       </div>
 
-      {/* History */}
       <Card variant="outlined" padding="none">
         <div className="px-6 py-4 border-b border-gray-200">
           <h3 className="font-semibold text-gray-900">Export History</h3>

@@ -13,18 +13,15 @@ export function FinalCTASection() {
     <section className="py-16 bg-white">
       <div className="max-w-5xl mx-auto px-6">
         <div className="relative primary-gradient rounded-3xl p-12 md:p-16 text-white overflow-hidden">
-          {/* Background orbs */}
           <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full translate-x-32 -translate-y-32 pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full -translate-x-16 translate-y-16 pointer-events-none" />
           <div className="absolute top-1/2 left-1/2 w-48 h-48 bg-white/3 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
 
           <div className="relative z-10 flex flex-col items-center text-center">
-            {/* Icon */}
             <div className="w-14 h-14 bg-white/15 rounded-2xl flex items-center justify-center mb-6 border border-white/20">
               <TrendingDown className="w-7 h-7 text-white" />
             </div>
 
-            {/* Urgency copy */}
             <div className="inline-block bg-white/10 border border-white/20 text-white/80 text-xs font-bold px-4 py-1.5 rounded-full mb-5 uppercase tracking-wider">
               The cost of waiting
             </div>
@@ -38,7 +35,6 @@ export function FinalCTASection() {
               That's $42K per month — gone. Audience overlap doesn't fix itself. It compounds. Start your free trial today, and you could find that waste before your next billing cycle.
             </p>
 
-            {/* Promises */}
             <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mb-10">
               {PROMISES.map((p) => (
                 <div key={p} className="flex items-center gap-2 text-sm text-white/85 font-medium">
@@ -48,7 +44,6 @@ export function FinalCTASection() {
               ))}
             </div>
 
-            {/* CTA buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
                 href="/register"

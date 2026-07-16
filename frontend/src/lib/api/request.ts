@@ -1,17 +1,10 @@
 import { store } from '@/lib/store';
 import { logout } from '@/lib/store/slices/authSlice';
 
-/** Same env var the app has always used for the backend base URL. */
 export const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
 export type ApiErrorBody = Record<string, unknown>;
 
-/**
- * FastAPI validation/HTTP errors come back as `{ detail: ... }`, not
- * `{ message: ... }`. We check both so `.message` is always something
- * readable, and callers can still branch on the raw `.body` themselves
- * (e.g. `err.body?.detail`).
- */
 function extractMessage(body: ApiErrorBody, statusCode: number): string {
   if (typeof body?.detail === 'string') return body.detail;
   if (Array.isArray(body?.detail) && body.detail[0]?.msg) return String(body.detail[0].msg);
@@ -35,7 +28,6 @@ export interface RequestOptions {
   method: HttpMethod;
   token?: string | null;
   body?: unknown;
-  /** Set to 'blob' for file downloads (e.g. CSV export). */
   responseType?: 'json' | 'blob';
   headers?: Record<string, string>;
 }
@@ -44,23 +36,10 @@ function isAuthEndpoint(path: string): boolean {
   return path.includes('/auth/login') || path.includes('/auth/register');
 }
 
-/**
- * Turns `/campaigns/123?limit=5` into `['campaigns', '123']` instead of using
- * the raw url string as a single-element key. This keeps `useGet` compatible
- * with the invalidation style already used across the app (e.g.
- * `queryClient.invalidateQueries({ queryKey: ['campaigns'] })` in
- * campaigns/[id]/page.tsx invalidates every query whose key *starts with*
- * 'campaigns' — a single opaque url string wouldn't match that prefix).
- */
 export function toQueryKey(url: string): string[] {
   return url.split('?')[0].split('/').filter(Boolean);
 }
 
-/**
- * The single place that touches the network. Auth headers, JSON
- * (de)serialization, and error shaping all happen here exactly once —
- * components and hooks never call `fetch` directly.
- */
 export async function request<T>(url: string, options: RequestOptions): Promise<T> {
   const path = url.startsWith('/') ? url : `/${url}`;
   const hasBody = options.body !== undefined && options.method !== 'GET' && options.method !== 'DELETE';

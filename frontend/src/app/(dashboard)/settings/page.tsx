@@ -107,7 +107,6 @@ export default function SettingsPage() {
           <p className="text-gray-500 mt-1">Manage your workspace configuration</p>
         </div>
 
-        {/* Workspace Settings */}
         <Card variant="outlined" padding="lg" className="space-y-4">
           <h3 className="font-semibold text-gray-900">Workspace</h3>
           <div>
@@ -129,7 +128,6 @@ export default function SettingsPage() {
           )}
         </Card>
 
-        {/* Team Management */}
         <Card variant="outlined" padding="none">
           <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <h3 className="font-semibold text-gray-900">Team Members</h3>
@@ -238,7 +236,6 @@ export default function SettingsPage() {
           </div>
         </Card>
 
-        {/* Quick links */}
         <Card variant="outlined" padding="lg">
           <h3 className="font-semibold text-gray-900 mb-4">Configuration</h3>
           <div className="space-y-2">

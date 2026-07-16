@@ -17,9 +17,6 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { cn } from '@/lib/utils/cn';
 
-
-// ── Constants ─────────────────────────────────────────────────────────────────
-
 const PLATFORMS = [
   { id: 'meta',       label: 'Meta',       desc: 'Facebook & Instagram' },
   { id: 'google_ads', label: 'Google Ads', desc: 'Search, Display, Video' },
@@ -37,8 +34,6 @@ const STEPS = [
   { label: 'Validation', desc: 'Review name & checks' },
   { label: 'Confirm',    desc: 'Create campaign' },
 ];
-
-// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function CreateCampaignPage() {
   const router = useRouter();
@@ -135,7 +130,6 @@ export default function CreateCampaignPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      {/* Header */}
       <div>
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
           <Button variant="text" onClick={() => router.push('/campaigns')} className="text-gray-500 hover:text-gray-700">Campaigns</Button>
@@ -145,7 +139,6 @@ export default function CreateCampaignPage() {
         <h1 className="text-2xl font-bold text-gray-900">Create New Campaign</h1>
       </div>
 
-      {/* Stepper */}
       <div className="flex items-start gap-0">
         {STEPS.map((s, i) => (
           <div key={s.label} className="flex items-center flex-1 last:flex-none">
@@ -167,12 +160,10 @@ export default function CreateCampaignPage() {
         ))}
       </div>
 
-      {/* Main content */}
       <div className={`grid gap-6 ${showPreviewPanel ? 'grid-cols-5' : 'grid-cols-1'}`}>
         <div className={showPreviewPanel ? 'col-span-3' : 'col-span-1'}>
           <Card variant="outlined" padding="lg">
 
-            {/* Step 1: Platform */}
             {step === 1 && (
               <div className="space-y-4">
                 <div>
@@ -205,7 +196,6 @@ export default function CreateCampaignPage() {
               </div>
             )}
 
-            {/* Step 2: Taxonomy */}
             {step === 2 && (
               <div className="space-y-4">
                 <div>
@@ -261,7 +251,6 @@ export default function CreateCampaignPage() {
               </div>
             )}
 
-            {/* Step 3: Details */}
             {step === 3 && (
               <div className="space-y-4">
                 <div>
@@ -319,7 +308,6 @@ export default function CreateCampaignPage() {
               </div>
             )}
 
-            {/* Step 4: Validation */}
             {step === 4 && (
               <div className="space-y-5">
                 <div>
@@ -354,7 +342,6 @@ export default function CreateCampaignPage() {
               </div>
             )}
 
-            {/* Step 5: Confirm */}
             {step === 5 && (
               <div className="space-y-5">
                 <div>
@@ -398,7 +385,6 @@ export default function CreateCampaignPage() {
           </Card>
         </div>
 
-        {/* Live preview panel (steps 2 & 3) */}
         {showPreviewPanel && (
           <div className="col-span-2">
             <LivePreview generatedName={generatedName} platformConfig={platformConfig} form={form} />
@@ -406,7 +392,6 @@ export default function CreateCampaignPage() {
         )}
       </div>
 
-      {/* Navigation */}
       <div className="flex justify-between items-center">
         <Button
           variant="outline"

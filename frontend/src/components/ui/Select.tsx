@@ -2,13 +2,8 @@ import { forwardRef, type SelectHTMLAttributes } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils/cn';
 
-/**
- * Same shell as `Input` — this app uses plain native `<select>` elements
- * everywhere (no custom-styled dropdown), so this just centralizes the
- * repeated className instead of introducing new interaction patterns.
- */
 const selectStyles = cva(
-  'w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors',
+  'w-full border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors',
   {
     variants: {
       uiSize: {

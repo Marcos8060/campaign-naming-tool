@@ -2,11 +2,6 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import type { HTMLAttributes } from 'react';
 import { cn } from '@/lib/utils/cn';
 
-/**
- * Consolidates the role/status pill pattern used in settings/page.tsx
- * (ROLE_COLORS) and scattered "inline-flex px-2 py-0.5 rounded-full text-xs"
- * one-offs elsewhere.
- */
 const badgeStyles = cva('inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize', {
   variants: {
     tone: {

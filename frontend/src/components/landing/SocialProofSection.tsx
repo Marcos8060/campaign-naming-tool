@@ -48,7 +48,6 @@ export function SocialProofSection() {
     <section className="py-20 bg-[#f8faff]">
       <div className="max-w-7xl mx-auto px-6">
 
-        {/* Stats banner */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-16">
           {METRICS.map(({ value, label, sub }) => (
             <Card key={label} variant="outlined" padding="md" className="shadow-sm text-center">
@@ -59,7 +58,6 @@ export function SocialProofSection() {
           ))}
         </div>
 
-        {/* Testimonials */}
         <div className="text-center mb-10">
           <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-2">
             Teams that stopped wasting budget.
@@ -88,7 +86,6 @@ export function SocialProofSection() {
           ))}
         </div>
 
-        {/* Trust badges */}
         <Card variant="outlined" padding="lg">
           <p className="text-center text-xs font-bold text-gray-400 uppercase tracking-wider mb-5">Security & Trust</p>
           <div className="flex flex-wrap justify-center gap-4">

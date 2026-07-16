@@ -59,7 +59,6 @@ export function FeaturesSection() {
     <section id="features" className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-6">
 
-        {/* Header */}
         <div className="max-w-2xl mx-auto text-center mb-14">
           <div className="inline-flex items-center gap-2 text-xs font-bold text-primary bg-primary-soft border border-blue-100 px-3 py-1.5 rounded-full mb-4 uppercase tracking-wider">
             Features
@@ -73,7 +72,6 @@ export function FeaturesSection() {
           </p>
         </div>
 
-        {/* Feature grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {FEATURES.map(({ icon: Icon, outcome, title, body, color, bg }) => (
             <Card
@@ -82,14 +80,12 @@ export function FeaturesSection() {
               padding="lg"
               className="group relative hover:border-gray-200 hover:shadow-lg hover:shadow-gray-100/80 transition-all duration-300"
             >
-              {/* Icon */}
               <div
                 className={`w-11 h-11 rounded-xl ${bg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200`}
               >
                 <Icon className="w-5 h-5" style={{ color }} />
               </div>
 
-              {/* Outcome badge */}
               <div
                 className="inline-block text-[10px] font-bold px-2 py-1 rounded-full mb-3"
                 style={{ backgroundColor: color + '12', color }}

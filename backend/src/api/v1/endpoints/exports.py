@@ -12,7 +12,6 @@ from src.db.session import get_pool
 
 router = APIRouter()
 
-# Platform-specific column mappings
 PLATFORM_FIELDS = {
     "meta": {
         "fieldnames": ["Campaign Name", "Objective", "Budget", "Daily Budget", "Start Time", "End Time", "Status"],

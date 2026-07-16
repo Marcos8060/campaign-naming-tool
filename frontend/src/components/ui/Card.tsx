@@ -2,13 +2,6 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import type { HTMLAttributes } from 'react';
 import { cn } from '@/lib/utils/cn';
 
-/**
- * Two card shells already exist side by side in the app: KpiCard's
- * shadow-based `rounded-2xl card-shadow` and the settings/edit-modal
- * sections' border-based `rounded-xl border border-gray-200`. Both are
- * legitimate looks (elevated vs. flat-bordered), so both become variants
- * instead of picking one and losing the other.
- */
 const cardStyles = cva('bg-white', {
   variants: {
     variant: {
