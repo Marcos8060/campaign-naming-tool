@@ -6,7 +6,7 @@ import { useRole } from '@/lib/hooks/useRole';
 import { useQueryClient } from '@tanstack/react-query';
 import { useGet, usePost, usePatch, useDelete } from '@/lib/hooks/api';
 import Link from 'next/link';
-import { ArrowLeft, Edit2, Copy, Play, Pause, Trash2 } from 'lucide-react';
+import { ArrowLeft, Edit2, Copy, Play, Pause, Trash2, Rocket, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Campaign, Taxonomy } from '@/types';
 import type { CampaignUpdatePayload } from '@/types/campaign-detail';
@@ -15,6 +15,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge, type BadgeProps } from '@/components/ui/Badge';
+import { formatMoney } from '@/lib/utils/currency';
 
 const STATUS_TONE: Record<string, BadgeProps['tone']> = {
   active: 'success',
@@ -36,6 +37,17 @@ export default function CampaignDetailPage() {
 
   const { data: taxonomies = [] } = useGet<Taxonomy[]>({ url: '/taxonomies', enabled: showEdit });
 
+  // Only Meta deploys exist in this phase, so we only need to know whether
+  // Meta itself is connected — checked here (rather than disabling the button
+  // after a failed attempt) so the user sees why before they click it.
+  const { data: connections } = useGet<{ platform: string; status: string; currency?: string | null }[]>({
+    url: '/integrations',
+    enabled: campaign?.platform === 'meta',
+  });
+  const metaConnection = connections?.find((c) => c.platform === 'meta' && c.status === 'connected');
+  const metaConnected = !!metaConnection;
+  const currencyCode = metaConnection?.currency;
+
   const statusMutation = usePatch<Campaign, string>({
     url: `/campaigns/${id}/status`,
     body: (status: string) => ({ status }),
@@ -55,6 +67,17 @@ export default function CampaignDetailPage() {
       toast.success('Campaign updated');
     },
     onError: (err) => toast.error(err.message || 'Failed to update'),
+  });
+
+  const deployMutation = usePost<Campaign, void>({
+    url: `/campaigns/${id}/deploy`,
+    body: {},
+    onSuccess: (data) => {
+      queryClient.setQueryData(['campaign', id], data);
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      toast.success('Deployed to Meta — created paused, ready to activate when you are');
+    },
+    onError: (err) => toast.error(err.message || 'Deploy failed'),
   });
 
   const duplicateMutation = usePost<Campaign, void>({
@@ -138,6 +161,26 @@ export default function CampaignDetailPage() {
         </div>
         {canEdit && (
           <div className="flex gap-2 flex-shrink-0">
+            {campaign.platform === 'meta' && campaign.platform_status !== 'deployed' && campaign.status !== 'archived' && (
+              metaConnected ? (
+                <Button
+                  icon={<Rocket className="w-4 h-4" />}
+                  loading={deployMutation.isPending}
+                  onClick={() => deployMutation.mutate()}
+                >
+                  Deploy to Meta
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  disabled
+                  icon={<Rocket className="w-4 h-4" />}
+                  title="Connect a Meta ad account in Settings → Integrations first"
+                >
+                  Deploy to Meta
+                </Button>
+              )
+            )}
             {campaign.status !== 'archived' && campaign.status !== 'completed' && (
               <Button variant="outline" icon={<Edit2 className="w-4 h-4" />} onClick={() => setShowEdit(true)}>
                 Edit
@@ -210,8 +253,8 @@ export default function CampaignDetailPage() {
         <Card variant="outlined" padding="lg" className="space-y-3">
           <h3 className="font-semibold text-gray-900">Budget & Schedule</h3>
           {[
-            { label: 'Total Budget', value: campaign.budget_total ? `$${Number(campaign.budget_total).toLocaleString()}` : '—' },
-            { label: 'Daily Budget', value: campaign.budget_daily ? `$${Number(campaign.budget_daily).toLocaleString()}` : '—' },
+            { label: 'Total Budget', value: formatMoney(campaign.budget_total, currencyCode) },
+            { label: 'Daily Budget', value: formatMoney(campaign.budget_daily, currencyCode) },
             { label: 'Start Date', value: campaign.start_date || '—' },
             { label: 'End Date', value: campaign.end_date || 'Ongoing' },
           ].map(({ label, value }) => (
@@ -221,6 +264,60 @@ export default function CampaignDetailPage() {
             </div>
           ))}
         </Card>
+
+        {campaign.platform === 'meta' && (
+          <Card variant="outlined" padding="lg" className="space-y-3">
+            <h3 className="font-semibold text-gray-900">Meta Deployment</h3>
+            {campaign.platform_status === 'deployed' ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <Badge tone="success">Deployed</Badge>
+                  <span className="text-xs text-gray-400">
+                    {campaign.platform_deployed_at
+                      ? new Date(campaign.platform_deployed_at).toLocaleString(undefined, {
+                          year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+                        })
+                      : ''}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-500">
+                  Created as <span className="font-mono text-gray-700">{campaign.platform_id}</span> on Meta,
+                  paused. Activate it in Meta Ads Manager (or here, via the Activate button) when it's ready to spend.
+                </p>
+              </>
+            ) : campaign.platform_status === 'failed' ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <Badge tone="danger">Deploy failed</Badge>
+                </div>
+                <div className="flex items-start gap-2 text-sm text-red-600 bg-red-50 rounded-lg p-3">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <span>{campaign.platform_error || 'Something went wrong deploying to Meta.'}</span>
+                </div>
+                {canEdit && metaConnected && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    icon={<Rocket className="w-4 h-4" />}
+                    loading={deployMutation.isPending}
+                    onClick={() => deployMutation.mutate()}
+                  >
+                    Retry deploy
+                  </Button>
+                )}
+              </>
+            ) : (
+              <>
+                <Badge tone="neutral">Not deployed</Badge>
+                <p className="text-sm text-gray-500">
+                  {metaConnected
+                    ? 'This campaign only exists in Camparc so far. Deploy it to create the matching campaign on your connected Meta ad account (paused, ready to activate).'
+                    : 'Connect a Meta ad account in Settings → Integrations, then deploy this campaign to push it live.'}
+                </p>
+              </>
+            )}
+          </Card>
+        )}
 
         {Object.keys(taxonomyValues).length > 0 && (
           <Card variant="outlined" padding="lg" className="space-y-3">
