@@ -16,6 +16,7 @@ import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { cn } from '@/lib/utils/cn';
+import { formatMoney, currencyLabel } from '@/lib/utils/currency';
 
 const PLATFORMS = [
   { id: 'meta',       label: 'Meta',       desc: 'Facebook & Instagram' },
@@ -38,11 +39,11 @@ const STEPS = [
 export default function CreateCampaignPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { isViewer } = useRole();
+  const { isViewer, isReady } = useRole();
 
   useEffect(() => {
-    if (isViewer) router.replace('/campaigns');
-  }, [isViewer, router]);
+    if (isReady && isViewer) router.replace('/campaigns');
+  }, [isReady, isViewer, router]);
 
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<CampaignFormData>({
@@ -64,6 +65,15 @@ export default function CreateCampaignPage() {
   // doesn't refire the request once the list's been fetched once.
   const { data: allPlatforms } = useGet<PlatformConfig[]>({ url: '/platforms', enabled: !!form.platform });
   const platformConfig = allPlatforms?.find((p) => p.platform === form.platform) ?? null;
+
+  // Budget fields are labeled with whatever currency the connected ad account
+  // actually bills in (e.g. KES, GBP) instead of always assuming USD — a $300
+  // entry means something different depending on which currency it lands in.
+  const { data: connections } = useGet<{ platform: string; status: string; currency?: string | null }[]>({
+    url: '/integrations',
+    enabled: !!form.platform,
+  });
+  const currencyCode = connections?.find((c) => c.platform === form.platform && c.status === 'connected')?.currency;
 
   type CreateCampaignPayload = Omit<CampaignFormData, 'budget_total' | 'budget_daily'> & {
     name: string;
@@ -275,15 +285,24 @@ export default function CreateCampaignPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Total Budget ($)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Total Budget ({currencyLabel(currencyCode)})
+                    </label>
                     <Input
                       type="number" min="0" value={form.budget_total}
                       onChange={(e) => setForm({ ...form, budget_total: e.target.value })}
                       placeholder="10000"
                     />
+                    {!currencyCode && form.platform && (
+                      <p className="text-xs text-gray-400 mt-1">
+                        Showing USD as a default — connect {form.platform.replace('_', ' ')} in Settings → Integrations to use its real billing currency.
+                      </p>
+                    )}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Daily Budget ($)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Daily Budget ({currencyLabel(currencyCode)})
+                    </label>
                     <Input
                       type="number" min="0" value={form.budget_daily}
                       onChange={(e) => setForm({ ...form, budget_daily: e.target.value })}
@@ -353,8 +372,8 @@ export default function CreateCampaignPage() {
                     ['Platform',       PLATFORMS.find((p) => p.id === form.platform)?.label ?? form.platform],
                     ['Campaign Name',  finalName],
                     ['Objective',      form.objective ? form.objective.charAt(0).toUpperCase() + form.objective.slice(1) : '—'],
-                    ['Total Budget',   form.budget_total ? `$${Number(form.budget_total).toLocaleString()}` : '—'],
-                    ['Daily Budget',   form.budget_daily ? `$${Number(form.budget_daily).toLocaleString()}` : '—'],
+                    ['Total Budget',   formatMoney(form.budget_total, currencyCode)],
+                    ['Daily Budget',   formatMoney(form.budget_daily, currencyCode)],
                     ['Start Date',     form.start_date || '—'],
                     ['End Date',       form.end_date || '—'],
                     ['Status',         'Draft'],

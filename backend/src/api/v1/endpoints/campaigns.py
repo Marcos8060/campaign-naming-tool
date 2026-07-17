@@ -5,7 +5,11 @@ from datetime import date
 import asyncpg
 
 from src.api.deps import get_current_user, get_workspace_id, require_role
+from src.core.encryption import decrypt_token
 from src.db.session import get_pool
+from src.integrations import meta
+from src.integrations.meta import MetaAPIError
+from src.services.meta_sync import sync_campaign, SyncSkipped
 
 router = APIRouter()
 
@@ -214,6 +218,248 @@ async def duplicate_campaign(
         current_user["id"],
     )
     return {k: str(v) if isinstance(v, UUID) else v for k, v in dict(new_row).items()}
+
+
+@router.post("/{campaign_id}/deploy")
+async def deploy_campaign(
+    campaign_id: UUID,
+    current_user: dict = Depends(require_role("admin", "manager")),
+    pool: asyncpg.Pool = Depends(get_pool),
+):
+    workspace_id = current_user["workspace_id"]
+    campaign = await pool.fetchrow(
+        "SELECT * FROM campaigns WHERE id = $1 AND workspace_id = $2",
+        campaign_id, workspace_id,
+    )
+    if not campaign:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+
+    # Phase 2 only wires up Meta. Other platforms fall through here until
+    # their own integration exists, rather than silently pretending to deploy.
+    if campaign["platform"] != "meta":
+        raise HTTPException(
+            status_code=400,
+            detail=f"Deploying to {campaign['platform'].replace('_', ' ')} isn't supported yet — only Meta is available in this phase",
+        )
+    if campaign["platform_status"] == "deployed":
+        raise HTTPException(status_code=400, detail="This campaign is already deployed to Meta")
+    if not campaign["objective"]:
+        raise HTTPException(status_code=400, detail="Set a campaign objective before deploying")
+
+    connection = await pool.fetchrow(
+        """SELECT * FROM platform_connections
+           WHERE workspace_id = $1 AND platform = 'meta' AND status = 'connected'""",
+        workspace_id,
+    )
+    if not connection:
+        raise HTTPException(
+            status_code=400,
+            detail="Connect a Meta ad account in Settings → Integrations before deploying",
+        )
+
+    meta_objective = meta.OBJECTIVE_MAP.get(campaign["objective"], "OUTCOME_AWARENESS")
+
+    # Meta requires a campaign to either carry its own budget or explicitly
+    # opt out of ad-set budget sharing (see the is_adset_budget_sharing_enabled
+    # branch in meta.create_campaign). Camparc's wizard already collects a
+    # daily and/or total budget, so use whichever one this campaign actually
+    # has rather than leaving the campaign unbudgeted. Amounts are converted
+    # to minor currency units (cents) — correct for USD/GBP, the currencies
+    # Camparc currently targets; would need adjusting for zero-decimal
+    # currencies (e.g. JPY) if/when those are supported.
+    daily_budget_cents = None
+    lifetime_budget_cents = None
+    start_time = None
+    stop_time = None
+    if campaign["budget_daily"]:
+        daily_budget_cents = int(round(float(campaign["budget_daily"]) * 100))
+    elif campaign["budget_total"] and campaign["end_date"]:
+        # lifetime_budget requires Meta to know when the campaign stops —
+        # only usable when an end date was actually set in the wizard.
+        lifetime_budget_cents = int(round(float(campaign["budget_total"]) * 100))
+        start_time = f"{campaign['start_date'] or datetime.utcnow().date()}T00:00:00+0000"
+        stop_time = f"{campaign['end_date']}T23:59:59+0000"
+
+    try:
+        access_token = decrypt_token(connection["access_token_encrypted"])
+        result = await meta.create_campaign(
+            access_token, connection["external_account_id"], campaign["name"], meta_objective,
+            daily_budget_cents=daily_budget_cents,
+            lifetime_budget_cents=lifetime_budget_cents,
+            start_time=start_time,
+            stop_time=stop_time,
+        )
+    except (ValueError, MetaAPIError) as e:
+        # Record the failure on the campaign itself so the UI can show *why*
+        # without the user needing to dig through logs, and so a second
+        # deploy attempt isn't left looking identical to a first attempt.
+        await pool.execute(
+            """UPDATE campaigns SET platform_status = 'failed', platform_error = $1, updated_at = NOW()
+               WHERE id = $2""",
+            str(e), campaign_id,
+        )
+        raise HTTPException(status_code=502, detail=str(e))
+
+    row = await pool.fetchrow(
+        """UPDATE campaigns
+           SET platform_id = $1, platform_status = 'deployed', platform_deployed_at = NOW(),
+               platform_error = NULL, updated_at = NOW()
+           WHERE id = $2 RETURNING *""",
+        result["id"], campaign_id,
+    )
+    await pool.execute(
+        """INSERT INTO audit_logs (workspace_id, user_id, action, resource_type, resource_id, changes)
+           VALUES ($1, $2, 'deploy', 'campaign', $3, $4)""",
+        workspace_id, current_user["id"], campaign_id,
+        {"platform": "meta", "platform_id": result["id"], "objective": meta_objective},
+    )
+    return {k: str(v) if isinstance(v, UUID) else v for k, v in dict(row).items()}
+
+
+@router.get("/{campaign_id}/ad-sets")
+async def list_campaign_ad_sets(
+    campaign_id: UUID,
+    workspace_id: UUID = Depends(get_workspace_id),
+    pool: asyncpg.Pool = Depends(get_pool),
+    current_user: dict = Depends(get_current_user),
+):
+    rows = await pool.fetch(
+        "SELECT * FROM campaign_ad_sets WHERE campaign_id = $1 AND workspace_id = $2 ORDER BY created_at",
+        campaign_id, workspace_id,
+    )
+    return [{k: str(v) if isinstance(v, UUID) else v for k, v in dict(r).items()} for r in rows]
+
+
+@router.post("/{campaign_id}/ad-sets")
+async def create_campaign_ad_set(
+    campaign_id: UUID,
+    body: dict,
+    current_user: dict = Depends(require_role("admin", "manager")),
+    pool: asyncpg.Pool = Depends(get_pool),
+):
+    workspace_id = current_user["workspace_id"]
+    campaign = await pool.fetchrow(
+        "SELECT * FROM campaigns WHERE id = $1 AND workspace_id = $2",
+        campaign_id, workspace_id,
+    )
+    if not campaign:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+    if campaign["platform"] != "meta":
+        raise HTTPException(status_code=400, detail="Ad sets are only supported for Meta campaigns in this phase")
+    if not campaign["platform_id"]:
+        raise HTTPException(status_code=400, detail="Deploy this campaign to Meta before adding an ad set")
+
+    connection = await pool.fetchrow(
+        """SELECT * FROM platform_connections
+           WHERE workspace_id = $1 AND platform = 'meta' AND status = 'connected'""",
+        workspace_id,
+    )
+    if not connection:
+        raise HTTPException(status_code=400, detail="Connect a Meta ad account in Settings → Integrations first")
+
+    name = body.get("name") or f"{campaign['name']} — Ad Set"
+    countries = body.get("countries") or ["US"]
+    age_min = int(body.get("age_min", 18))
+    age_max = int(body.get("age_max", 65))
+    optimization_goal = meta.OPTIMIZATION_GOAL_MAP.get(campaign["objective"], "LINK_CLICKS")
+
+    # Only pass a budget here if the campaign itself has none — the campaign
+    # already controls spend via Campaign Budget Optimization when it does
+    # (see deploy_campaign above), and Meta rejects an ad set carrying its
+    # own budget on top of that.
+    daily_budget_cents = None
+    if not campaign["budget_daily"] and not campaign["budget_total"]:
+        requested = body.get("daily_budget")
+        if not requested:
+            raise HTTPException(
+                status_code=400,
+                detail="This campaign has no budget of its own — provide a daily budget for this ad set",
+            )
+        daily_budget_cents = int(round(float(requested) * 100))
+
+    row = await pool.fetchrow(
+        """INSERT INTO campaign_ad_sets
+           (campaign_id, workspace_id, name, optimization_goal, countries, age_min, age_max, created_by)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *""",
+        campaign_id, workspace_id, name, optimization_goal, countries, age_min, age_max, current_user["id"],
+    )
+
+    try:
+        access_token = decrypt_token(connection["access_token_encrypted"])
+        result = await meta.create_ad_set(
+            access_token, connection["external_account_id"], campaign["platform_id"], name,
+            optimization_goal, countries, age_min, age_max, daily_budget_cents,
+        )
+    except (ValueError, MetaAPIError) as e:
+        await pool.execute(
+            "UPDATE campaign_ad_sets SET status = 'failed', platform_error = $1, updated_at = NOW() WHERE id = $2",
+            str(e), row["id"],
+        )
+        raise HTTPException(status_code=502, detail=str(e))
+
+    updated = await pool.fetchrow(
+        """UPDATE campaign_ad_sets
+           SET platform_ad_set_id = $1, status = 'deployed', platform_error = NULL, updated_at = NOW()
+           WHERE id = $2 RETURNING *""",
+        result["id"], row["id"],
+    )
+    await pool.execute(
+        """INSERT INTO audit_logs (workspace_id, user_id, action, resource_type, resource_id, changes)
+           VALUES ($1, $2, 'deploy', 'ad_set', $3, $4)""",
+        workspace_id, current_user["id"], row["id"], {"platform_ad_set_id": result["id"]},
+    )
+    return {k: str(v) if isinstance(v, UUID) else v for k, v in dict(updated).items()}
+
+
+@router.post("/{campaign_id}/sync-performance")
+async def sync_campaign_performance(
+    campaign_id: UUID,
+    current_user: dict = Depends(require_role("admin", "manager")),
+    pool: asyncpg.Pool = Depends(get_pool),
+):
+    workspace_id = current_user["workspace_id"]
+    campaign = await pool.fetchrow(
+        "SELECT * FROM campaigns WHERE id = $1 AND workspace_id = $2",
+        campaign_id, workspace_id,
+    )
+    if not campaign:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+    if campaign["platform"] != "meta":
+        raise HTTPException(
+            status_code=400,
+            detail=f"Syncing performance for {campaign['platform'].replace('_', ' ')} isn't supported yet — only Meta is available in this phase",
+        )
+    if not campaign["platform_id"]:
+        raise HTTPException(status_code=400, detail="Deploy this campaign to Meta before syncing performance")
+
+    connection = await pool.fetchrow(
+        """SELECT * FROM platform_connections
+           WHERE workspace_id = $1 AND platform = 'meta' AND status = 'connected'""",
+        workspace_id,
+    )
+    if not connection:
+        raise HTTPException(
+            status_code=400,
+            detail="Connect a Meta ad account in Settings → Integrations before syncing",
+        )
+
+    try:
+        summary = await sync_campaign(pool, campaign)
+    except SyncSkipped as e:
+        # Pre-checks above should already rule this out, but stay defensive
+        # rather than let a scheduler-only edge case surface as a 500 here.
+        raise HTTPException(status_code=400, detail=str(e))
+    except (ValueError, MetaAPIError) as e:
+        raise HTTPException(status_code=502, detail=str(e))
+
+    await pool.execute(
+        """INSERT INTO audit_logs (workspace_id, user_id, action, resource_type, resource_id, changes)
+           VALUES ($1, $2, 'sync_performance', 'campaign', $3, $4)""",
+        workspace_id, current_user["id"], campaign_id,
+        {"days_synced": summary["days_synced"], "since": summary["since"], "until": summary["until"]},
+    )
+
+    return summary
 
 
 @router.delete("/{campaign_id}")

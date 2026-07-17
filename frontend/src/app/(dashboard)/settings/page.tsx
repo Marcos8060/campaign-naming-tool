@@ -257,6 +257,16 @@ export default function SettingsPage() {
               </div>
               <span className="text-gray-400">→</span>
             </Link>
+            {isAdmin && (
+              <Link href="/settings/integrations"
+                className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 border border-gray-100 transition-colors">
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Integrations</p>
+                  <p className="text-xs text-gray-500">Connect real ad accounts (Meta, Google Ads, and more)</p>
+                </div>
+                <span className="text-gray-400">→</span>
+              </Link>
+            )}
           </div>
         </Card>
       </div>

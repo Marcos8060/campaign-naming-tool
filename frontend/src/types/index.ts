@@ -28,6 +28,10 @@ export interface Campaign {
   name: string;
   platform: string;
   platform_id: string | null;
+  platform_status: 'not_deployed' | 'deploying' | 'deployed' | 'failed';
+  platform_deployed_at: string | null;
+  platform_error: string | null;
+  last_synced_at: string | null;
   objective: string | null;
   budget_total: number | null;
   budget_daily: number | null;

@@ -16,6 +16,7 @@ import { Card } from '@/components/ui/Card';
 import { Badge, type BadgeProps } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { formatMoney } from '@/lib/utils/currency';
 
 const STATUS_TONE: Record<string, BadgeProps['tone']> = {
   active: 'success',
@@ -55,6 +56,14 @@ export default function CampaignsPage() {
   });
 
   const campaigns: Campaign[] = data?.campaigns ?? [];
+
+  // Each row's budget is labeled with its own platform's real billing
+  // currency (not always USD) — looked up once here rather than per-row.
+  const { data: connections } = useGet<{ platform: string; status: string; currency?: string | null }[]>({
+    url: '/integrations',
+  });
+  const currencyFor = (platform: string) =>
+    connections?.find((c) => c.platform === platform && c.status === 'connected')?.currency;
 
   const handleSort = useCallback((col: string) => {
     if (sortBy === col) {
@@ -233,8 +242,12 @@ export default function CampaignsPage() {
                     <Badge tone={STATUS_TONE[campaign.status] ?? 'neutral'}>{campaign.status}</Badge>
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-600">
-                    {campaign.budget_total ? `$${Number(campaign.budget_total).toLocaleString()}` : '—'}
-                    {campaign.budget_daily && <span className="text-gray-400 text-xs ml-1">/ ${Number(campaign.budget_daily).toLocaleString()}d</span>}
+                    {formatMoney(campaign.budget_total, currencyFor(campaign.platform))}
+                    {campaign.budget_daily && (
+                      <span className="text-gray-400 text-xs ml-1">
+                        / {formatMoney(campaign.budget_daily, currencyFor(campaign.platform))}/d
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-600 hidden md:table-cell">
                     {campaign.start_date ? `${campaign.start_date}${campaign.end_date ? ' → ' + campaign.end_date : ''}` : '—'}

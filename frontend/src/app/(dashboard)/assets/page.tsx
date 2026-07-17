@@ -13,13 +13,13 @@ import { Input } from '@/components/ui/Input';
 
 export default function AssetsPage() {
   const router = useRouter();
-  const { isViewer } = useRole();
+  const { isViewer, isReady } = useRole();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (isViewer) router.replace('/dashboard');
-  }, [isViewer, router]);
+    if (isReady && isViewer) router.replace('/dashboard');
+  }, [isReady, isViewer, router]);
 
   const { data: assets, isLoading } = useGet({ url: '/assets' });
 

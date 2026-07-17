@@ -1,0 +1,319 @@
+from datetime import datetime, timedelta
+from uuid import UUID
+
+import asyncpg
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import RedirectResponse
+
+from src.api.deps import get_current_user, get_workspace_id, require_role
+from src.config import settings
+from src.core.encryption import decrypt_token, encrypt_token
+from src.core.security import create_oauth_state, verify_oauth_state
+from src.db.session import get_pool
+from src.integrations import meta
+from src.integrations.meta import MetaAPIError
+
+router = APIRouter()
+
+
+def _serialize(row) -> dict:
+    d = {k: str(v) if isinstance(v, UUID) else v for k, v in dict(row).items()}
+    d.pop("access_token_encrypted", None)
+    return d
+
+
+@router.get("")
+async def list_connections(
+    workspace_id: UUID = Depends(get_workspace_id),
+    pool: asyncpg.Pool = Depends(get_pool),
+    current_user: dict = Depends(get_current_user),
+):
+    rows = await pool.fetch(
+        "SELECT * FROM platform_connections WHERE workspace_id = $1 AND status != 'revoked' ORDER BY platform",
+        workspace_id,
+    )
+    results = [_serialize(r) for r in rows]
+
+    # Self-heal: connections made before the currency column existed have
+    # currency = NULL. Rather than requiring every existing user to
+    # disconnect and reconnect just to pick up one new field, backfill it
+    # transparently the next time this list is read. New connections never
+    # hit this path since currency is captured at connect time below.
+    for i, conn in enumerate(results):
+        if conn["platform"] == "meta" and conn["status"] == "connected" and not conn.get("currency"):
+            try:
+                token = decrypt_token(rows[i]["access_token_encrypted"])
+                accounts = await meta.get_ad_accounts(token)
+                match = next((a for a in accounts if a["id"] == conn["external_account_id"]), None)
+                if match and match.get("currency"):
+                    await pool.execute(
+                        "UPDATE platform_connections SET currency = $1 WHERE id = $2",
+                        match["currency"], UUID(conn["id"]),
+                    )
+                    conn["currency"] = match["currency"]
+            except (ValueError, MetaAPIError):
+                # Backfill is a nice-to-have, not load-bearing — leave currency
+                # null for now and it'll be retried on the next list call.
+                pass
+
+    return results
+
+
+@router.post("/meta/connect")
+async def meta_connect(current_user: dict = Depends(require_role("admin"))):
+    if not settings.meta_app_id or not settings.meta_app_secret:
+        raise HTTPException(status_code=500, detail="Meta app credentials are not configured on this server yet")
+
+    state = create_oauth_state({
+        "workspace_id": str(current_user["workspace_id"]),
+        "user_id": str(current_user["id"]),
+    })
+    redirect_uri = f"{settings.oauth_redirect_base_url}/api/v1/integrations/meta/callback"
+    return {"authorize_url": meta.build_oauth_url(redirect_uri, state)}
+
+
+@router.get("/meta/callback")
+async def meta_callback(
+    code: str = Query(None),
+    state: str = Query(None),
+    error: str = Query(None),
+    pool: asyncpg.Pool = Depends(get_pool),
+):
+    frontend_base = settings.frontend_url.rstrip("/")
+
+    if error or not code or not state:
+        return RedirectResponse(f"{frontend_base}/settings/integrations?error=access_denied")
+
+    try:
+        payload = verify_oauth_state(state)
+    except HTTPException:
+        return RedirectResponse(f"{frontend_base}/settings/integrations?error=invalid_state")
+
+    workspace_id = UUID(payload["workspace_id"])
+    user_id = UUID(payload["user_id"])
+    redirect_uri = f"{settings.oauth_redirect_base_url}/api/v1/integrations/meta/callback"
+
+    try:
+        short_lived = await meta.exchange_code_for_token(code, redirect_uri)
+        long_lived = await meta.exchange_long_lived_token(short_lived["access_token"])
+        accounts = await meta.get_ad_accounts(long_lived["access_token"])
+    except MetaAPIError:
+        return RedirectResponse(f"{frontend_base}/settings/integrations?error=meta_api_error")
+
+    encrypted = encrypt_token(long_lived["access_token"])
+    expires_in = long_lived.get("expires_in")
+    expires_at = datetime.utcnow() + timedelta(seconds=int(expires_in)) if expires_in else None
+    scopes = ",".join(meta.SCOPES)
+
+    if not accounts:
+        return RedirectResponse(f"{frontend_base}/settings/integrations?error=no_ad_accounts")
+
+    if len(accounts) == 1:
+        acct = accounts[0]
+        await pool.execute(
+            """INSERT INTO platform_connections
+               (workspace_id, platform, status, external_account_id, external_account_name,
+                access_token_encrypted, token_expires_at, scopes, connected_by, currency)
+               VALUES ($1, 'meta', 'connected', $2, $3, $4, $5, $6, $7, $8)
+               ON CONFLICT (workspace_id, platform, external_account_id) DO UPDATE SET
+                 external_account_name = EXCLUDED.external_account_name,
+                 access_token_encrypted = EXCLUDED.access_token_encrypted,
+                 token_expires_at = EXCLUDED.token_expires_at,
+                 currency = EXCLUDED.currency,
+                 status = 'connected',
+                 updated_at = NOW()""",
+            workspace_id, acct["id"], acct.get("name", acct["id"]),
+            encrypted, expires_at, scopes, user_id, acct.get("currency"),
+        )
+        await pool.execute(
+            """INSERT INTO audit_logs (workspace_id, user_id, action, resource_type, resource_id, changes)
+               VALUES ($1, $2, 'connect', 'platform_connection', NULL, $3)""",
+            workspace_id, user_id, {"platform": "meta", "account": acct.get("name")},
+        )
+        return RedirectResponse(f"{frontend_base}/settings/integrations?connected=meta")
+
+    # More than one ad account on this Meta login — let the user pick which one to connect
+    # rather than guessing, since a business login can see accounts that aren't this workspace's.
+    # Clear out any earlier pending attempt for this workspace+platform first — otherwise every
+    # abandoned or repeated Connect click leaves another orphaned placeholder row behind.
+    await pool.execute(
+        "DELETE FROM platform_connections WHERE workspace_id = $1 AND platform = 'meta' AND status = 'pending'",
+        workspace_id,
+    )
+    row = await pool.fetchrow(
+        """INSERT INTO platform_connections
+           (workspace_id, platform, status, access_token_encrypted, token_expires_at, scopes, connected_by)
+           VALUES ($1, 'meta', 'pending', $2, $3, $4, $5) RETURNING id""",
+        workspace_id, encrypted, expires_at, scopes, user_id,
+    )
+    return RedirectResponse(
+        f"{frontend_base}/settings/integrations?select_account=meta&connection_id={row['id']}"
+    )
+
+
+@router.get("/meta/ad-accounts")
+async def meta_ad_accounts(
+    connection_id: UUID = Query(...),
+    workspace_id: UUID = Depends(get_workspace_id),
+    pool: asyncpg.Pool = Depends(get_pool),
+    current_user: dict = Depends(require_role("admin")),
+):
+    row = await pool.fetchrow(
+        "SELECT * FROM platform_connections WHERE id = $1 AND workspace_id = $2 AND status = 'pending'",
+        connection_id, workspace_id,
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="No pending Meta connection found")
+
+    try:
+        token = decrypt_token(row["access_token_encrypted"])
+        accounts = await meta.get_ad_accounts(token)
+    except (ValueError, MetaAPIError) as e:
+        raise HTTPException(status_code=502, detail=str(e))
+    return accounts
+
+
+@router.post("/meta/select-account")
+async def meta_select_account(
+    body: dict,
+    workspace_id: UUID = Depends(get_workspace_id),
+    pool: asyncpg.Pool = Depends(get_pool),
+    current_user: dict = Depends(require_role("admin")),
+):
+    connection_id = UUID(body["connection_id"])
+    ad_account_id = body["ad_account_id"]
+    ad_account_name = body.get("ad_account_name", ad_account_id)
+
+    pending = await pool.fetchrow(
+        "SELECT * FROM platform_connections WHERE id = $1 AND workspace_id = $2 AND status = 'pending'",
+        connection_id, workspace_id,
+    )
+    if not pending:
+        raise HTTPException(status_code=404, detail="No pending Meta connection found")
+
+    # Look up the account's currency ourselves rather than trusting whatever
+    # the browser sends — this value ends up labeling real money amounts, so
+    # it should come from Meta directly, not from client input that could be
+    # stale or (however unlikely) tampered with in dev tools.
+    currency = None
+    try:
+        token = decrypt_token(pending["access_token_encrypted"])
+        accounts = await meta.get_ad_accounts(token)
+        match = next((a for a in accounts if a["id"] == ad_account_id), None)
+        currency = match.get("currency") if match else None
+    except (ValueError, MetaAPIError):
+        pass  # Non-fatal — connection still proceeds, currency just backfills later via list_connections.
+
+    # Same upsert pattern as the single-account auto-connect path in /meta/callback:
+    # target the (workspace, platform, ad account) unique key directly rather than
+    # this specific pending row's id, so reconnecting an already-connected ad account
+    # merges into its existing row atomically instead of racing a separate DELETE.
+    updated = await pool.fetchrow(
+        """INSERT INTO platform_connections
+           (workspace_id, platform, status, external_account_id, external_account_name,
+            access_token_encrypted, token_expires_at, scopes, connected_by, currency)
+           VALUES ($1, 'meta', 'connected', $2, $3, $4, $5, $6, $7, $8)
+           ON CONFLICT (workspace_id, platform, external_account_id) DO UPDATE SET
+             external_account_name = EXCLUDED.external_account_name,
+             access_token_encrypted = EXCLUDED.access_token_encrypted,
+             token_expires_at = EXCLUDED.token_expires_at,
+             scopes = EXCLUDED.scopes,
+             currency = EXCLUDED.currency,
+             status = 'connected',
+             updated_at = NOW()
+           RETURNING *""",
+        workspace_id, ad_account_id, ad_account_name,
+        pending["access_token_encrypted"], pending["token_expires_at"], pending["scopes"], pending["connected_by"],
+        currency,
+    )
+    # The pending placeholder row is now redundant — either it became the connected
+    # row above (no-op here) or a different pre-existing row absorbed the upsert and
+    # this one is orphaned. Either way it should no longer exist as a bare "pending".
+    await pool.execute(
+        "DELETE FROM platform_connections WHERE id = $1 AND status = 'pending'",
+        connection_id,
+    )
+    await pool.execute(
+        """INSERT INTO audit_logs (workspace_id, user_id, action, resource_type, resource_id, changes)
+           VALUES ($1, $2, 'connect', 'platform_connection', $3, $4)""",
+        workspace_id, current_user["id"], connection_id, {"platform": "meta", "account": ad_account_name},
+    )
+    return _serialize(updated)
+
+
+@router.get("/meta/pages")
+async def meta_pages(
+    workspace_id: UUID = Depends(get_workspace_id),
+    pool: asyncpg.Pool = Depends(get_pool),
+    current_user: dict = Depends(require_role("admin")),
+):
+    connection = await pool.fetchrow(
+        """SELECT * FROM platform_connections
+           WHERE workspace_id = $1 AND platform = 'meta' AND status = 'connected'""",
+        workspace_id,
+    )
+    if not connection:
+        raise HTTPException(status_code=400, detail="Connect a Meta ad account first")
+
+    try:
+        token = decrypt_token(connection["access_token_encrypted"])
+        pages = await meta.list_pages(token)
+    except (ValueError, MetaAPIError) as e:
+        # pages_show_list was added to SCOPES after some connections were
+        # already made — an empty/error result here usually means the
+        # existing token predates it and needs reconnecting, not a real
+        # failure. Surface that plainly rather than a generic Meta error.
+        raise HTTPException(
+            status_code=502,
+            detail=f"{e} — if this connection was made before Camparc could list Pages, reconnect Meta to grant that permission.",
+        )
+    return pages
+
+
+@router.post("/meta/select-page")
+async def meta_select_page(
+    body: dict,
+    workspace_id: UUID = Depends(get_workspace_id),
+    pool: asyncpg.Pool = Depends(get_pool),
+    current_user: dict = Depends(require_role("admin")),
+):
+    page_id = body.get("page_id")
+    page_name = body.get("page_name", page_id)
+    if not page_id:
+        raise HTTPException(status_code=400, detail="page_id is required")
+
+    row = await pool.fetchrow(
+        """UPDATE platform_connections SET page_id = $1, page_name = $2, updated_at = NOW()
+           WHERE workspace_id = $3 AND platform = 'meta' AND status = 'connected' RETURNING *""",
+        page_id, page_name, workspace_id,
+    )
+    if not row:
+        raise HTTPException(status_code=400, detail="Connect a Meta ad account first")
+
+    await pool.execute(
+        """INSERT INTO audit_logs (workspace_id, user_id, action, resource_type, resource_id, changes)
+           VALUES ($1, $2, 'update', 'platform_connection', NULL, $3)""",
+        workspace_id, current_user["id"], {"platform": "meta", "page_id": page_id, "page_name": page_name},
+    )
+    return _serialize(row)
+
+
+@router.delete("/{platform}")
+async def disconnect_platform(
+    platform: str,
+    workspace_id: UUID = Depends(get_workspace_id),
+    pool: asyncpg.Pool = Depends(get_pool),
+    current_user: dict = Depends(require_role("admin")),
+):
+    rows = await pool.fetch(
+        """UPDATE platform_connections SET status = 'revoked', updated_at = NOW()
+           WHERE workspace_id = $1 AND platform = $2 AND status != 'revoked' RETURNING id""",
+        workspace_id, platform,
+    )
+    if rows:
+        await pool.execute(
+            """INSERT INTO audit_logs (workspace_id, user_id, action, resource_type, resource_id, changes)
+               VALUES ($1, $2, 'disconnect', 'platform_connection', NULL, $3)""",
+            workspace_id, current_user["id"], {"platform": platform},
+        )
+    return {"success": True}
