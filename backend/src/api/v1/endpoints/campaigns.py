@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from uuid import UUID
 from typing import Optional
-from datetime import date, timedelta
+from datetime import date
 import asyncpg
 
 from src.api.deps import get_current_user, get_workspace_id, require_role
@@ -9,6 +9,7 @@ from src.core.encryption import decrypt_token
 from src.db.session import get_pool
 from src.integrations import meta
 from src.integrations.meta import MetaAPIError
+from src.services.meta_sync import sync_campaign, SyncSkipped
 
 router = APIRouter()
 
@@ -442,59 +443,23 @@ async def sync_campaign_performance(
             detail="Connect a Meta ad account in Settings → Integrations before syncing",
         )
 
-    # Pull from whenever the campaign was actually deployed (no point asking
-    # Meta about days before it existed there) up to today; fall back to a
-    # 30-day window for older data if that timestamp is somehow missing.
-    since = campaign["platform_deployed_at"].date() if campaign["platform_deployed_at"] else date.today() - timedelta(days=30)
-    until = date.today()
-    if since > until:
-        since = until
-
     try:
-        access_token = decrypt_token(connection["access_token_encrypted"])
-        daily_rows = await meta.get_campaign_insights(
-            access_token, campaign["platform_id"], since.isoformat(), until.isoformat(),
-        )
+        summary = await sync_campaign(pool, campaign)
+    except SyncSkipped as e:
+        # Pre-checks above should already rule this out, but stay defensive
+        # rather than let a scheduler-only edge case surface as a 500 here.
+        raise HTTPException(status_code=400, detail=str(e))
     except (ValueError, MetaAPIError) as e:
         raise HTTPException(status_code=502, detail=str(e))
 
-    for row in daily_rows:
-        await pool.execute(
-            """INSERT INTO campaign_performance
-               (campaign_id, date, spend, impressions, clicks, conversions, revenue, cpc, ctr, cpa, roas, synced_at)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
-               ON CONFLICT (campaign_id, date) DO UPDATE SET
-                 spend = EXCLUDED.spend,
-                 impressions = EXCLUDED.impressions,
-                 clicks = EXCLUDED.clicks,
-                 conversions = EXCLUDED.conversions,
-                 revenue = EXCLUDED.revenue,
-                 cpc = EXCLUDED.cpc,
-                 ctr = EXCLUDED.ctr,
-                 cpa = EXCLUDED.cpa,
-                 roas = EXCLUDED.roas,
-                 synced_at = NOW()""",
-            campaign_id, date.fromisoformat(row["date"]), row["spend"], row["impressions"], row["clicks"],
-            row["conversions"], row["revenue"], row["cpc"], row["ctr"], row["cpa"], row["roas"],
-        )
-
-    await pool.execute("UPDATE campaigns SET last_synced_at = NOW() WHERE id = $1", campaign_id)
     await pool.execute(
         """INSERT INTO audit_logs (workspace_id, user_id, action, resource_type, resource_id, changes)
            VALUES ($1, $2, 'sync_performance', 'campaign', $3, $4)""",
         workspace_id, current_user["id"], campaign_id,
-        {"days_synced": len(daily_rows), "since": since.isoformat(), "until": until.isoformat()},
+        {"days_synced": summary["days_synced"], "since": summary["since"], "until": summary["until"]},
     )
 
-    return {
-        "days_synced": len(daily_rows),
-        "total_spend": sum(r["spend"] for r in daily_rows),
-        "total_impressions": sum(r["impressions"] for r in daily_rows),
-        "total_clicks": sum(r["clicks"] for r in daily_rows),
-        "total_conversions": sum(r["conversions"] for r in daily_rows),
-        "since": since.isoformat(),
-        "until": until.isoformat(),
-    }
+    return summary
 
 
 @router.delete("/{campaign_id}")

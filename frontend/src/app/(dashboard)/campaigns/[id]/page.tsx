@@ -330,6 +330,7 @@ export default function CampaignDetailPage() {
                         year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
                       })}`
                     : 'Performance never synced yet — use Sync Performance above.'}
+                  {' '}Camparc also syncs automatically every 6 hours, so this button is only needed if you want fresher numbers right now.
                 </div>
                 {syncResult && (
                   <div className="text-sm bg-gray-50 rounded-lg p-3 space-y-1">

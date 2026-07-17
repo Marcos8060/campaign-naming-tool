@@ -34,6 +34,11 @@ class Settings(BaseSettings):
     meta_app_secret: str = ""
     meta_api_version: str = "v21.0"
 
+    # How often the background job re-pulls performance data from Meta for
+    # every deployed campaign, across all workspaces. 6 hours balances
+    # freshness against Meta's API rate limits for a small account.
+    sync_interval_hours: int = 6
+
     @field_validator("encryption_key", mode="before")
     @classmethod
     def validate_encryption_key(cls, v: str) -> str:

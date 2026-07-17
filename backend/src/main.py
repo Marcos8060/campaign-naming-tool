@@ -2,17 +2,26 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
+import logging
 import os
 
 from src.config import settings
 from src.api.v1.router import api_router
 from src.db.session import init_db, close_db
+from src.services.scheduler import start_scheduler, stop_scheduler
+
+# Without this, Python's root logger defaults to WARNING — every
+# logger.info() call in the app (scheduler status, sync results, etc.)
+# would be silently dropped instead of showing up in `docker logs`.
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+    start_scheduler()
     yield
+    stop_scheduler()
     await close_db()
 
 
