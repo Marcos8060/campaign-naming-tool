@@ -315,6 +315,101 @@ async def deploy_campaign(
     return {k: str(v) if isinstance(v, UUID) else v for k, v in dict(row).items()}
 
 
+@router.get("/{campaign_id}/ad-sets")
+async def list_campaign_ad_sets(
+    campaign_id: UUID,
+    workspace_id: UUID = Depends(get_workspace_id),
+    pool: asyncpg.Pool = Depends(get_pool),
+    current_user: dict = Depends(get_current_user),
+):
+    rows = await pool.fetch(
+        "SELECT * FROM campaign_ad_sets WHERE campaign_id = $1 AND workspace_id = $2 ORDER BY created_at",
+        campaign_id, workspace_id,
+    )
+    return [{k: str(v) if isinstance(v, UUID) else v for k, v in dict(r).items()} for r in rows]
+
+
+@router.post("/{campaign_id}/ad-sets")
+async def create_campaign_ad_set(
+    campaign_id: UUID,
+    body: dict,
+    current_user: dict = Depends(require_role("admin", "manager")),
+    pool: asyncpg.Pool = Depends(get_pool),
+):
+    workspace_id = current_user["workspace_id"]
+    campaign = await pool.fetchrow(
+        "SELECT * FROM campaigns WHERE id = $1 AND workspace_id = $2",
+        campaign_id, workspace_id,
+    )
+    if not campaign:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+    if campaign["platform"] != "meta":
+        raise HTTPException(status_code=400, detail="Ad sets are only supported for Meta campaigns in this phase")
+    if not campaign["platform_id"]:
+        raise HTTPException(status_code=400, detail="Deploy this campaign to Meta before adding an ad set")
+
+    connection = await pool.fetchrow(
+        """SELECT * FROM platform_connections
+           WHERE workspace_id = $1 AND platform = 'meta' AND status = 'connected'""",
+        workspace_id,
+    )
+    if not connection:
+        raise HTTPException(status_code=400, detail="Connect a Meta ad account in Settings → Integrations first")
+
+    name = body.get("name") or f"{campaign['name']} — Ad Set"
+    countries = body.get("countries") or ["US"]
+    age_min = int(body.get("age_min", 18))
+    age_max = int(body.get("age_max", 65))
+    optimization_goal = meta.OPTIMIZATION_GOAL_MAP.get(campaign["objective"], "LINK_CLICKS")
+
+    # Only pass a budget here if the campaign itself has none — the campaign
+    # already controls spend via Campaign Budget Optimization when it does
+    # (see deploy_campaign above), and Meta rejects an ad set carrying its
+    # own budget on top of that.
+    daily_budget_cents = None
+    if not campaign["budget_daily"] and not campaign["budget_total"]:
+        requested = body.get("daily_budget")
+        if not requested:
+            raise HTTPException(
+                status_code=400,
+                detail="This campaign has no budget of its own — provide a daily budget for this ad set",
+            )
+        daily_budget_cents = int(round(float(requested) * 100))
+
+    row = await pool.fetchrow(
+        """INSERT INTO campaign_ad_sets
+           (campaign_id, workspace_id, name, optimization_goal, countries, age_min, age_max, created_by)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *""",
+        campaign_id, workspace_id, name, optimization_goal, countries, age_min, age_max, current_user["id"],
+    )
+
+    try:
+        access_token = decrypt_token(connection["access_token_encrypted"])
+        result = await meta.create_ad_set(
+            access_token, connection["external_account_id"], campaign["platform_id"], name,
+            optimization_goal, countries, age_min, age_max, daily_budget_cents,
+        )
+    except (ValueError, MetaAPIError) as e:
+        await pool.execute(
+            "UPDATE campaign_ad_sets SET status = 'failed', platform_error = $1, updated_at = NOW() WHERE id = $2",
+            str(e), row["id"],
+        )
+        raise HTTPException(status_code=502, detail=str(e))
+
+    updated = await pool.fetchrow(
+        """UPDATE campaign_ad_sets
+           SET platform_ad_set_id = $1, status = 'deployed', platform_error = NULL, updated_at = NOW()
+           WHERE id = $2 RETURNING *""",
+        result["id"], row["id"],
+    )
+    await pool.execute(
+        """INSERT INTO audit_logs (workspace_id, user_id, action, resource_type, resource_id, changes)
+           VALUES ($1, $2, 'deploy', 'ad_set', $3, $4)""",
+        workspace_id, current_user["id"], row["id"], {"platform_ad_set_id": result["id"]},
+    )
+    return {k: str(v) if isinstance(v, UUID) else v for k, v in dict(updated).items()}
+
+
 @router.post("/{campaign_id}/sync-performance")
 async def sync_campaign_performance(
     campaign_id: UUID,

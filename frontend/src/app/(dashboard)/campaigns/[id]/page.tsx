@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import type { Campaign, Taxonomy } from '@/types';
 import type { CampaignUpdatePayload } from '@/types/campaign-detail';
 import { CampaignEditModal } from '@/components/campaigns/CampaignEditModal';
+import { AdSetsPanel } from '@/components/campaigns/AdSetsPanel';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -376,6 +377,18 @@ export default function CampaignDetailPage() {
               </>
             )}
           </Card>
+        )}
+
+        {campaign.platform === 'meta' && (
+          <div className="lg:col-span-2">
+            <AdSetsPanel
+              campaignId={campaign.id}
+              platformDeployed={campaign.platform_status === 'deployed'}
+              hasCampaignBudget={!!(campaign.budget_daily || campaign.budget_total)}
+              currencyCode={currencyCode}
+              metaConnected={metaConnected}
+            />
+          </div>
         )}
 
         {Object.keys(taxonomyValues).length > 0 && (

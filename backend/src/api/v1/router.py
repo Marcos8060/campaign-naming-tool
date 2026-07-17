@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from src.api.v1.endpoints import auth, workspaces, users, taxonomies, campaigns, analytics, platforms, exports, assets, branding, health, integrations
+from src.api.v1.endpoints import auth, workspaces, users, taxonomies, campaigns, analytics, platforms, exports, assets, branding, health, integrations, ad_sets
 
 api_router = APIRouter()
 
@@ -15,3 +15,4 @@ api_router.include_router(exports.router, prefix="/exports", tags=["exports"])
 api_router.include_router(assets.router, prefix="/assets", tags=["assets"])
 api_router.include_router(branding.router, prefix="/branding", tags=["branding"])
 api_router.include_router(integrations.router, prefix="/integrations", tags=["integrations"])
+api_router.include_router(ad_sets.router, prefix="/ad-sets", tags=["ad-sets"])

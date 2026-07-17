@@ -9,7 +9,11 @@ DIALOG_BASE = f"https://www.facebook.com/{settings.meta_api_version}/dialog/oaut
 
 # Minimum scopes needed to read ad accounts and eventually manage campaigns.
 # Requesting anything broader than this just adds friction to Meta's app review.
-SCOPES = ["ads_management", "ads_read", "business_management"]
+# pages_show_list was added so Camparc can list the Facebook Pages a user
+# manages — every Meta ad must be attributed to a Page, a hard platform rule.
+# Anyone who connected before this was added will need to reconnect once to
+# grant it; Meta doesn't retroactively add scopes to an existing token.
+SCOPES = ["ads_management", "ads_read", "business_management", "pages_show_list"]
 
 
 class MetaAPIError(Exception):
@@ -84,6 +88,21 @@ async def get_ad_accounts(access_token: str) -> list[dict]:
     return data.get("data", [])
 
 
+async def list_pages(access_token: str) -> list[dict]:
+    # Every Meta ad's creative must be attributed to a Facebook Page —
+    # this lists the Pages the connected user actually manages so Camparc
+    # can offer a picker instead of asking for a raw Page ID.
+    async with httpx.AsyncClient(timeout=15) as client:
+        resp = await client.get(f"{GRAPH_BASE}/me/accounts", params={
+            "fields": "id,name",
+            "access_token": access_token,
+        })
+    data = resp.json()
+    if resp.status_code != 200:
+        raise MetaAPIError(_error_message(data, "Failed to fetch Facebook Pages"), resp.status_code)
+    return data.get("data", [])
+
+
 # Camparc's taxonomy uses generic, platform-agnostic objective names so the same
 # campaign concept maps cleanly across Meta/Google/TikTok/etc. Meta itself only
 # accepts its own "Outcome-Driven Ad Experiences" (ODAX) enum, so this table is
@@ -98,6 +117,28 @@ OBJECTIVE_MAP = {
     "traffic": "OUTCOME_TRAFFIC",
     "leads": "OUTCOME_LEADS",
 }
+
+# An ad set's optimization_goal tells Meta what to actually optimize delivery
+# for, and has to be compatible with the campaign's objective above. The
+# "correct" goals for OUTCOME_SALES (OFFSITE_CONVERSIONS) and OUTCOME_LEADS
+# (LEAD_GENERATION) both require infrastructure Camparc doesn't manage yet —
+# a Meta Pixel/Conversions API for the former, an on-platform Instant Form
+# for the latter — so both fall back to LINK_CLICKS, which is always valid
+# and simply optimizes for clicks instead of the deeper outcome until that
+# infrastructure exists.
+OPTIMIZATION_GOAL_MAP = {
+    "awareness": "REACH",
+    "consideration": "POST_ENGAGEMENT",
+    "conversion": "LINK_CLICKS",
+    "retention": "POST_ENGAGEMENT",
+    "traffic": "LINK_CLICKS",
+    "leads": "LINK_CLICKS",
+}
+
+# Small, safe subset of Meta's call-to-action enum — enough variety for a
+# link ad without exposing the dozens of niche values (event responses,
+# app-install variants, etc.) most workspaces will never need.
+CALL_TO_ACTION_TYPES = ["LEARN_MORE", "SHOP_NOW", "SIGN_UP", "CONTACT_US", "DOWNLOAD", "SUBSCRIBE"]
 
 
 async def create_campaign(
@@ -133,8 +174,17 @@ async def create_campaign(
 
     if daily_budget_cents is not None:
         params["daily_budget"] = daily_budget_cents
+        # A campaign that owns its own budget also has to declare how Meta
+        # should bid with it. Leaving this unset let Meta silently default to
+        # a capped strategy ("Bid cap") that then requires a manual
+        # bid_amount nothing in Camparc collects — surfacing as "Invalid
+        # parameter" on the *ad set* later, far from this actual cause.
+        # LOWEST_COST_WITHOUT_CAP is Meta's own "automatic bidding" default
+        # (shown as "Highest volume" in Ads Manager) — no bid amount needed.
+        params["bid_strategy"] = "LOWEST_COST_WITHOUT_CAP"
     elif lifetime_budget_cents is not None:
         params["lifetime_budget"] = lifetime_budget_cents
+        params["bid_strategy"] = "LOWEST_COST_WITHOUT_CAP"
         if start_time:
             params["start_time"] = start_time
         if stop_time:
@@ -152,6 +202,132 @@ async def create_campaign(
     data = resp.json()
     if resp.status_code != 200 or "id" not in data:
         raise MetaAPIError(_error_message(data, "Failed to create campaign on Meta"), resp.status_code)
+    return data
+
+
+async def create_ad_set(
+    access_token: str,
+    ad_account_id: str,
+    campaign_id: str,
+    name: str,
+    optimization_goal: str,
+    countries: list[str],
+    age_min: int = 18,
+    age_max: int = 65,
+    daily_budget_cents: int | None = None,
+) -> dict:
+    account = ad_account_id if ad_account_id.startswith("act_") else f"act_{ad_account_id}"
+    targeting = {
+        "geo_locations": {"countries": countries or ["US"]},
+        "age_min": age_min,
+        "age_max": age_max,
+        # Advantage+ audience lets Meta automatically expand delivery beyond
+        # this baseline (interests, behaviors, placements) rather than
+        # Camparc building a full targeting builder for v1.
+        "targeting_automation": {"advantage_audience": 1},
+    }
+    params = {
+        "name": name,
+        "campaign_id": campaign_id,
+        "optimization_goal": optimization_goal,
+        "billing_event": "IMPRESSIONS",
+        "targeting": json.dumps(targeting),
+        # Paused for the same reason campaigns are: nothing spends until a
+        # human explicitly activates it.
+        "status": "PAUSED",
+        "access_token": access_token,
+    }
+    # Only needed when the parent campaign has no budget of its own (i.e.
+    # Campaign Budget Optimization wasn't used at deploy time) — passing a
+    # budget here too when the campaign already has one is what Meta rejects
+    # with the is_adset_budget_sharing_enabled error from Phase 2.
+    if daily_budget_cents is not None:
+        params["daily_budget"] = daily_budget_cents
+        # Same reasoning as the campaign-level case in create_campaign():
+        # whoever owns the budget also has to declare a bid_strategy, or
+        # Meta defaults to a capped strategy that then demands a manual
+        # bid_amount. Here the ad set owns the budget, so it owns this too.
+        params["bid_strategy"] = "LOWEST_COST_WITHOUT_CAP"
+
+    async with httpx.AsyncClient(timeout=15) as client:
+        resp = await client.post(f"{GRAPH_BASE}/{account}/adsets", params=params)
+    data = resp.json()
+    if resp.status_code != 200 or "id" not in data:
+        raise MetaAPIError(_error_message(data, "Failed to create ad set on Meta"), resp.status_code)
+    return data
+
+
+async def upload_image_bytes(access_token: str, ad_account_id: str, filename: str, content: bytes, content_type: str = "image/jpeg") -> str:
+    # Uploads the actual image bytes to Meta rather than handing Meta a URL
+    # to fetch. That matters because Camparc's own asset URLs are only
+    # reachable at http://localhost in local/dev environments — Meta's
+    # servers can never fetch those. Uploading bytes directly works
+    # regardless of whether Camparc's assets are publicly hosted anywhere.
+    account = ad_account_id if ad_account_id.startswith("act_") else f"act_{ad_account_id}"
+    async with httpx.AsyncClient(timeout=30) as client:
+        resp = await client.post(
+            f"{GRAPH_BASE}/{account}/adimages",
+            params={"access_token": access_token},
+            files={"file": (filename, content, content_type)},
+        )
+    data = resp.json()
+    images = data.get("images", {})
+    match = next(iter(images.values()), None)
+    if resp.status_code != 200 or not match or "hash" not in match:
+        raise MetaAPIError(_error_message(data, "Failed to upload image to Meta"), resp.status_code)
+    return match["hash"]
+
+
+async def create_ad_creative(
+    access_token: str,
+    ad_account_id: str,
+    page_id: str,
+    image_hash: str,
+    headline: str,
+    primary_text: str,
+    link_url: str,
+    call_to_action: str,
+    name: str,
+) -> dict:
+    account = ad_account_id if ad_account_id.startswith("act_") else f"act_{ad_account_id}"
+    object_story_spec = {
+        # Hard Meta requirement: every ad creative renders "from" a Page.
+        "page_id": page_id,
+        "link_data": {
+            "image_hash": image_hash,
+            "link": link_url,
+            "message": primary_text,
+            "name": headline,
+            "call_to_action": {"type": call_to_action, "value": {"link": link_url}},
+        },
+    }
+    params = {
+        "name": name,
+        "object_story_spec": json.dumps(object_story_spec),
+        "access_token": access_token,
+    }
+    async with httpx.AsyncClient(timeout=15) as client:
+        resp = await client.post(f"{GRAPH_BASE}/{account}/adcreatives", params=params)
+    data = resp.json()
+    if resp.status_code != 200 or "id" not in data:
+        raise MetaAPIError(_error_message(data, "Failed to create ad creative on Meta"), resp.status_code)
+    return data
+
+
+async def create_ad(access_token: str, ad_account_id: str, ad_set_id: str, creative_id: str, name: str) -> dict:
+    account = ad_account_id if ad_account_id.startswith("act_") else f"act_{ad_account_id}"
+    params = {
+        "name": name,
+        "adset_id": ad_set_id,
+        "creative": json.dumps({"creative_id": creative_id}),
+        "status": "PAUSED",
+        "access_token": access_token,
+    }
+    async with httpx.AsyncClient(timeout=15) as client:
+        resp = await client.post(f"{GRAPH_BASE}/{account}/ads", params=params)
+    data = resp.json()
+    if resp.status_code != 200 or "id" not in data:
+        raise MetaAPIError(_error_message(data, "Failed to create ad on Meta"), resp.status_code)
     return data
 
 

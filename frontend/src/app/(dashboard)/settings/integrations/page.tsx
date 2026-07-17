@@ -17,6 +17,13 @@ interface PlatformConnection {
   external_account_id: string | null;
   external_account_name: string | null;
   token_expires_at: string | null;
+  page_id: string | null;
+  page_name: string | null;
+}
+
+interface MetaPage {
+  id: string;
+  name: string;
 }
 
 interface MetaAdAccount {
@@ -116,6 +123,22 @@ export default function IntegrationsPage() {
 
   const getConnection = (platform: string) =>
     connections?.find((c) => c.platform === platform && c.status === 'connected');
+  const metaConnection = getConnection('meta');
+
+  const { data: pages, error: pagesError } = useGet<MetaPage[]>({
+    url: '/integrations/meta/pages',
+    queryKey: ['meta-pages'],
+    enabled: !!metaConnection,
+  });
+
+  const selectPageMutation = usePost<PlatformConnection, { page_id: string; page_name: string }>({
+    url: '/integrations/meta/select-page',
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['integrations'] });
+      toast.success('Default Facebook Page set');
+    },
+    onError: (err) => toast.error(err.message || 'Could not set the Facebook Page'),
+  });
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -209,6 +232,44 @@ export default function IntegrationsPage() {
           );
         })}
       </div>
+
+      {metaConnection && (
+        <Card variant="outlined" padding="lg" className="space-y-3">
+          <h3 className="font-semibold text-gray-900">Default Facebook Page</h3>
+          <p className="text-sm text-gray-500">
+            Every Meta ad is attributed to a Page — that's a Meta requirement, not a Camparc setting.
+            {metaConnection.page_name ? ` Currently using "${metaConnection.page_name}".` : ' Pick one below to enable creating ads.'}
+          </p>
+          {pagesError && (
+            <p className="text-sm text-red-600 bg-red-50 rounded-lg p-3">
+              {pagesError.message || 'Could not load Facebook Pages.'} If this connection was made before Page
+              selection existed, click Disconnect above and Connect again to grant that permission.
+            </p>
+          )}
+          <div className="space-y-2">
+            {pages?.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => selectPageMutation.mutate({ page_id: p.id, page_name: p.name })}
+                disabled={selectPageMutation.isPending}
+                className={`w-full flex items-center justify-between p-3 rounded-lg border text-left transition-colors disabled:opacity-50 ${
+                  metaConnection.page_id === p.id
+                    ? 'border-primary bg-primary-soft'
+                    : 'border-gray-200 hover:border-primary hover:bg-primary-soft'
+                }`}
+              >
+                <span className="text-sm font-medium text-gray-900">{p.name}</span>
+                {metaConnection.page_id === p.id && <Badge tone="success">Selected</Badge>}
+              </button>
+            ))}
+            {pages?.length === 0 && (
+              <p className="text-sm text-gray-500">
+                No Facebook Pages found on this login — create one at facebook.com/pages/create first.
+              </p>
+            )}
+          </div>
+        </Card>
+      )}
     </div>
   );
 }
