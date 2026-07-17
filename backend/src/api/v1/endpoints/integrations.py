@@ -241,6 +241,63 @@ async def meta_select_account(
     return _serialize(updated)
 
 
+@router.get("/meta/pages")
+async def meta_pages(
+    workspace_id: UUID = Depends(get_workspace_id),
+    pool: asyncpg.Pool = Depends(get_pool),
+    current_user: dict = Depends(require_role("admin")),
+):
+    connection = await pool.fetchrow(
+        """SELECT * FROM platform_connections
+           WHERE workspace_id = $1 AND platform = 'meta' AND status = 'connected'""",
+        workspace_id,
+    )
+    if not connection:
+        raise HTTPException(status_code=400, detail="Connect a Meta ad account first")
+
+    try:
+        token = decrypt_token(connection["access_token_encrypted"])
+        pages = await meta.list_pages(token)
+    except (ValueError, MetaAPIError) as e:
+        # pages_show_list was added to SCOPES after some connections were
+        # already made — an empty/error result here usually means the
+        # existing token predates it and needs reconnecting, not a real
+        # failure. Surface that plainly rather than a generic Meta error.
+        raise HTTPException(
+            status_code=502,
+            detail=f"{e} — if this connection was made before Camparc could list Pages, reconnect Meta to grant that permission.",
+        )
+    return pages
+
+
+@router.post("/meta/select-page")
+async def meta_select_page(
+    body: dict,
+    workspace_id: UUID = Depends(get_workspace_id),
+    pool: asyncpg.Pool = Depends(get_pool),
+    current_user: dict = Depends(require_role("admin")),
+):
+    page_id = body.get("page_id")
+    page_name = body.get("page_name", page_id)
+    if not page_id:
+        raise HTTPException(status_code=400, detail="page_id is required")
+
+    row = await pool.fetchrow(
+        """UPDATE platform_connections SET page_id = $1, page_name = $2, updated_at = NOW()
+           WHERE workspace_id = $3 AND platform = 'meta' AND status = 'connected' RETURNING *""",
+        page_id, page_name, workspace_id,
+    )
+    if not row:
+        raise HTTPException(status_code=400, detail="Connect a Meta ad account first")
+
+    await pool.execute(
+        """INSERT INTO audit_logs (workspace_id, user_id, action, resource_type, resource_id, changes)
+           VALUES ($1, $2, 'update', 'platform_connection', NULL, $3)""",
+        workspace_id, current_user["id"], {"platform": "meta", "page_id": page_id, "page_name": page_name},
+    )
+    return _serialize(row)
+
+
 @router.delete("/{platform}")
 async def disconnect_platform(
     platform: str,

@@ -6,11 +6,12 @@ import { useRole } from '@/lib/hooks/useRole';
 import { useQueryClient } from '@tanstack/react-query';
 import { useGet, usePost, usePatch, useDelete } from '@/lib/hooks/api';
 import Link from 'next/link';
-import { ArrowLeft, Edit2, Copy, Play, Pause, Trash2, Rocket, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Edit2, Copy, Play, Pause, Trash2, Rocket, AlertTriangle, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Campaign, Taxonomy } from '@/types';
 import type { CampaignUpdatePayload } from '@/types/campaign-detail';
 import { CampaignEditModal } from '@/components/campaigns/CampaignEditModal';
+import { AdSetsPanel } from '@/components/campaigns/AdSetsPanel';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -78,6 +79,35 @@ export default function CampaignDetailPage() {
       toast.success('Deployed to Meta — created paused, ready to activate when you are');
     },
     onError: (err) => toast.error(err.message || 'Deploy failed'),
+  });
+
+  interface SyncResult {
+    days_synced: number;
+    total_spend: number;
+    total_impressions: number;
+    total_clicks: number;
+    total_conversions: number;
+    since: string;
+    until: string;
+  }
+  const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
+
+  const syncMutation = usePost<SyncResult, void>({
+    url: `/campaigns/${id}/sync-performance`,
+    body: {},
+    onSuccess: (data) => {
+      setSyncResult(data);
+      queryClient.invalidateQueries({ queryKey: ['campaign', id] });
+      // These feed the dashboard/analytics pages too — they already join
+      // against campaign_performance, so a sync here shows up there for free.
+      queryClient.invalidateQueries({ queryKey: ['analytics'] });
+      toast.success(
+        data.days_synced > 0
+          ? `Synced ${data.days_synced} day${data.days_synced === 1 ? '' : 's'} of performance data`
+          : 'Synced — no delivery recorded on Meta for this period yet',
+      );
+    },
+    onError: (err) => toast.error(err.message || 'Sync failed'),
   });
 
   const duplicateMutation = usePost<Campaign, void>({
@@ -180,6 +210,16 @@ export default function CampaignDetailPage() {
                   Deploy to Meta
                 </Button>
               )
+            )}
+            {campaign.platform === 'meta' && campaign.platform_id && (
+              <Button
+                variant="outline"
+                icon={<RefreshCw className="w-4 h-4" />}
+                loading={syncMutation.isPending}
+                onClick={() => syncMutation.mutate()}
+              >
+                Sync Performance
+              </Button>
             )}
             {campaign.status !== 'archived' && campaign.status !== 'completed' && (
               <Button variant="outline" icon={<Edit2 className="w-4 h-4" />} onClick={() => setShowEdit(true)}>
@@ -284,6 +324,26 @@ export default function CampaignDetailPage() {
                   Created as <span className="font-mono text-gray-700">{campaign.platform_id}</span> on Meta,
                   paused. Activate it in Meta Ads Manager (or here, via the Activate button) when it's ready to spend.
                 </p>
+                <div className="text-xs text-gray-400 border-t border-gray-100 pt-2">
+                  {campaign.last_synced_at
+                    ? `Performance last synced ${new Date(campaign.last_synced_at).toLocaleString(undefined, {
+                        year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+                      })}`
+                    : 'Performance never synced yet — use Sync Performance above.'}
+                </div>
+                {syncResult && (
+                  <div className="text-sm bg-gray-50 rounded-lg p-3 space-y-1">
+                    <p className="text-gray-700 font-medium">
+                      {syncResult.days_synced > 0
+                        ? `${syncResult.days_synced} day${syncResult.days_synced === 1 ? '' : 's'} synced (${syncResult.since} → ${syncResult.until})`
+                        : `No delivery recorded (${syncResult.since} → ${syncResult.until})`}
+                    </p>
+                    <p className="text-gray-500">
+                      {formatMoney(syncResult.total_spend, currencyCode)} spend · {syncResult.total_impressions.toLocaleString()} impressions
+                      · {syncResult.total_clicks.toLocaleString()} clicks · {syncResult.total_conversions.toLocaleString()} conversions
+                    </p>
+                  </div>
+                )}
               </>
             ) : campaign.platform_status === 'failed' ? (
               <>
@@ -317,6 +377,18 @@ export default function CampaignDetailPage() {
               </>
             )}
           </Card>
+        )}
+
+        {campaign.platform === 'meta' && (
+          <div className="lg:col-span-2">
+            <AdSetsPanel
+              campaignId={campaign.id}
+              platformDeployed={campaign.platform_status === 'deployed'}
+              hasCampaignBudget={!!(campaign.budget_daily || campaign.budget_total)}
+              currencyCode={currencyCode}
+              metaConnected={metaConnected}
+            />
+          </div>
         )}
 
         {Object.keys(taxonomyValues).length > 0 && (
