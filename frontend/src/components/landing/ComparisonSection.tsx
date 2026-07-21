@@ -85,6 +85,11 @@ export function ComparisonSection() {
           </div>
         </Card>
 
+        <p className="text-center text-xs text-gray-400 mt-5 italic">
+          This is Camparc&apos;s own honest read of the tradeoffs, not an independent audit of any
+          specific product.
+        </p>
+
       </div>
     </section>
   );

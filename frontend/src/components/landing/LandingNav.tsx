@@ -2,7 +2,11 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
-const NAV_LINKS = ['Why Camparc', 'How it works', 'Features'];
+const NAV_LINKS: { label: string; href: string }[] = [
+  { label: 'Why Camparc', href: '#problem' },
+  { label: 'How it works', href: '#how-it-works' },
+  { label: 'Features', href: '#features' },
+];
 
 export function LandingNav() {
   return (
@@ -13,13 +17,13 @@ export function LandingNav() {
         </Link>
 
         <div className="hidden md:flex items-center gap-8">
-          {NAV_LINKS.map((l) => (
+          {NAV_LINKS.map(({ label, href }) => (
             <a
-              key={l}
-              href={`#${l.toLowerCase().replace(/\s+/g, '-')}`}
+              key={label}
+              href={href}
               className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
             >
-              {l}
+              {label}
             </a>
           ))}
         </div>
