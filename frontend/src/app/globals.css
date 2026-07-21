@@ -112,7 +112,11 @@
 /* ── Utilities ─────────────────────────────────────────────── */
 @layer utilities {
   .primary-gradient {
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+    /* background-image (not the `background` shorthand) so this can be
+       combined with Tailwind's bg-clip-text for gradient headline text —
+       the shorthand resets background-clip back to border-box, which is
+       exactly why gradient text was rendering as a solid block before. */
+    background-image: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
   }
   .primary-gradient-soft {
     background: linear-gradient(135deg, var(--color-primary-soft) 0%, #dbeafe 100%);
@@ -138,4 +142,14 @@
   .border-bd    { border-color: var(--bd); }
   .border-bd-light { border-color: var(--bd-light); }
   .bg-input     { background-color: var(--input-bg); }
+}
+
+/* ── Animations ────────────────────────────────────────────── */
+@keyframes float-bounce {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+
+.animate-float {
+  animation: float-bounce 3s ease-in-out infinite;
 }

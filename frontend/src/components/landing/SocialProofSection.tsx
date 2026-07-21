@@ -1,103 +1,81 @@
-import { Quote } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
+import { Lock, Terminal, Server } from 'lucide-react';
 
-const METRICS = [
-  { value: '$353B', label: 'wasted globally in ad spend annually', sub: 'Source: Forrester Research, 2024' },
-  { value: '35%', label: 'of ad budgets lost to audience overlap', sub: 'Industry average across channels' },
-  { value: '80%', label: 'of analyst time spent on manual cleanup', sub: 'State of Marketing Ops, 2024' },
-  { value: '10min', label: 'average time to fully configure Camparc', sub: 'Based on beta customer data' },
-];
-
-const TESTIMONIALS = [
+const PROOF_POINTS = [
   {
-    quote: 'The audience overlap detection surfaced $40K in wasted spend in the first week. This tool pays for itself every single month — it\'s not even close.',
-    name: 'Marcus Chen',
-    role: 'Performance Director',
-    company: 'Growth Labs Agency',
-    initials: 'MC',
-    color: `var(--color-primary)`,
+    icon: Lock,
+    title: 'No autonomous spending',
+    body: 'Camparc only acts when you explicitly click. No black-box algorithms spending your budget.',
   },
   {
-    quote: 'We white-labeled it for three of our biggest clients. They think we built it in-house. Our retention improved because clients see more value from our service.',
-    name: 'Priya Nair',
-    role: 'Co-Founder',
-    company: 'Verve Media Group',
-    initials: 'PN',
-    color: '#6c5ce7',
+    icon: Terminal,
+    title: 'Real Meta error messages',
+    body: 'See the exact reason a campaign failed to deploy directly from the Meta API, not a generic "error."',
   },
   {
-    quote: 'Campaign naming errors went to zero. The taxonomy wizard saved our team hours every week. Reporting that took 2 days now takes 20 minutes.',
-    name: 'Sarah Mitchell',
-    role: 'Head of Paid Media',
-    company: 'Apex Digital',
-    initials: 'SM',
-    color: '#00b894',
+    icon: Server,
+    title: 'Self-hostable Infrastructure',
+    body: 'Deploy via Docker Compose on your own on-prem or cloud infrastructure. Your data stays yours.',
   },
 ];
 
-const TRUST_BADGES = [
-  { label: 'Data encrypted at rest & in transit', icon: '🔒' },
-  { label: 'Self-host option available', icon: '🏠' },
-  { label: 'Open-source core', icon: '🔓' },
-  { label: 'No vendor lock-in — export everything', icon: '📦' },
-  { label: 'GDPR-ready architecture', icon: '🇪🇺' },
-];
+function CodeLine({ children }: { children: React.ReactNode }) {
+  return <div className="whitespace-pre">{children}</div>;
+}
 
 export function SocialProofSection() {
   return (
-    <section className="py-20 bg-[#f8faff]">
+    <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-6">
+        <div className="grid lg:grid-cols-2 gap-14 items-center">
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-16">
-          {METRICS.map(({ value, label, sub }) => (
-            <Card key={label} variant="outlined" padding="md" className="shadow-sm text-center">
-              <p className="text-4xl font-extrabold tracking-tight mb-1" style={{ color: `var(--color-primary)` }}>{value}</p>
-              <p className="text-xs font-semibold text-gray-700 mb-1 leading-snug">{label}</p>
-              <p className="text-[10px] text-gray-400">{sub}</p>
-            </Card>
-          ))}
-        </div>
+          <div>
+            <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight mb-4">
+              Nothing here is a mockup.
+            </h2>
+            <p className="text-gray-500 text-base leading-relaxed mb-8 max-w-md">
+              Camparc is built and tested end-to-end against real Meta ad accounts — not a demo
+              environment with placeholder data.
+            </p>
 
-        <div className="text-center mb-10">
-          <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-2">
-            Teams that stopped wasting budget.
-          </h2>
-          <p className="text-gray-500 text-sm">Early adopters who standardized their operations with Camparc.</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-14">
-          {TESTIMONIALS.map(({ quote, name, role, company, initials, color }) => (
-            <Card key={name} variant="outlined" padding="lg" className="shadow-sm flex flex-col">
-              <Quote className="w-6 h-6 mb-4 flex-shrink-0" style={{ color: color + '60' }} />
-              <p className="text-gray-700 text-sm leading-relaxed flex-1 mb-5 italic">"{quote}"</p>
-              <div className="flex items-center gap-3 pt-4 border-t border-gray-50">
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-extrabold text-white flex-shrink-0"
-                  style={{ backgroundColor: color }}
-                >
-                  {initials}
+            <div className="space-y-6">
+              {PROOF_POINTS.map(({ icon: Icon, title, body }) => (
+                <div key={title} className="flex items-start gap-4">
+                  <div className="w-9 h-9 rounded-full bg-emerald-50 flex items-center justify-center flex-shrink-0">
+                    <Icon className="w-4 h-4 text-emerald-600" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-900 text-sm mb-1">{title}</p>
+                    <p className="text-gray-500 text-sm leading-relaxed">{body}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-bold text-gray-900">{name}</p>
-                  <p className="text-xs text-gray-400">{role}, {company}</p>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-
-        <Card variant="outlined" padding="lg">
-          <p className="text-center text-xs font-bold text-gray-400 uppercase tracking-wider mb-5">Security & Trust</p>
-          <div className="flex flex-wrap justify-center gap-4">
-            {TRUST_BADGES.map(({ label, icon }) => (
-              <div key={label} className="flex items-center gap-2 text-xs text-gray-600 font-medium">
-                <span className="text-base">{icon}</span>
-                {label}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </Card>
 
+          <div className="bg-[#0a1330] rounded-2xl p-7 shadow-2xl shadow-blue-100/50 overflow-x-auto">
+            <pre className="font-mono text-[12.5px] leading-relaxed">
+              <CodeLine><span className="text-emerald-400"># Docker Compose configuration</span></CodeLine>
+              <CodeLine><span className="text-gray-400">version:</span> <span className="text-blue-300">&apos;3.8&apos;</span></CodeLine>
+              <CodeLine><span className="text-gray-400">services:</span></CodeLine>
+              <CodeLine>  <span className="text-gray-200">camparc-api:</span></CodeLine>
+              <CodeLine>    <span className="text-gray-400">image:</span> <span className="text-blue-300">camparc/core:latest</span></CodeLine>
+              <CodeLine>    <span className="text-gray-400">environment:</span></CodeLine>
+              <CodeLine>      - <span className="text-blue-300">DATABASE_URL=$&#123;DATABASE_URL&#125;</span></CodeLine>
+              <CodeLine>      - <span className="text-blue-300">META_APP_ID=$&#123;META_APP_ID&#125;</span></CodeLine>
+              <CodeLine>      - <span className="text-blue-300">ENCRYPTION_KEY=$&#123;ENCRYPTION_KEY&#125;</span></CodeLine>
+              <CodeLine>    <span className="text-gray-400">networks:</span></CodeLine>
+              <CodeLine>      - <span className="text-blue-300">marketing-stack</span></CodeLine>
+              <CodeLine>&nbsp;</CodeLine>
+              <CodeLine>  <span className="text-gray-500">camparc-ui:</span></CodeLine>
+              <CodeLine>    <span className="text-gray-500">image: camparc/frontend:latest</span></CodeLine>
+              <CodeLine>    <span className="text-gray-500">ports:</span></CodeLine>
+              <CodeLine>      <span className="text-gray-500">- &quot;8080:80&quot;</span></CodeLine>
+              <CodeLine>    <span className="text-gray-500">depends_on:</span></CodeLine>
+              <CodeLine>      <span className="text-gray-500">- camparc-api</span></CodeLine>
+            </pre>
+          </div>
+
+        </div>
       </div>
     </section>
   );
