@@ -42,47 +42,48 @@ export function ComparisonSection() {
           </p>
         </div>
 
-        <Card variant="outlined" padding="none" className="overflow-hidden shadow-sm">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left px-6 py-4 text-sm font-semibold text-gray-500 bg-gray-50 w-[40%]">
-                  Features
-                </th>
-                <th className="px-6 py-4 text-center bg-primary/5 border-l border-r border-blue-100">
-                  <span className="text-sm font-extrabold text-primary">Camparc</span>
-                </th>
-                <th className="px-6 py-4 text-center bg-gray-50 text-sm font-semibold text-gray-500">
-                  Manual (Meta UI)
-                </th>
-                <th className="px-6 py-4 text-center bg-gray-50 text-sm font-semibold text-gray-500">
-                  AI Agents
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {ROWS.map(({ feature, camparc, manual, agent }) => (
-                <tr key={feature} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-6 py-4 text-sm text-gray-700 font-medium">{feature}</td>
-                  <td className="px-6 py-4 text-center bg-primary/[0.03] border-l border-r border-blue-100/50">
-                    <Cell value={camparc} />
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <Cell value={manual} />
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <Cell value={agent} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Card>
-
-        <p className="text-center text-xs text-gray-400 mt-5 italic">
-          This is Camparc&apos;s own honest read of the tradeoffs, not an independent audit of any
-          specific product.
+        <p className="sm:hidden text-center text-xs text-gray-400 mb-2">
+          Swipe to see all columns →
         </p>
+
+        <Card variant="outlined" padding="none" className="overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[560px]">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="sticky left-0 z-10 text-left px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-semibold text-gray-500 bg-gray-50 w-[34%] sm:w-[40%]">
+                    Features
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-center bg-primary/5 border-l border-r border-blue-100">
+                    <span className="text-xs sm:text-sm font-extrabold text-primary">Camparc</span>
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-center bg-gray-50 text-xs sm:text-sm font-semibold text-gray-500 whitespace-nowrap">
+                    Manual (Meta UI)
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-center bg-gray-50 text-xs sm:text-sm font-semibold text-gray-500 whitespace-nowrap">
+                    AI Agents
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {ROWS.map(({ feature, camparc, manual, agent }) => (
+                  <tr key={feature} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="sticky left-0 z-10 bg-white px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-700 font-medium">{feature}</td>
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 text-center bg-primary/[0.03] border-l border-r border-blue-100/50">
+                      <Cell value={camparc} />
+                    </td>
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 text-center">
+                      <Cell value={manual} />
+                    </td>
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 text-center">
+                      <Cell value={agent} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
 
       </div>
     </section>
