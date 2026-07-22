@@ -94,18 +94,18 @@ export function Header() {
           {menuOpen && (
             <div className="absolute right-0 top-12 z-50 w-56 rounded-2xl overflow-hidden"
               style={{
-                background: darkMode ? '#1e1e38' : '#ffffff',
-                border: darkMode ? '1px solid #252545' : '1px solid #d1d5db',
+                background: 'var(--card)',
+                border: '1px solid var(--bd)',
                 boxShadow: '0 12px 40px rgba(0,0,0,0.18), 0 3px 12px rgba(0,0,0,0.10)',
               }}
             >
               <div className="px-4 py-3"
-                style={{ borderBottom: darkMode ? '1px solid #252545' : '1px solid #e5e7eb' }}
+                style={{ borderBottom: '1px solid var(--bd-light)' }}
               >
-                <p className="text-sm font-semibold" style={{ color: darkMode ? '#eef0f8' : '#1a1a2e' }}>
+                <p className="text-sm font-semibold" style={{ color: 'var(--t1)' }}>
                   {user?.name}
                 </p>
-                <p className="text-xs truncate mt-0.5" style={{ color: darkMode ? '#8892a4' : '#6b7280' }}>
+                <p className="text-xs truncate mt-0.5" style={{ color: 'var(--t2)' }}>
                   {user?.email || ''}
                 </p>
               </div>
@@ -116,8 +116,8 @@ export function Header() {
                   onClick={() => dispatch(toggleDarkMode())}
                   icon={darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
                   className="w-full justify-start gap-2.5 px-3 py-2.5 text-sm rounded-xl transition-colors font-normal h-auto hover:bg-transparent"
-                  style={{ color: darkMode ? '#8892a4' : '#374151' }}
-                  onMouseEnter={e => (e.currentTarget.style.background = darkMode ? 'rgba(108,92,231,0.18)' : '#f0effe')}
+                  style={{ color: 'var(--t2)' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-primary-soft)')}
                   onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                 >
                   {darkMode ? 'Light mode' : 'Dark mode'}
@@ -127,7 +127,7 @@ export function Header() {
                   onClick={signOut}
                   icon={<LogOut className="w-4 h-4" />}
                   className="w-full justify-start gap-2.5 px-3 py-2.5 text-sm rounded-xl transition-colors font-medium text-red-500 h-auto hover:bg-transparent hover:text-red-500"
-                  onMouseEnter={e => (e.currentTarget.style.background = darkMode ? 'rgba(239,68,68,0.12)' : '#fef2f2')}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239, 68, 68, 0.12)')}
                   onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                 >
                   Sign Out

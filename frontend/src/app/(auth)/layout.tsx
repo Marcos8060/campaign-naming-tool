@@ -32,22 +32,22 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </p>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-8 bg-[#f0f5ff]">
+      <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-8 bg-surface-fixed">
         <div className="w-full max-w-lg">
           <div className="flex items-center gap-2.5 justify-center mb-8 lg:hidden">
             <div className="w-9 h-9 rounded-full primary-gradient flex-shrink-0" />
-            <span className="font-extrabold text-[#0f1c3f] text-xl">Camparc</span>
+            <span className="font-extrabold text-t1-fixed text-xl">Camparc</span>
           </div>
 
-          <div className="rounded-2xl shadow-xl p-8 md:p-10 border border-[#dde5f4] bg-white">
+          <div className="rounded-2xl shadow-xl p-8 md:p-10 border border-bd-fixed bg-card-fixed">
             {children}
           </div>
 
           <div className="flex items-center justify-center gap-6 mt-6">
-            <a href="/security" className="text-xs font-medium text-[#9ca3af] hover:text-[#6b7280] transition-colors">
+            <a href="/security" className="text-xs font-medium text-t3-fixed hover:text-t2-fixed transition-colors">
               Security Policy
             </a>
-            <a href="/contact" className="text-xs font-medium text-[#9ca3af] hover:text-[#6b7280] transition-colors">
+            <a href="/contact" className="text-xs font-medium text-t3-fixed hover:text-t2-fixed transition-colors">
               Contact Support
             </a>
           </div>

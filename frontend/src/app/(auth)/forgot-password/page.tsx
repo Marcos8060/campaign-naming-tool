@@ -17,7 +17,7 @@ export default function ForgotPasswordPage() {
     url: '/auth/forgot-password',
   });
 
-  const inputCls = `rounded-xl py-3 text-[#0f1c3f] placeholder:text-[#9ca3af]
+  const inputCls = `rounded-xl py-3 text-t1-fixed placeholder:text-t3-fixed
     focus:border-brand focus:ring-brand/20 transition-all`;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,9 +42,9 @@ export default function ForgotPasswordPage() {
         <div className="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-5">
           <MailCheck className="w-6 h-6 text-emerald-600" />
         </div>
-        <h2 className="text-2xl font-extrabold text-[#0f1c3f] mb-2">Check your email</h2>
-        <p className="text-[#6b7280] text-sm leading-relaxed mb-8">
-          If an account exists for <span className="font-semibold text-[#0f1c3f]">{email}</span>,
+        <h2 className="text-2xl font-extrabold text-t1-fixed mb-2">Check your email</h2>
+        <p className="text-t2-fixed text-sm leading-relaxed mb-8">
+          If an account exists for <span className="font-semibold text-t1-fixed">{email}</span>,
           we&apos;ve sent a link to reset your password. It expires in 1 hour.
         </p>
         <Link
@@ -60,19 +60,19 @@ export default function ForgotPasswordPage() {
 
   return (
     <>
-      <h2 className="text-3xl font-extrabold text-[#0f1c3f] mb-1.5">Forgot password?</h2>
-      <p className="text-[#6b7280] text-base mb-8">
+      <h2 className="text-3xl font-extrabold text-t1-fixed mb-1.5">Forgot password?</h2>
+      <p className="text-t2-fixed text-base mb-8">
         Enter the email on your account and we&apos;ll send you a reset link.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label className="block text-xs font-bold text-[#6b7280] uppercase tracking-wider mb-2">Email</label>
+          <label className="block text-xs font-bold text-t2-fixed uppercase tracking-wider mb-2">Email</label>
           <Input
             type="email" required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            style={{ backgroundColor: '#f5f8ff', borderColor: '#dde5f4' }}
+            style={{ backgroundColor: 'var(--input-fixed)', borderColor: 'var(--bd-fixed)' }}
             className={inputCls}
             placeholder="you@company.com"
           />
@@ -88,7 +88,7 @@ export default function ForgotPasswordPage() {
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-[#6b7280]">
+      <p className="mt-6 text-center text-sm text-t2-fixed">
         <Link href="/login" className="inline-flex items-center gap-1.5 font-semibold text-primary hover:underline">
           <ArrowLeft className="w-3.5 h-3.5" />
           Back to sign in

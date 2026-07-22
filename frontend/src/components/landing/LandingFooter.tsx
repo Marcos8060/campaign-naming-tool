@@ -24,7 +24,7 @@ const EXPORT_PLATFORMS = 'Google Ads, TikTok, DV360, LinkedIn';
 
 export function LandingFooter() {
   return (
-    <footer className="bg-[#080f1f] text-gray-400">
+    <footer className="bg-navy-darker text-gray-400">
       <div className="max-w-7xl mx-auto px-6 pt-14 pb-8">
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">

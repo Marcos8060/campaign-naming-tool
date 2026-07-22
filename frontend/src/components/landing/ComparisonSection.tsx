@@ -30,7 +30,7 @@ function Cell({ value }: { value: CellValue }) {
 
 export function ComparisonSection() {
   return (
-    <section id="compare" className="py-20 bg-[#f8faff]">
+    <section id="compare" className="py-20 bg-landing-surface">
       <div className="max-w-5xl mx-auto px-6">
 
         <div className="max-w-2xl mx-auto text-center mb-12">

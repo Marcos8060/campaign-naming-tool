@@ -31,7 +31,7 @@ function ResetPasswordForm() {
   const pwColors = ['', 'bg-red-400', 'bg-amber-400', 'bg-positive'];
   const pwLabels = ['', 'Too short', 'Good', 'Strong'];
 
-  const inputCls = `rounded-xl py-3 text-[#0f1c3f] placeholder:text-[#9ca3af]
+  const inputCls = `rounded-xl py-3 text-t1-fixed placeholder:text-t3-fixed
     focus:border-brand focus:ring-brand/20 transition-all`;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,8 +55,8 @@ function ResetPasswordForm() {
         <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-5">
           <AlertTriangle className="w-6 h-6 text-red-500" />
         </div>
-        <h2 className="text-2xl font-extrabold text-[#0f1c3f] mb-2">Invalid reset link</h2>
-        <p className="text-[#6b7280] text-sm leading-relaxed mb-8">
+        <h2 className="text-2xl font-extrabold text-t1-fixed mb-2">Invalid reset link</h2>
+        <p className="text-t2-fixed text-sm leading-relaxed mb-8">
           This link is missing its reset token. Request a new one below.
         </p>
         <Link
@@ -75,8 +75,8 @@ function ResetPasswordForm() {
         <div className="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-5">
           <CheckCircle2 className="w-6 h-6 text-emerald-600" />
         </div>
-        <h2 className="text-2xl font-extrabold text-[#0f1c3f] mb-2">Password updated</h2>
-        <p className="text-[#6b7280] text-sm leading-relaxed mb-8">
+        <h2 className="text-2xl font-extrabold text-t1-fixed mb-2">Password updated</h2>
+        <p className="text-t2-fixed text-sm leading-relaxed mb-8">
           You can now sign in with your new password.
         </p>
         <Button
@@ -93,12 +93,12 @@ function ResetPasswordForm() {
 
   return (
     <>
-      <h2 className="text-3xl font-extrabold text-[#0f1c3f] mb-1.5">Set a new password</h2>
-      <p className="text-[#6b7280] text-base mb-8">Choose a new password for your account.</p>
+      <h2 className="text-3xl font-extrabold text-t1-fixed mb-1.5">Set a new password</h2>
+      <p className="text-t2-fixed text-base mb-8">Choose a new password for your account.</p>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label className="block text-xs font-bold text-[#6b7280] uppercase tracking-wider mb-2">
+          <label className="block text-xs font-bold text-t2-fixed uppercase tracking-wider mb-2">
             New password
           </label>
           <div className="relative">
@@ -106,7 +106,7 @@ function ResetPasswordForm() {
               type={showPw ? 'text' : 'password'} required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              style={{ backgroundColor: '#f5f8ff', borderColor: '#dde5f4' }}
+              style={{ backgroundColor: 'var(--input-fixed)', borderColor: 'var(--bd-fixed)' }}
               className={`${inputCls} pr-10`}
               placeholder="8+ characters"
             />
@@ -115,7 +115,7 @@ function ResetPasswordForm() {
               variant="text"
               size="icon"
               onClick={() => setShowPw(!showPw)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9ca3af] hover:text-[#6b7280]"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-t3-fixed hover:text-t2-fixed"
             >
               {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </Button>
@@ -124,7 +124,7 @@ function ResetPasswordForm() {
             <div className="mt-2">
               <div className="flex gap-1">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${pwStrength >= i ? pwColors[pwStrength] : 'bg-[#dde5f4]'}`} />
+                  <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${pwStrength >= i ? pwColors[pwStrength] : 'bg-[var(--bd-fixed)]'}`} />
                 ))}
               </div>
               <p className={`text-xs mt-1 font-medium ${pwStrength === 3 ? 'text-positive' : pwStrength === 2 ? 'text-amber-500' : 'text-red-400'}`}>
@@ -135,14 +135,14 @@ function ResetPasswordForm() {
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-[#6b7280] uppercase tracking-wider mb-2">
+          <label className="block text-xs font-bold text-t2-fixed uppercase tracking-wider mb-2">
             Confirm password
           </label>
           <Input
             type={showPw ? 'text' : 'password'} required
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            style={{ backgroundColor: '#f5f8ff', borderColor: '#dde5f4' }}
+            style={{ backgroundColor: 'var(--input-fixed)', borderColor: 'var(--bd-fixed)' }}
             className={inputCls}
             placeholder="Retype your new password"
           />

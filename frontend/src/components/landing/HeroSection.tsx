@@ -77,7 +77,7 @@ export function HeroSection() {
                   </div>
                 </div>
 
-                <div className="p-4 space-y-3.5 bg-[#f5f8ff]">
+                <div className="p-4 space-y-3.5 bg-input">
                   <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
                     <div className="flex items-center justify-between mb-2.5">
                       <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Live Name Preview</p>

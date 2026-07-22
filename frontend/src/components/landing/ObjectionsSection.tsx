@@ -21,7 +21,7 @@ const OBJECTIONS = [
 
 export function ObjectionsSection() {
   return (
-    <section className="py-20 bg-[#f8faff]">
+    <section className="py-20 bg-landing-surface">
       <div className="max-w-4xl mx-auto px-6">
 
         <div className="text-center mb-12">
