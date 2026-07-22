@@ -1,21 +1,22 @@
-from fastapi import APIRouter, HTTPException, status, Depends
-from pydantic import BaseModel
-from uuid import UUID, uuid4
-from datetime import datetime, timedelta
-import asyncpg
 import logging
+from datetime import datetime, timedelta
+from uuid import UUID, uuid4
 
-from src.core.security import (
-    hash_password,
-    verify_password,
-    create_access_token,
-    generate_reset_token,
-    hash_reset_token,
-)
-from src.core.email import send_password_reset_email
-from src.db.session import get_pool
+import asyncpg
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+
 from src.api.deps import get_current_user
 from src.config import settings
+from src.core.email import send_password_reset_email
+from src.core.security import (
+    create_access_token,
+    generate_reset_token,
+    hash_password,
+    hash_reset_token,
+    verify_password,
+)
+from src.db.session import get_pool
 
 router = APIRouter()
 logger = logging.getLogger(__name__)

@@ -322,7 +322,7 @@ export default function CampaignDetailPage() {
                 </div>
                 <p className="text-sm text-gray-500">
                   Created as <span className="font-mono text-gray-700">{campaign.platform_id}</span> on Meta,
-                  paused. Activate it in Meta Ads Manager (or here, via the Activate button) when it's ready to spend.
+                  paused. Activate it in Meta Ads Manager (or here, via the Activate button) when it&apos;s ready to spend.
                 </p>
                 <div className="text-xs text-gray-400 border-t border-gray-100 pt-2">
                   {campaign.last_synced_at

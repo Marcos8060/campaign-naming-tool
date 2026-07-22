@@ -1,0 +1,38 @@
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+# F = pyflakes (undefined names, unused imports/vars) — real correctness bugs.
+# CI's blocking step only runs `ruff check --select F`; the rest (E/W style,
+# I import-sorting) is useful signal but not a hard gate yet, since the
+# codebase has a backlog of long-line/style debt that isn't worth mass-editing
+# in one pass. Fix opportunistically; tighten the CI gate once that backlog
+# is actually gone.
+select = ["E", "F", "W", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+# Long inline CSS/HTML strings in email templates don't wrap sensibly.
+"src/core/email.py" = ["E501"]
+
+# `B` (flake8-bugbear) isn't in `select` above, so this has no effect yet —
+# left here for when bugbear gets turned on. FastAPI's DI pattern is
+# `param: Type = Depends(get_x)`; a function call in an argument default is
+# exactly how Depends/Query/Path/Body/Header/File are meant to be used, not
+# the mutable-default footgun B008 exists to catch. Without this, enabling
+# `B` would flag ~180 idiomatic FastAPI signatures as false positives.
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = [
+  "fastapi.Depends", "fastapi.Query", "fastapi.Path",
+  "fastapi.Body", "fastapi.Header", "fastapi.File", "fastapi.Form",
+]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+# Type hints aren't used consistently across the codebase yet — start
+# permissive so CI catches real type errors without drowning in noise from
+# untyped legacy code; tighten (disallow_untyped_defs, etc.) incrementally.
+check_untyped_defs = true
+warn_unused_ignores = true
+warn_redundant_casts = true

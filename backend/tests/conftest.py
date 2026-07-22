@@ -115,7 +115,7 @@ async def client():
     """ASGI test client with a clean mock pool."""
     mock_pool = build_mock_pool()
     with patch("src.db.session.get_pool", return_value=mock_pool), \
-         patch("src.db.session._pool", mock_pool):
+         patch("src.db.session.pool", mock_pool):
         async with AsyncClient(
             transport=ASGITransport(app=app), base_url="http://test"
         ) as ac:

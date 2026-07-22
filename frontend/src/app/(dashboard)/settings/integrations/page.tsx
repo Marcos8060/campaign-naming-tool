@@ -237,7 +237,7 @@ export default function IntegrationsPage() {
         <Card variant="outlined" padding="lg" className="space-y-3">
           <h3 className="font-semibold text-gray-900">Default Facebook Page</h3>
           <p className="text-sm text-gray-500">
-            Every Meta ad is attributed to a Page — that's a Meta requirement, not a Camparc setting.
+            Every Meta ad is attributed to a Page — that&apos;s a Meta requirement, not a Camparc setting.
             {metaConnection.page_name ? ` Currently using "${metaConnection.page_name}".` : ' Pick one below to enable creating ads.'}
           </p>
           {pagesError && (

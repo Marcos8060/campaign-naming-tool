@@ -52,7 +52,7 @@ export function SocialProofSection() {
             </div>
           </div>
 
-          <div className="bg-[#0a1330] rounded-2xl p-7 shadow-2xl shadow-blue-100/50 overflow-x-auto">
+          <div className="bg-navy-dark rounded-2xl p-7 shadow-2xl shadow-blue-100/50 overflow-x-auto">
             <pre className="font-mono text-[12.5px] leading-relaxed">
               <CodeLine><span className="text-emerald-400"># Docker Compose configuration</span></CodeLine>
               <CodeLine><span className="text-gray-400">version:</span> <span className="text-blue-300">&apos;3.8&apos;</span></CodeLine>
@@ -60,9 +60,9 @@ export function SocialProofSection() {
               <CodeLine>  <span className="text-gray-200">camparc-api:</span></CodeLine>
               <CodeLine>    <span className="text-gray-400">image:</span> <span className="text-blue-300">camparc/core:latest</span></CodeLine>
               <CodeLine>    <span className="text-gray-400">environment:</span></CodeLine>
-              <CodeLine>      - <span className="text-blue-300">DATABASE_URL=$&#123;DATABASE_URL&#125;</span></CodeLine>
-              <CodeLine>      - <span className="text-blue-300">META_APP_ID=$&#123;META_APP_ID&#125;</span></CodeLine>
-              <CodeLine>      - <span className="text-blue-300">ENCRYPTION_KEY=$&#123;ENCRYPTION_KEY&#125;</span></CodeLine>
+              <CodeLine>      - <span className="text-blue-300">DATABASE_URL=${'{'}DATABASE_URL{'}'}</span></CodeLine>
+              <CodeLine>      - <span className="text-blue-300">META_APP_ID=${'{'}META_APP_ID{'}'}</span></CodeLine>
+              <CodeLine>      - <span className="text-blue-300">ENCRYPTION_KEY=${'{'}ENCRYPTION_KEY{'}'}</span></CodeLine>
               <CodeLine>    <span className="text-gray-400">networks:</span></CodeLine>
               <CodeLine>      - <span className="text-blue-300">marketing-stack</span></CodeLine>
               <CodeLine>&nbsp;</CodeLine>

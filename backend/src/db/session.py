@@ -1,7 +1,9 @@
-import asyncpg
 import json
-from src.config import settings
 import re
+
+import asyncpg
+
+from src.config import settings
 
 pool: asyncpg.Pool | None = None
 

@@ -1,5 +1,4 @@
 from fastapi import APIRouter
-from src.db.session import get_pool
 
 router = APIRouter()
 

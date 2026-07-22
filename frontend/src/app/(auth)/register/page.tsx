@@ -47,25 +47,25 @@ export default function RegisterPage() {
     }
   };
 
-  const inputCls = `rounded-xl py-2.5 text-[#0f1c3f] placeholder:text-[#9ca3af]
+  const inputCls = `rounded-xl py-2.5 text-t1-fixed placeholder:text-t3-fixed
     focus:border-brand focus:ring-brand/20 transition-all`;
 
   return (
     <>
-      <h2 className="text-2xl font-extrabold text-[#0f1c3f] mb-1">Create your workspace</h2>
-      <p className="text-[#6b7280] text-sm mb-7">Get started with Camparc in under 2 minutes</p>
+      <h2 className="text-2xl font-extrabold text-t1-fixed mb-1">Create your workspace</h2>
+      <p className="text-t2-fixed text-sm mb-7">Get started with Camparc in under 2 minutes</p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {FIELDS.map(({ key, label, type, placeholder }) => (
           <div key={key}>
-            <label className="block text-sm font-semibold text-[#0f1c3f] mb-1.5">{label}</label>
+            <label className="block text-sm font-semibold text-t1-fixed mb-1.5">{label}</label>
             <div className="relative">
               <Input
                 type={key === 'password' ? (showPw ? 'text' : 'password') : type}
                 required
                 value={form[key as keyof typeof form]}
                 onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                style={{ backgroundColor: '#f5f8ff', borderColor: '#dde5f4' }}
+                style={{ backgroundColor: 'var(--input-fixed)', borderColor: 'var(--bd-fixed)' }}
                 className={`${inputCls} ${key === 'password' ? 'pr-10' : ''}`}
                 placeholder={placeholder}
               />
@@ -75,7 +75,7 @@ export default function RegisterPage() {
                   variant="text"
                   size="icon"
                   onClick={() => setShowPw(!showPw)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9ca3af] hover:text-[#6b7280]"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-t3-fixed hover:text-t2-fixed"
                 >
                   {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </Button>
@@ -85,7 +85,7 @@ export default function RegisterPage() {
               <div className="mt-2">
                 <div className="flex gap-1">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${pwStrength >= i ? pwColors[pwStrength] : 'bg-[#dde5f4]'}`} />
+                    <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${pwStrength >= i ? pwColors[pwStrength] : 'bg-[var(--bd-fixed)]'}`} />
                   ))}
                 </div>
                 <p className={`text-xs mt-1 font-medium ${pwStrength === 3 ? 'text-positive' : pwStrength === 2 ? 'text-amber-500' : 'text-red-400'}`}>
@@ -98,7 +98,7 @@ export default function RegisterPage() {
 
         <div className="flex items-start gap-2 pt-1">
           <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-          <p className="text-xs text-[#6b7280]">
+          <p className="text-xs text-t2-fixed">
             By creating an account you agree to our Terms of Service and Privacy Policy.
           </p>
         </div>
@@ -113,7 +113,7 @@ export default function RegisterPage() {
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-[#6b7280]">
+      <p className="mt-6 text-center text-sm text-t2-fixed">
         Already have an account?{' '}
         <Link href="/login" className="text-primary font-semibold hover:underline">Sign in</Link>
       </p>

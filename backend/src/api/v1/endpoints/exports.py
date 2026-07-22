@@ -1,11 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import StreamingResponse
-from uuid import UUID
-from typing import List, Optional
-import asyncpg
 import csv
 import io
-import json
+from uuid import UUID
+
+import asyncpg
+from fastapi import APIRouter, Depends
+from fastapi.responses import StreamingResponse
 
 from src.api.deps import get_current_user, get_workspace_id
 from src.db.session import get_pool
