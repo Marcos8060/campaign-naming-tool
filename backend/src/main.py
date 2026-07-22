@@ -1,13 +1,14 @@
+import logging
+import os
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from contextlib import asynccontextmanager
-import logging
-import os
 
-from src.config import settings
 from src.api.v1.router import api_router
-from src.db.session import init_db, close_db
+from src.config import settings
+from src.db.session import close_db, init_db
 from src.services.scheduler import start_scheduler, stop_scheduler
 
 # Without this, Python's root logger defaults to WARNING — every

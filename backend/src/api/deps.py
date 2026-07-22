@@ -1,8 +1,8 @@
-from fastapi import Depends, HTTPException, status, Header
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from typing import Optional
 from uuid import UUID
+
 import asyncpg
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from src.core.security import verify_token
 from src.db.session import get_pool

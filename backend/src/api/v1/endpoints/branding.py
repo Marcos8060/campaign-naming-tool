@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
-from uuid import UUID
-import asyncpg
-import aiofiles
 import os
+from uuid import UUID
+
+import aiofiles
+import asyncpg
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
 from src.api.deps import get_current_user, require_role
 from src.db.session import get_pool

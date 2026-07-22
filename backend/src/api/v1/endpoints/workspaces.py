@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
 from uuid import UUID
-import asyncpg
 
-from src.api.deps import get_current_user, get_workspace_id, require_role
+import asyncpg
+from fastapi import APIRouter, Depends, HTTPException
+
+from src.api.deps import get_workspace_id, require_role
 from src.db.session import get_pool
 
 router = APIRouter()

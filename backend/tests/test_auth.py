@@ -2,11 +2,11 @@
 Tests for /api/v1/auth endpoints.
 """
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock
 from uuid import uuid4
 
 from src.core.security import hash_password, verify_token
-from .conftest import make_user, make_workspace, build_mock_pool, WORKSPACE_ID, USER_ID
+from .conftest import make_user, make_workspace
 
 
 # ── Security unit tests ───────────────────────────────────────────────────────
@@ -63,7 +63,7 @@ class TestConfig:
         import logging
         from src.config import Settings
         with caplog.at_level(logging.WARNING, logger="src.config"):
-            s = Settings(jwt_secret="short")
+            Settings(jwt_secret="short")
         assert any("too short" in r.message.lower() for r in caplog.records)
 
     def test_missing_secret_generates_one(self):
@@ -87,9 +87,8 @@ class TestRegister:
         ]
         pool._conn.fetchrow.side_effect = [
             None,   # existing slug check
-            MagicMock(**{k: ws[k] for k in ws}, __getitem__=lambda s, k: ws[k]),  # workspace insert
-            MagicMock(**{k: user[k] for k in ["id","workspace_id","email","name","role"]},
-                       __getitem__=lambda s, k: user[k]),  # user insert
+            ws,  # workspace insert
+            {k: user[k] for k in ["id", "workspace_id", "email", "name", "role"]},  # user insert
         ]
         pool._conn.execute = AsyncMock(return_value="OK")
 
@@ -142,9 +141,7 @@ class TestLogin:
     async def test_wrong_password_returns_401(self, client):
         ac, pool = client
         user = make_user()
-        pool.fetchrow.return_value = MagicMock(
-            **user, __getitem__=lambda s, k: user[k]
-        )
+        pool.fetchrow.return_value = user
         resp = await ac.post("/api/v1/auth/login", json={
             "email": user["email"],
             "password": "WrongPassword999",
@@ -167,17 +164,15 @@ class TestLogin:
 
 @pytest.mark.asyncio
 class TestGetMe:
-    async def test_unauthenticated_returns_401(self, client):
+    async def test_unauthenticated_returns_403(self, client):
         ac, _ = client
         resp = await ac.get("/api/v1/auth/me")
-        assert resp.status_code == 401
+        assert resp.status_code == 403  # HTTPBearer returns 403 when no creds
 
     async def test_authenticated_returns_user(self, client, auth_headers):
         ac, pool = client
         user = make_user()
-        pool.fetchrow.return_value = MagicMock(
-            **user, __getitem__=lambda s, k: user[k]
-        )
+        pool.fetchrow.return_value = user
         resp = await ac.get("/api/v1/auth/me", headers=auth_headers)
         # 200 or 500 (if pool mock doesn't fully satisfy deps)
         assert resp.status_code in (200, 500)

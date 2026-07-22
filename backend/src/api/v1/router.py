@@ -1,5 +1,20 @@
 from fastapi import APIRouter
-from src.api.v1.endpoints import auth, workspaces, users, taxonomies, campaigns, analytics, platforms, exports, assets, branding, health, integrations, ad_sets
+
+from src.api.v1.endpoints import (
+    ad_sets,
+    analytics,
+    assets,
+    auth,
+    branding,
+    campaigns,
+    exports,
+    health,
+    integrations,
+    platforms,
+    taxonomies,
+    users,
+    workspaces,
+)
 
 api_router = APIRouter()
 

@@ -2,15 +2,16 @@
 Tests for /api/v1/campaigns endpoints.
 """
 import pytest
-from unittest.mock import AsyncMock, MagicMock
-from uuid import uuid4, UUID
+from uuid import uuid4
 
-from .conftest import make_campaign, make_user, build_mock_pool, WORKSPACE_ID, USER_ID
+from .conftest import make_campaign, make_user, WORKSPACE_ID
 
 
 def _mock_campaign_row(c: dict):
-    """Wrap a campaign dict in a MagicMock that behaves like an asyncpg Record."""
-    return MagicMock(**c, __getitem__=lambda s, k: c[k])
+    """asyncpg Record stand-in. Endpoint code only ever does row["x"] or
+    dict(row) on what fetchrow/fetch return — a plain dict already satisfies
+    both, no Mapping-emulating mock needed."""
+    return c
 
 
 def _dict_items(c: dict):
@@ -28,7 +29,7 @@ class TestListCampaigns:
         pool.fetch.return_value = []
         # fetchrow for get_current_user
         user = make_user()
-        pool.fetchrow.return_value = MagicMock(**user, __getitem__=lambda s, k: user[k])
+        pool.fetchrow.return_value = user
 
         resp = await ac.get("/api/v1/campaigns", headers=auth_headers)
         assert resp.status_code == 200
@@ -45,7 +46,7 @@ class TestListCampaigns:
         ac, pool = client
         campaign = make_campaign()
         user = make_user()
-        pool.fetchrow.return_value = MagicMock(**user, __getitem__=lambda s, k: user[k])
+        pool.fetchrow.return_value = user
         pool.fetchval.return_value = 1
         pool.fetch.return_value = [_mock_campaign_row(campaign)]
 
@@ -59,7 +60,7 @@ class TestListCampaigns:
     async def test_filters_by_platform(self, client, auth_headers):
         ac, pool = client
         user = make_user()
-        pool.fetchrow.return_value = MagicMock(**user, __getitem__=lambda s, k: user[k])
+        pool.fetchrow.return_value = user
         pool.fetchval.return_value = 0
         pool.fetch.return_value = []
 
@@ -69,7 +70,7 @@ class TestListCampaigns:
     async def test_invalid_sort_falls_back_to_created_at(self, client, auth_headers):
         ac, pool = client
         user = make_user()
-        pool.fetchrow.return_value = MagicMock(**user, __getitem__=lambda s, k: user[k])
+        pool.fetchrow.return_value = user
         pool.fetchval.return_value = 0
         pool.fetch.return_value = []
 
@@ -80,7 +81,7 @@ class TestListCampaigns:
     async def test_limit_capped_at_200(self, client, auth_headers):
         ac, pool = client
         user = make_user()
-        pool.fetchrow.return_value = MagicMock(**user, __getitem__=lambda s, k: user[k])
+        pool.fetchrow.return_value = user
         pool.fetchval.return_value = 0
         pool.fetch.return_value = []
 
@@ -96,7 +97,7 @@ class TestCreateCampaign:
     async def test_viewer_cannot_create(self, client, viewer_headers):
         ac, pool = client
         viewer = make_user(role="viewer")
-        pool.fetchrow.return_value = MagicMock(**viewer, __getitem__=lambda s, k: viewer[k])
+        pool.fetchrow.return_value = viewer
 
         resp = await ac.post(
             "/api/v1/campaigns",
@@ -110,7 +111,7 @@ class TestCreateCampaign:
         user = make_user(role="admin")
         campaign = make_campaign()
         pool.fetchrow.side_effect = [
-            MagicMock(**user, __getitem__=lambda s, k: user[k]),   # get_current_user
+            user,   # get_current_user
             _mock_campaign_row(campaign),                           # INSERT RETURNING
         ]
         pool.execute.return_value = "INSERT 1"
@@ -138,7 +139,7 @@ class TestCreateCampaign:
         manager = make_user(role="manager", id=manager_id)
         campaign = make_campaign()
         pool.fetchrow.side_effect = [
-            MagicMock(**manager, __getitem__=lambda s, k: manager[k]),
+            manager,
             _mock_campaign_row(campaign),
         ]
         pool.execute.return_value = "INSERT 1"
@@ -159,7 +160,7 @@ class TestGetCampaign:
         ac, pool = client
         user = make_user()
         pool.fetchrow.side_effect = [
-            MagicMock(**user, __getitem__=lambda s, k: user[k]),  # get_current_user
+            user,  # get_current_user
             None,  # campaign not found
         ]
 
@@ -171,7 +172,7 @@ class TestGetCampaign:
         user = make_user()
         campaign = make_campaign()
         pool.fetchrow.side_effect = [
-            MagicMock(**user, __getitem__=lambda s, k: user[k]),
+            user,
             _mock_campaign_row(campaign),
         ]
 
@@ -192,7 +193,7 @@ class TestUpdateCampaign:
     async def test_no_valid_fields_returns_400(self, client, auth_headers):
         ac, pool = client
         user = make_user()
-        pool.fetchrow.return_value = MagicMock(**user, __getitem__=lambda s, k: user[k])
+        pool.fetchrow.return_value = user
 
         resp = await ac.patch(
             f"/api/v1/campaigns/{uuid4()}",
@@ -206,7 +207,7 @@ class TestUpdateCampaign:
         ac, pool = client
         user = make_user()
         pool.fetchrow.side_effect = [
-            MagicMock(**user, __getitem__=lambda s, k: user[k]),  # get_current_user
+            user,  # get_current_user
             None,  # UPDATE RETURNING → not found
         ]
 
@@ -222,7 +223,7 @@ class TestUpdateCampaign:
         user = make_user()
         campaign = make_campaign(status="active")
         pool.fetchrow.side_effect = [
-            MagicMock(**user, __getitem__=lambda s, k: user[k]),
+            user,
             _mock_campaign_row(campaign),
         ]
 
@@ -236,7 +237,7 @@ class TestUpdateCampaign:
     async def test_viewer_cannot_update(self, client, viewer_headers):
         ac, pool = client
         viewer = make_user(role="viewer")
-        pool.fetchrow.return_value = MagicMock(**viewer, __getitem__=lambda s, k: viewer[k])
+        pool.fetchrow.return_value = viewer
 
         resp = await ac.patch(
             f"/api/v1/campaigns/{uuid4()}",
@@ -253,7 +254,7 @@ class TestChangeStatus:
     async def test_invalid_status_returns_400(self, client, auth_headers):
         ac, pool = client
         user = make_user()
-        pool.fetchrow.return_value = MagicMock(**user, __getitem__=lambda s, k: user[k])
+        pool.fetchrow.return_value = user
 
         resp = await ac.patch(
             f"/api/v1/campaigns/{uuid4()}/status",
@@ -268,7 +269,7 @@ class TestChangeStatus:
             user = make_user()
             campaign = make_campaign(status=new_status)
             pool.fetchrow.side_effect = [
-                MagicMock(**user, __getitem__=lambda s, k: user[k]),
+                user,
                 _mock_campaign_row(campaign),
             ]
             resp = await ac.patch(
@@ -289,7 +290,7 @@ class TestDuplicateCampaign:
         original = make_campaign(name="Original Campaign")
         copy = make_campaign(name="Copy of Original Campaign")
         pool.fetchrow.side_effect = [
-            MagicMock(**user, __getitem__=lambda s, k: user[k]),   # get_current_user
+            user,   # get_current_user
             _mock_campaign_row(original),                           # SELECT original
             _mock_campaign_row(copy),                               # INSERT copy
         ]
@@ -304,7 +305,7 @@ class TestDuplicateCampaign:
         ac, pool = client
         user = make_user()
         pool.fetchrow.side_effect = [
-            MagicMock(**user, __getitem__=lambda s, k: user[k]),
+            user,
             None,  # original not found
         ]
 
@@ -322,7 +323,7 @@ class TestDeleteCampaign:
     async def test_delete_archives_campaign(self, client, auth_headers):
         ac, pool = client
         user = make_user()
-        pool.fetchrow.return_value = MagicMock(**user, __getitem__=lambda s, k: user[k])
+        pool.fetchrow.return_value = user
         pool.execute.return_value = "UPDATE 1"
 
         resp = await ac.delete(
@@ -335,7 +336,7 @@ class TestDeleteCampaign:
     async def test_viewer_cannot_delete(self, client, viewer_headers):
         ac, pool = client
         viewer = make_user(role="viewer")
-        pool.fetchrow.return_value = MagicMock(**viewer, __getitem__=lambda s, k: viewer[k])
+        pool.fetchrow.return_value = viewer
 
         resp = await ac.delete(
             f"/api/v1/campaigns/{uuid4()}",

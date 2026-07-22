@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, Query
-from uuid import UUID
-from typing import Optional
 from datetime import date, timedelta
+from typing import Optional
+from uuid import UUID
+
 import asyncpg
+from fastapi import APIRouter, Depends, Query
 
 from src.api.deps import get_current_user, get_workspace_id
 from src.db.session import get_pool
