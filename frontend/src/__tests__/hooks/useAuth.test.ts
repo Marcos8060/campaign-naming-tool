@@ -18,12 +18,14 @@ function makeStore() {
 // failed-login assertions don't hang waiting on React Query's retry backoff.
 function wrapper(store: ReturnType<typeof makeStore>) {
   const queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
-  return ({ children }: { children: React.ReactNode }) =>
-    React.createElement(
+  function Wrapper({ children }: { children: React.ReactNode }) {
+    return React.createElement(
       QueryClientProvider,
       { client: queryClient },
-      React.createElement(Provider, { store, children }),
+      React.createElement(Provider, { store }, children),
     );
+  }
+  return Wrapper;
 }
 
 function mockFetchOnce(response: { ok: boolean; status: number; body: unknown }) {

@@ -131,7 +131,7 @@ export function AdSetsPanel({ campaignId, platformDeployed, hasCampaignBudget, c
             </div>
           )}
           <p className="text-xs text-gray-400">
-            Targeting stays deliberately minimal — a country list and age range, with Meta's Advantage+ audience
+            Targeting stays deliberately minimal — a country list and age range, with Meta&apos;s Advantage+ audience
             filling in the rest automatically. Created paused, same as the campaign itself.
           </p>
           <Button

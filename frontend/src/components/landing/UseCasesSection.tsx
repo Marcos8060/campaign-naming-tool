@@ -50,11 +50,11 @@ export function UseCasesSection() {
 
         <div className="max-w-2xl mx-auto text-center mb-14">
           <div className="inline-flex items-center gap-2 text-xs font-bold text-primary bg-primary-soft border border-blue-100 px-3 py-1.5 rounded-full mb-4 uppercase tracking-wider">
-            Who It's For
+            Who It&apos;s For
           </div>
           <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight mb-4">
             If this sounds like your team,{' '}
-            <span className="text-transparent bg-clip-text primary-gradient">you're in the right place.</span>
+            <span className="text-transparent bg-clip-text primary-gradient">you&apos;re in the right place.</span>
           </h2>
         </div>
 
