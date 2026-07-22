@@ -5,33 +5,30 @@ import { Card } from '@/components/ui/Card';
 const USE_CASES = [
   {
     icon: Building2,
-    tag: 'D2C Brands',
-    headline: 'Stop paying to compete against yourself across channels.',
-    pain: 'You\'re running Meta, Google, and TikTok simultaneously. But no one has a clear view of audience overlap — so you\'re paying three platforms to reach the same 200K customers.',
-    solution: 'Camparc maps the overlap in real time, shows you the exact dollar waste, and lets you reallocate budget to net-new audiences that actually expand your reach.',
-    result: 'Typical outcome: 15–25% reduction in cost-per-acquisition within the first 30 days.',
+    tag: 'In-house marketers',
+    headline: 'Stop rebuilding the same campaign twice.',
+    pain: 'You plan the campaign in a doc or spreadsheet, then re-enter every field a second time in Meta Ads Manager — objective, budget, targeting, creative, all by hand.',
+    solution: 'Build it once in Camparc and deploy it straight to Meta through the official API. It lands paused, exactly as planned, with nothing lost in translation.',
     color: `var(--color-primary)`,
     bg: 'bg-blue-50',
     border: 'border-blue-100',
   },
   {
     icon: Briefcase,
-    tag: 'Digital Agencies',
-    headline: 'Scale to 50 clients without losing naming consistency.',
-    pain: 'Every account manager has their own naming convention. When a client asks "why did performance drop?" you spend two days cleaning data before you can even start the analysis.',
-    solution: 'Set your agency\'s taxonomy once. Every campaign for every client follows the same structure. Reporting that used to take days takes minutes. Clients get consistent, beautiful reports.',
-    result: 'Typical outcome: 80% reduction in data cleanup time. 3× faster reporting cycles.',
+    tag: 'Digital agencies',
+    headline: 'Keep naming consistent across every client.',
+    pain: 'Every account manager has their own naming habits. When a client asks "why did performance drop?" you spend time reconciling data before you can even start the analysis.',
+    solution: 'Set your taxonomy once and every campaign, for every client, follows the same structure — with a full audit trail of who deployed what, and white-label branding for how it looks to clients.',
     color: '#6c5ce7',
     bg: 'bg-purple-50',
     border: 'border-purple-100',
   },
   {
     icon: BarChart2,
-    tag: 'Marketing Operations',
-    headline: 'Stop spending 80% of your time cleaning data.',
-    pain: 'Your job should be insights. Instead, you\'re in Excel every Monday morning reconciling five different naming formats before the weekly performance review.',
-    solution: 'Camparc enforces consistency upstream — at campaign creation — so your data is always clean. Monday morning is now analysis time, not cleanup time.',
-    result: 'Typical outcome: 20+ hours recovered per week. Attribution accuracy up by 40%.',
+    tag: 'Marketing operations',
+    headline: 'Get out of the manual-sync loop.',
+    pain: "Checking Meta Ads Manager for fresh numbers, then copying them into your own reporting, is a recurring chore that eats into actual analysis time.",
+    solution: 'Camparc pulls spend, impressions, clicks, and conversions back automatically every 6 hours, so the numbers in your dashboard are current without you doing anything.',
     color: '#00b894',
     bg: 'bg-emerald-50',
     border: 'border-emerald-100',
@@ -54,7 +51,7 @@ export function UseCasesSection() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {USE_CASES.map(({ icon: Icon, tag, headline, pain, solution, result, color, bg, border }) => (
+          {USE_CASES.map(({ icon: Icon, tag, headline, pain, solution, color, bg, border }) => (
             <Card key={tag} variant="outlined" padding="none" className={`${border} overflow-hidden`}>
               <div className={`${bg} px-6 py-5 border-b ${border}`}>
                 <div className="flex items-center gap-2.5 mb-3">
@@ -74,14 +71,8 @@ export function UseCasesSection() {
                   <p className="text-sm text-gray-600 leading-relaxed">{pain}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">The Fix</p>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">How Camparc helps</p>
                   <p className="text-sm text-gray-600 leading-relaxed">{solution}</p>
-                </div>
-                <div
-                  className="text-xs font-semibold px-3 py-2.5 rounded-xl"
-                  style={{ backgroundColor: color + '10', color }}
-                >
-                  📈 {result}
                 </div>
               </div>
             </Card>
@@ -96,7 +87,7 @@ export function UseCasesSection() {
             iconPosition="right"
             className="px-7 py-3.5 primary-gradient text-white hover:text-white font-bold rounded-xl hover:opacity-90 transition-opacity shadow-lg shadow-primary/20/60 text-sm"
           >
-            See How It Works For Your Team
+            Get Started
           </Button>
         </div>
 

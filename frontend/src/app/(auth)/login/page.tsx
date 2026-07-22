@@ -32,34 +32,39 @@ export default function LoginPage() {
     }
   };
 
-  const inputCls = `rounded-xl py-2.5 text-t1 placeholder:text-t3
+  const inputCls = `rounded-xl py-3 text-[#0f1c3f] placeholder:text-[#9ca3af]
     focus:border-brand focus:ring-brand/20 transition-all`;
 
   return (
     <>
-      <h2 className="text-2xl font-extrabold text-t1 mb-1">Welcome back</h2>
-      <p className="text-t2 text-sm mb-7">Sign in to your Camparc workspace</p>
+      <h2 className="text-3xl font-extrabold text-[#0f1c3f] mb-1.5">Welcome back</h2>
+      <p className="text-[#6b7280] text-base mb-8">Sign in to your Camparc workspace</p>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label className="block text-sm font-semibold text-t1 mb-1.5">Email</label>
+          <label className="block text-xs font-bold text-[#6b7280] uppercase tracking-wider mb-2">Email</label>
           <Input
             type="email" required
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
-            style={{ backgroundColor: 'var(--input-bg)', borderColor: 'var(--bd)' }}
+            style={{ backgroundColor: '#f5f8ff', borderColor: '#dde5f4' }}
             className={inputCls}
             placeholder="you@company.com"
           />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-t1 mb-1.5">Password</label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-xs font-bold text-[#6b7280] uppercase tracking-wider">Password</label>
+            <Link href="/forgot-password" className="text-xs font-semibold text-primary hover:underline">
+              Forgot password?
+            </Link>
+          </div>
           <div className="relative">
             <Input
               type={showPw ? 'text' : 'password'} required
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
-              style={{ backgroundColor: 'var(--input-bg)', borderColor: 'var(--bd)' }}
+              style={{ backgroundColor: '#f5f8ff', borderColor: '#dde5f4' }}
               className={`${inputCls} pr-10`}
               placeholder="••••••••"
             />
@@ -68,7 +73,7 @@ export default function LoginPage() {
               variant="text"
               size="icon"
               onClick={() => setShowPw(!showPw)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-t3 hover:text-t2"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9ca3af] hover:text-[#6b7280]"
             >
               {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </Button>
@@ -78,13 +83,13 @@ export default function LoginPage() {
           type="submit"
           variant="text"
           loading={loading}
-          className="w-full py-3 px-4 primary-gradient text-white font-bold rounded-xl hover:opacity-90 shadow-sm shadow-primary/20 text-sm mt-2"
+          className="w-full py-3.5 px-4 primary-gradient text-white font-bold rounded-xl hover:opacity-90 shadow-sm shadow-primary/20 text-sm mt-3"
         >
           Sign In
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-t2">
+      <p className="mt-6 text-center text-sm text-[#6b7280]">
         Don&apos;t have an account?{' '}
         <Link href="/register" className="text-primary font-semibold hover:underline">
           Create one free

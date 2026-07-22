@@ -7,7 +7,6 @@ import { FeaturesSection } from '@/components/landing/FeaturesSection';
 import { UseCasesSection } from '@/components/landing/UseCasesSection';
 import { SocialProofSection } from '@/components/landing/SocialProofSection';
 import { ComparisonSection } from '@/components/landing/ComparisonSection';
-import { PricingSection } from '@/components/landing/PricingSection';
 import { ObjectionsSection } from '@/components/landing/ObjectionsSection';
 import { FinalCTASection } from '@/components/landing/FinalCTASection';
 import { LandingFooter } from '@/components/landing/LandingFooter';
@@ -24,7 +23,6 @@ export default function LandingPage() {
       <UseCasesSection />
       <SocialProofSection />
       <ComparisonSection />
-      <PricingSection />
       <ObjectionsSection />
       <FinalCTASection />
       <LandingFooter />

@@ -1,101 +1,67 @@
 import {
-  Tag, BarChart3, Users, Target, Download, Palette,
+  SlidersHorizontal, Send, CircleDollarSign, History, ShieldCheck, Palette,
 } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
 
 const FEATURES = [
   {
-    icon: Tag,
-    outcome: 'Save 10 hours a week on naming disputes',
-    title: 'Standardize naming across all platforms',
-    body: 'Define your taxonomy hierarchy once. Every campaign created through Camparc follows the same structure — no exceptions, no rogue naming.',
-    color: `var(--color-primary)`,
-    bg: 'bg-blue-50',
+    icon: SlidersHorizontal,
+    title: 'Naming Enforcement',
+    body: 'Enforce consistency across your team. No more rogue naming conventions in your account.',
   },
   {
-    icon: Target,
-    outcome: 'Find $45K in duplicate spend this week',
-    title: 'Detect audience overlap before it drains your budget',
-    body: "Camparc maps which campaigns are targeting the same audiences across platforms and quantifies exactly how much that's costing you. Stop paying to compete against yourself.",
-    color: '#e17055',
-    bg: 'bg-red-50',
+    icon: Send,
+    title: 'One-click Meta Deploy',
+    body: 'Deploy campaigns, ad sets, and ads directly from your taxonomy. Fast and error-free.',
   },
   {
-    icon: BarChart3,
-    outcome: 'Replace 5 platform dashboards with one',
-    title: 'Cross-channel performance in a single view',
-    body: 'ROAS, spend, impressions, and conversions — across every ad platform — unified in one clean dashboard. No spreadsheet stitching. No data wrangling.',
-    color: '#6c5ce7',
-    bg: 'bg-purple-50',
+    icon: CircleDollarSign,
+    title: 'Currency-aware Budgets',
+    body: "Never mislabel again. Budgets are labeled in your ad account's real currency, not just USD.",
   },
   {
-    icon: Download,
-    outcome: 'Generate client reports in 60 seconds',
-    title: 'Platform-ready CSV exports on demand',
-    body: 'Produce perfectly formatted, client-ready exports with one click. Upload directly to each platform without touching a spreadsheet.',
-    color: '#00b894',
-    bg: 'bg-emerald-50',
+    icon: History,
+    title: 'Automatic Sync',
+    body: 'Performance that syncs itself. We pull data automatically, available any time you need it.',
   },
   {
-    icon: Users,
-    outcome: 'Scale your agency without losing control',
-    title: 'Role-based access for every team member',
-    body: "Admins set the rules. Managers execute campaigns. Viewers read reports. Everyone sees exactly what they need — nothing more, nothing less.",
-    color: '#fdcb6e',
-    bg: 'bg-amber-50',
+    icon: ShieldCheck,
+    title: 'Full Audit Trail',
+    body: 'Every creation, deployment, and deletion is logged against the person who did it. No mystery changes.',
   },
   {
     icon: Palette,
-    outcome: 'Deliver a premium client experience',
-    title: 'White-label branding for agencies',
-    body: "Upload your logo, set your brand colors, and deliver a fully branded workspace to every client. They'll think you built it.",
-    color: '#fd79a8',
-    bg: 'bg-pink-50',
+    title: 'White-label Branding',
+    body: 'Set your logo and brand colors. Deliver a workspace styled for your agency to every client.',
   },
 ];
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="py-20 bg-white">
+    <section id="features" className="py-20 bg-[#0a1330]">
       <div className="max-w-7xl mx-auto px-6">
 
         <div className="max-w-2xl mx-auto text-center mb-14">
-          <div className="inline-flex items-center gap-2 text-xs font-bold text-primary bg-primary-soft border border-blue-100 px-3 py-1.5 rounded-full mb-4 uppercase tracking-wider">
+          <div className="inline-flex items-center gap-2 text-xs font-bold text-blue-300 bg-white/5 border border-white/10 px-3 py-1.5 rounded-full mb-4 uppercase tracking-wider">
             Features
           </div>
-          <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight mb-4">
-            Built for agencies spending{' '}
-            <span className="text-transparent bg-clip-text primary-gradient">real budgets.</span>
+          <h2 className="text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
+            Everything from planning to{' '}
+            <span className="text-blue-400">real numbers.</span>
           </h2>
-          <p className="text-gray-500 text-base leading-relaxed">
-            Every feature is measured by one metric: does it save you money, save you time, or make you look smarter in front of clients?
-          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {FEATURES.map(({ icon: Icon, outcome, title, body, color, bg }) => (
-            <Card
+          {FEATURES.map(({ icon: Icon, title, body }) => (
+            <div
               key={title}
-              variant="outlined"
-              padding="lg"
-              className="group relative hover:border-gray-200 hover:shadow-lg hover:shadow-gray-100/80 transition-all duration-300"
+              className="rounded-2xl border border-white/10 p-6 hover:border-white/20 transition-colors"
             >
-              <div
-                className={`w-11 h-11 rounded-xl ${bg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200`}
-              >
-                <Icon className="w-5 h-5" style={{ color }} />
+              <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center mb-5">
+                <Icon className="w-5 h-5 text-blue-300" />
               </div>
-
-              <div
-                className="inline-block text-[10px] font-bold px-2 py-1 rounded-full mb-3"
-                style={{ backgroundColor: color + '12', color }}
-              >
-                {outcome}
-              </div>
-
-              <h3 className="font-bold text-gray-900 mb-2 text-sm leading-snug">{title}</h3>
-              <p className="text-gray-500 text-xs leading-relaxed">{body}</p>
-            </Card>
+              <h3 className="font-bold text-white mb-2 text-base leading-snug">{title}</h3>
+              <p className="text-gray-400 text-sm leading-relaxed">{body}</p>
+            </div>
           ))}
         </div>
 
