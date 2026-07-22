@@ -22,7 +22,11 @@ function wrapper(store: ReturnType<typeof makeStore>) {
     return React.createElement(
       QueryClientProvider,
       { client: queryClient },
-      React.createElement(Provider, { store }, children),
+      // react-redux's ProviderProps requires `children` on the props object itself
+      // (unlike plain DOM/host components), so passing it positionally instead
+      // satisfies react/no-children-prop but fails typecheck. Keep it in props here.
+      // eslint-disable-next-line react/no-children-prop
+      React.createElement(Provider, { store, children }),
     );
   }
   return Wrapper;
