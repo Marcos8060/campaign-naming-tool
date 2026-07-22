@@ -2,6 +2,8 @@ from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
 import bcrypt
+import hashlib
+import secrets
 from fastapi import HTTPException, status
 
 from src.config import settings
@@ -34,6 +36,16 @@ def hash_password(password: str) -> str:
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+
+
+def generate_reset_token() -> str:
+    """Raw, single-use password-reset token. Only ever sent in the emailed
+    link — the DB stores just its hash (see hash_reset_token)."""
+    return secrets.token_urlsafe(32)
+
+
+def hash_reset_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
 def create_oauth_state(data: dict, expires_minutes: int = 10) -> str:

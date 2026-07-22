@@ -1,13 +1,29 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel
 from uuid import UUID, uuid4
+from datetime import datetime, timedelta
 import asyncpg
+import logging
 
-from src.core.security import hash_password, verify_password, create_access_token
+from src.core.security import (
+    hash_password,
+    verify_password,
+    create_access_token,
+    generate_reset_token,
+    hash_reset_token,
+)
+from src.core.email import send_password_reset_email
 from src.db.session import get_pool
 from src.api.deps import get_current_user
+from src.config import settings
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
+
+RESET_TOKEN_EXPIRY_MINUTES = 60
+# Generic response for forgot-password regardless of whether the email is on
+# file — same "don't leak which emails exist" reasoning as login's error.
+GENERIC_RESET_RESPONSE = {"message": "If that email has an account, a reset link is on its way."}
 
 
 class RegisterRequest(BaseModel):
@@ -126,3 +142,74 @@ async def get_me(current_user: dict = Depends(get_current_user)):
     user = dict(current_user)
     user.pop("password_hash", None)
     return {k: str(v) if isinstance(v, UUID) else v for k, v in user.items()}
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+
+@router.post("/forgot-password")
+async def forgot_password(body: ForgotPasswordRequest, pool: asyncpg.Pool = Depends(get_pool)):
+    user = await pool.fetchrow(
+        "SELECT id, email FROM users WHERE email = $1 AND is_active = true",
+        body.email.lower().strip(),
+    )
+    # Always return the same response whether or not the email exists —
+    # otherwise this endpoint becomes a way to enumerate registered emails.
+    if not user:
+        return GENERIC_RESET_RESPONSE
+
+    raw_token = generate_reset_token()
+    expires_at = datetime.utcnow() + timedelta(minutes=RESET_TOKEN_EXPIRY_MINUTES)
+
+    async with pool.acquire() as conn:
+        async with conn.transaction():
+            # A fresh request supersedes any earlier ones for this user —
+            # otherwise multiple old links from a previous "forgot password"
+            # click would stay valid at once.
+            await conn.execute("DELETE FROM password_reset_tokens WHERE user_id = $1", user["id"])
+            await conn.execute(
+                "INSERT INTO password_reset_tokens (user_id, token_hash, expires_at) VALUES ($1, $2, $3)",
+                user["id"], hash_reset_token(raw_token), expires_at,
+            )
+
+    reset_url = f"{settings.frontend_url}/reset-password?token={raw_token}"
+    sent = await send_password_reset_email(to_email=user["email"], reset_url=reset_url)
+    if not sent:
+        # Email delivery isn't configured/working — don't silently pretend it
+        # worked in the logs, but the API response stays generic either way.
+        logger.warning("Password reset requested for %s but email delivery failed.", user["email"])
+
+    return GENERIC_RESET_RESPONSE
+
+
+@router.post("/reset-password")
+async def reset_password(body: ResetPasswordRequest, pool: asyncpg.Pool = Depends(get_pool)):
+    if len(body.new_password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
+
+    token_hash = hash_reset_token(body.token)
+    record = await pool.fetchrow(
+        """SELECT id, user_id FROM password_reset_tokens
+           WHERE token_hash = $1 AND used_at IS NULL AND expires_at > NOW()""",
+        token_hash,
+    )
+    if not record:
+        raise HTTPException(status_code=400, detail="This reset link is invalid or has expired")
+
+    async with pool.acquire() as conn:
+        async with conn.transaction():
+            await conn.execute(
+                "UPDATE users SET password_hash = $1 WHERE id = $2",
+                hash_password(body.new_password), record["user_id"],
+            )
+            # Clear every outstanding token for this user, not just the one
+            # used — a reset should invalidate any other unused links too.
+            await conn.execute("DELETE FROM password_reset_tokens WHERE user_id = $1", record["user_id"])
+
+    return {"message": "Password updated. You can now sign in with your new password."}
