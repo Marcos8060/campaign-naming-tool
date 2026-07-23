@@ -36,5 +36,15 @@ module.exports = {
         'no-restricted-syntax': 'off',
       },
     },
+    {
+      // global-error.tsx replaces the root layout entirely (rather than
+      // rendering inside it), and Next.js only allows importing global CSS
+      // from the root layout itself — so this file can't reach the design
+      // tokens in globals.css and has to hardcode its fallback styling.
+      files: ['src/app/global-error.tsx'],
+      rules: {
+        'no-restricted-syntax': 'off',
+      },
+    },
   ],
 };
