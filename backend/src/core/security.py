@@ -49,6 +49,20 @@ def hash_reset_token(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
+def generate_refresh_token() -> str:
+    """Raw refresh token. Opaque and random rather than a JWT — unlike the
+    access token, it needs to be individually revocable (logout, rotation,
+    theft detection), which a self-contained signed JWT can't support
+    without also maintaining a denylist. The DB stores only its hash (see
+    hash_refresh_token); the raw value only ever lives in the
+    refresh_token cookie."""
+    return secrets.token_urlsafe(32)
+
+
+def hash_refresh_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
 def create_oauth_state(data: dict, expires_minutes: int = 10) -> str:
     to_encode = data.copy()
     to_encode.update({
