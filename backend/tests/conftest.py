@@ -11,8 +11,16 @@ import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
+from src.core.limiter import limiter
 from src.core.security import create_access_token, hash_password
 from src.main import app
+
+# Tests share one client "IP" (httpx's ASGITransport has no real network
+# address) and call login/register far more than 5x/minute across a full
+# run, so the real per-route limits would make the suite flaky rather than
+# testing anything meaningful. Rate-limit behavior itself is covered by
+# path-specific tests below with the limiter re-enabled for just that test.
+limiter.enabled = False
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
