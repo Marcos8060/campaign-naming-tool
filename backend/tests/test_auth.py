@@ -1,13 +1,14 @@
 """
 Tests for /api/v1/auth endpoints.
 """
-import pytest
 from unittest.mock import AsyncMock
 from uuid import uuid4
 
-from src.core.security import hash_password, verify_token
-from .conftest import make_user, make_workspace
+import pytest
 
+from src.core.security import hash_password, verify_token
+
+from .conftest import make_user, make_workspace
 
 # ── Security unit tests ───────────────────────────────────────────────────────
 
@@ -49,6 +50,7 @@ class TestJWTToken:
 
     def test_tampered_token_raises(self):
         from fastapi import HTTPException
+
         from src.core.security import create_access_token
         token = create_access_token({"user_id": "x"})
         tampered = token[:-5] + "XXXXX"
@@ -61,6 +63,7 @@ class TestJWTToken:
 class TestConfig:
     def test_weak_secret_logs_warning(self, caplog):
         import logging
+
         from src.config import Settings
         with caplog.at_level(logging.WARNING, logger="src.config"):
             Settings(jwt_secret="short")
@@ -164,16 +167,16 @@ class TestLogin:
 
 @pytest.mark.asyncio
 class TestGetMe:
-    async def test_unauthenticated_returns_403(self, client):
+    async def test_unauthenticated_returns_401(self, client):
         ac, _ = client
         resp = await ac.get("/api/v1/auth/me")
-        assert resp.status_code == 403  # HTTPBearer returns 403 when no creds
+        assert resp.status_code == 401  # no access_token cookie present
 
-    async def test_authenticated_returns_user(self, client, auth_headers):
+    async def test_authenticated_returns_user(self, client, auth_cookies):
         ac, pool = client
         user = make_user()
         pool.fetchrow.return_value = user
-        resp = await ac.get("/api/v1/auth/me", headers=auth_headers)
+        resp = await ac.get("/api/v1/auth/me", cookies=auth_cookies)
         # 200 or 500 (if pool mock doesn't fully satisfy deps)
         assert resp.status_code in (200, 500)
         if resp.status_code == 200:

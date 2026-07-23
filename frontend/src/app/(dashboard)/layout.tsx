@@ -17,19 +17,32 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { sidebarOpen } = useSelector((state: RootState) => state.ui);
   useWorkspace();
 
-  useEffect(() => {
-    if (!isAuthenticated) router.push('/login');
-  }, [isAuthenticated, router]);
-
-  const { data: me } = useGet({
+  // The JWT lives in an httpOnly cookie now — this component can't read it,
+  // so on a fresh load it has no way to know whether the visitor has a
+  // valid session until it asks the server. Skipped once `user` is already
+  // populated (right after login/register, or on client-side navigation
+  // between dashboard pages), so this only actually round-trips once per
+  // full page load.
+  const { data: me, isFetched } = useGet({
     url: '/auth/me',
-    enabled: isAuthenticated && !user,
+    enabled: !user,
     retry: false,
   });
 
   useEffect(() => {
     if (me) dispatch(setUser(me));
   }, [me, dispatch]);
+
+  useEffect(() => {
+    // Only bail to /login once the session check has actually settled and
+    // didn't produce a user — redirecting while it's still in flight would
+    // bounce a perfectly valid session to /login on every hard refresh.
+    // (A 401 specifically is already handled by request()'s global 401
+    // interceptor; this covers other failure modes as a fallback.)
+    if (!isAuthenticated && isFetched && !me) {
+      router.push('/login');
+    }
+  }, [isAuthenticated, isFetched, me, router]);
 
   if (!isAuthenticated) return null;
 

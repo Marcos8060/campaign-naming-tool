@@ -4,14 +4,15 @@ Shared pytest fixtures.
 Uses httpx.AsyncClient against the FastAPI app with a fully mocked
 asyncpg pool so tests run without a real database.
 """
-import pytest
-import pytest_asyncio
-from httpx import AsyncClient, ASGITransport
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
+import pytest
+import pytest_asyncio
+from httpx import ASGITransport, AsyncClient
+
+from src.core.security import create_access_token, hash_password
 from src.main import app
-from src.core.security import hash_password, create_access_token
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -123,13 +124,16 @@ async def client():
 
 
 @pytest.fixture
-def auth_headers():
-    return {"Authorization": f"Bearer {ADMIN_TOKEN}"}
+def auth_cookies():
+    # Auth now travels as an httpOnly cookie (see api/deps.py's Cookie-based
+    # get_current_user), not an Authorization header — mirror that here so
+    # these fixtures actually exercise the real auth path.
+    return {"access_token": ADMIN_TOKEN}
 
 
 @pytest.fixture
-def viewer_headers():
-    return {"Authorization": f"Bearer {VIEWER_TOKEN}"}
+def viewer_cookies():
+    return {"access_token": VIEWER_TOKEN}
 
 
 @pytest.fixture
