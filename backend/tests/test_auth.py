@@ -8,7 +8,7 @@ import pytest
 
 from src.core.security import hash_password, verify_token
 
-from .conftest import make_user, make_workspace
+from .conftest import make_refresh_token_record, make_user, make_workspace
 
 # ── Security unit tests ───────────────────────────────────────────────────────
 
@@ -182,3 +182,87 @@ class TestGetMe:
         if resp.status_code == 200:
             data = resp.json()
             assert "password_hash" not in data
+
+
+@pytest.mark.asyncio
+class TestRefreshToken:
+    """POST /auth/refresh — mints a new access token from a stored refresh
+    token, rotating it in the process. See api/v1/endpoints/auth.py for the
+    reuse-detection design (revoked_at marks rotated-away tokens instead of
+    deleting them, so a replayed token is distinguishable from an unknown
+    one)."""
+
+    async def test_missing_cookie_returns_401(self, client):
+        ac, _ = client
+        resp = await ac.post("/api/v1/auth/refresh")
+        assert resp.status_code == 401
+
+    async def test_unknown_token_returns_401(self, client):
+        ac, pool = client
+        pool.fetchrow.return_value = None  # no matching refresh_tokens row
+        resp = await ac.post("/api/v1/auth/refresh", cookies={"refresh_token": "bogus"})
+        assert resp.status_code == 401
+
+    async def test_expired_token_returns_401(self, client):
+        from datetime import datetime, timedelta
+        ac, pool = client
+        expired = make_refresh_token_record(expires_at=datetime.utcnow() - timedelta(days=1))
+        pool.fetchrow.return_value = expired
+        resp = await ac.post("/api/v1/auth/refresh", cookies={"refresh_token": "expired-token"})
+        assert resp.status_code == 401
+
+    async def test_revoked_token_reuse_returns_401_and_revokes_all(self, client):
+        from datetime import datetime
+        ac, pool = client
+        reused = make_refresh_token_record(revoked_at=datetime.utcnow())
+        pool.fetchrow.return_value = reused
+
+        resp = await ac.post("/api/v1/auth/refresh", cookies={"refresh_token": "stolen-token"})
+
+        assert resp.status_code == 401
+        assert "revoked" in resp.json()["detail"].lower()
+        # The "kill every other live token for this user" defensive update
+        # should have fired.
+        pool.execute.assert_awaited()
+        revoke_call = pool.execute.call_args
+        assert "revoked_at = NOW()" in revoke_call.args[0]
+        assert revoke_call.args[1] == reused["user_id"]
+
+    async def test_inactive_user_returns_401(self, client):
+        ac, pool = client
+        record = make_refresh_token_record()
+        user = make_user(is_active=False)
+        pool.fetchrow.side_effect = [record, user]
+        resp = await ac.post("/api/v1/auth/refresh", cookies={"refresh_token": "valid-token"})
+        assert resp.status_code == 401
+
+    async def test_valid_token_rotates_and_sets_new_cookies(self, client):
+        ac, pool = client
+        record = make_refresh_token_record()
+        user = make_user()
+        pool.fetchrow.side_effect = [record, user]
+
+        resp = await ac.post("/api/v1/auth/refresh", cookies={"refresh_token": "valid-token"})
+
+        assert resp.status_code == 200
+        assert "access_token" in resp.cookies
+        assert "refresh_token" in resp.cookies
+        # Rotation: the presented token gets marked revoked, and a new row
+        # is inserted — not just re-validated and reused as-is.
+        pool._conn.execute.assert_awaited()
+
+
+@pytest.mark.asyncio
+class TestLogout:
+    async def test_logout_clears_cookies_with_no_refresh_token(self, client):
+        ac, _ = client
+        resp = await ac.post("/api/v1/auth/logout")
+        assert resp.status_code == 200
+
+    async def test_logout_revokes_stored_refresh_token(self, client):
+        ac, pool = client
+        resp = await ac.post("/api/v1/auth/logout", cookies={"refresh_token": "some-token"})
+        assert resp.status_code == 200
+        pool.execute.assert_awaited()
+        revoke_call = pool.execute.call_args
+        assert "revoked_at = NOW()" in revoke_call.args[0]

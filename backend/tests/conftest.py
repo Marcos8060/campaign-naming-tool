@@ -51,6 +51,17 @@ def make_workspace(**kwargs) -> dict:
     }
 
 
+def make_refresh_token_record(**kwargs) -> dict:
+    from datetime import datetime, timedelta
+    return {
+        "id": str(uuid4()),
+        "user_id": USER_ID,
+        "expires_at": datetime.utcnow() + timedelta(days=7),
+        "revoked_at": None,
+        **kwargs,
+    }
+
+
 def make_campaign(**kwargs) -> dict:
     return {
         "id": str(uuid4()),
