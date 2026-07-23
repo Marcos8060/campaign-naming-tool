@@ -26,7 +26,6 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 export interface RequestOptions {
   method: HttpMethod;
-  token?: string | null;
   body?: unknown;
   responseType?: 'json' | 'blob';
   headers?: Record<string, string>;
@@ -43,16 +42,12 @@ export function toQueryKey(url: string): string[] {
 export async function request<T>(url: string, options: RequestOptions): Promise<T> {
   const path = url.startsWith('/') ? url : `/${url}`;
   const hasBody = options.body !== undefined && options.method !== 'GET' && options.method !== 'DELETE';
-  // File uploads (asset upload, logo upload) pass a FormData body. Letting
-  // fetch set its own multipart Content-Type (with boundary) is required —
-  // JSON.stringify-ing a FormData instance or forcing application/json would
-  // silently break the upload.
   const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
 
   const response = await fetch(`${BASE_URL}${path}`, {
     method: options.method,
+    credentials: 'include',
     headers: {
-      ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
       ...(hasBody && !isFormData ? { 'Content-Type': 'application/json' } : {}),
       ...options.headers,
     },
@@ -61,10 +56,6 @@ export async function request<T>(url: string, options: RequestOptions): Promise<
 
   if (!response.ok) {
     const errorBody: ApiErrorBody = await response.json().catch(() => ({}));
-
-    // Mirror the existing axios interceptor's 401 handling (lib/api/client.ts):
-    // clear the session and bounce to /login, except for auth endpoints
-    // themselves (a failed login shouldn't redirect away from /login).
     if (response.status === 401 && !isAuthEndpoint(path) && typeof window !== 'undefined') {
       store.dispatch(logout());
       window.location.href = '/login';

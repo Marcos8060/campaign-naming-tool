@@ -36,11 +36,7 @@
     --color-positive-soft:  #e6f5ee;
     --color-positive-hover: #057a44;
 
-    /* Light-locked surface tokens — same values as the light half of the
-       theme-aware tokens above, but never redefined under .dark. Marketing
-       and auth pages must always render light regardless of the visitor's
-       system/app dark-mode preference (see AuthLayout), so they read these
-       instead of --t1/--card/etc. */
+
     --t1-fixed:      #0f1c3f;
     --t2-fixed:      #6b7280;
     --t3-fixed:      #9ca3af;
@@ -49,8 +45,6 @@
     --surface-fixed: #f0f5ff;
     --input-fixed:   #f5f8ff;
 
-    /* Landing-page accent colors — one-off brand accents used only in
-       marketing sections, not part of the app's light/dark token system. */
     --color-landing-surface: #f8faff;
     --color-navy-dark:       #0a1330;
     --color-navy-darker:     #080f1f;
@@ -133,10 +127,6 @@
 /* ── Utilities ─────────────────────────────────────────────── */
 @layer utilities {
   .primary-gradient {
-    /* background-image (not the `background` shorthand) so this can be
-       combined with Tailwind's bg-clip-text for gradient headline text —
-       the shorthand resets background-clip back to border-box, which is
-       exactly why gradient text was rendering as a solid block before. */
     background-image: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
   }
   .primary-gradient-soft {

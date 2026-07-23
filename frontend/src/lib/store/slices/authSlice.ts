@@ -1,7 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface AuthState {
-  token: string | null;
   user: {
     id: string;
     email: string;
@@ -12,44 +11,34 @@ interface AuthState {
   isAuthenticated: boolean;
 }
 
-const getInitialToken = (): string | null => {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('auth_token');
-  }
-  return null;
-};
-
+// No token here, and no localStorage seeding on load. The JWT now lives only
+// in the httpOnly access_token cookie the backend sets on login/register —
+// JS (this store included) can't read it, so there's nothing to hydrate
+// synchronously. Until the app confirms a session via GET /auth/me, it has
+// to assume "unauthenticated," not "authenticated" — see DashboardLayout's
+// bootstrap effect for the corresponding piece of this.
 const initialState: AuthState = {
-  token: getInitialToken(),
   user: null,
-  isAuthenticated: !!getInitialToken(),
+  isAuthenticated: false,
 };
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    setAuth: (state, action: PayloadAction<{ token: string; user: AuthState['user'] }>) => {
-      state.token = action.payload.token;
-      state.user = action.payload.user;
-      state.isAuthenticated = true;
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('auth_token', action.payload.token);
-      }
-    },
-    logout: (state) => {
-      state.token = null;
-      state.user = null;
-      state.isAuthenticated = false;
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('auth_token');
-      }
-    },
+    // Used both right after login/register and when GET /auth/me confirms
+    // an existing session — there's no separate "set the token" case
+    // anymore, so this replaces the old setAuth entirely.
     setUser: (state, action: PayloadAction<AuthState['user']>) => {
       state.user = action.payload;
+      state.isAuthenticated = !!action.payload;
+    },
+    logout: (state) => {
+      state.user = null;
+      state.isAuthenticated = false;
     },
   },
 });
 
-export const { setAuth, logout, setUser } = authSlice.actions;
+export const { setUser, logout } = authSlice.actions;
 export default authSlice.reducer;

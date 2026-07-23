@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from uuid import UUID, uuid4
 
 import asyncpg
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel
 
 from src.api.deps import get_current_user
@@ -21,9 +21,26 @@ from src.db.session import get_pool
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+ACCESS_TOKEN_COOKIE = "access_token"
+
+
+def set_auth_cookie(response: Response, token: str) -> None:
+    """Issue the session as an httpOnly cookie instead of relying on the
+    frontend to store the JWT itself (localStorage is readable by any JS
+    that runs on the page, which makes a stored token a standing XSS
+    target). `secure` is tied to environment rather than always-on so this
+    still works over plain http on localhost during development."""
+    response.set_cookie(
+        key=ACCESS_TOKEN_COOKIE,
+        value=token,
+        httponly=True,
+        secure=settings.is_production(),
+        samesite="lax",
+        max_age=settings.jwt_expiration,
+        path="/",
+    )
+
 RESET_TOKEN_EXPIRY_MINUTES = 60
-# Generic response for forgot-password regardless of whether the email is on
-# file — same "don't leak which emails exist" reasoning as login's error.
 GENERIC_RESET_RESPONSE = {"message": "If that email has an account, a reset link is on its way."}
 
 
@@ -40,14 +57,17 @@ class LoginRequest(BaseModel):
 
 
 class AuthResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
+    # No access_token field on purpose — the token only ever travels as the
+    # httpOnly cookie set by set_auth_cookie(). Putting it in the JSON body
+    # too would hand it straight back to page JS (and anything an XSS bug
+    # injects into it), which defeats the point of httpOnly in the first
+    # place.
     user: dict
     workspace: dict
 
 
 @router.post("/register", response_model=AuthResponse)
-async def register(body: RegisterRequest, pool: asyncpg.Pool = Depends(get_pool)):
+async def register(body: RegisterRequest, response: Response, pool: asyncpg.Pool = Depends(get_pool)):
     if len(body.password) < 8:
         raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
 
@@ -95,15 +115,16 @@ async def register(body: RegisterRequest, pool: asyncpg.Pool = Depends(get_pool)
         return {k: str(v) if isinstance(v, UUID) else v for k, v in dict(row).items()
                 if k != "password_hash"}
 
+    set_auth_cookie(response, token)
+
     return AuthResponse(
-        access_token=token,
         user=serialize(user),
         workspace=serialize(workspace),
     )
 
 
 @router.post("/login", response_model=AuthResponse)
-async def login(body: LoginRequest, pool: asyncpg.Pool = Depends(get_pool)):
+async def login(body: LoginRequest, response: Response, pool: asyncpg.Pool = Depends(get_pool)):
     user = await pool.fetchrow(
         "SELECT * FROM users WHERE email = $1 AND is_active = true",
         body.email.lower().strip()
@@ -131,11 +152,22 @@ async def login(body: LoginRequest, pool: asyncpg.Pool = Depends(get_pool)):
     user_dict = {k: str(v) if isinstance(v, UUID) else v for k, v in dict(user).items()}
     user_dict.pop("password_hash", None)
 
+    set_auth_cookie(response, token)
+
     return AuthResponse(
-        access_token=token,
         user=user_dict,
         workspace={k: str(v) if isinstance(v, UUID) else v for k, v in dict(workspace).items()},
     )
+
+
+@router.post("/logout")
+async def logout(response: Response):
+    # No server-side session/blocklist to invalidate — the JWT stays valid
+    # until it expires either way, this just tells the browser to stop
+    # sending it. Same cookie attributes (path in particular) must match
+    # the ones used in set_auth_cookie, or the browser won't match it.
+    response.delete_cookie(key=ACCESS_TOKEN_COOKIE, path="/")
+    return {"message": "Logged out"}
 
 
 @router.get("/me")
