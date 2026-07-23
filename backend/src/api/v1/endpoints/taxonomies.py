@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
-from uuid import UUID
 from typing import Optional
+from uuid import UUID
+
 import asyncpg
+from fastapi import APIRouter, Depends, HTTPException
 
 from src.api.deps import get_current_user, get_workspace_id, require_role
 from src.db.session import get_pool
@@ -109,8 +110,6 @@ async def update_taxonomy(
     if not updates and not has_parent_update:
         raise HTTPException(status_code=400, detail="No valid fields")
 
-    extra_sets = []
-    extra_vals = []
     if has_parent_update:
         if parent_id_value:
             parent = await pool.fetchrow(

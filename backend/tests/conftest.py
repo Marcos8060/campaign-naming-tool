@@ -4,14 +4,15 @@ Shared pytest fixtures.
 Uses httpx.AsyncClient against the FastAPI app with a fully mocked
 asyncpg pool so tests run without a real database.
 """
-import pytest
-import pytest_asyncio
-from httpx import AsyncClient, ASGITransport
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
+import pytest
+import pytest_asyncio
+from httpx import ASGITransport, AsyncClient
+
+from src.core.security import create_access_token, hash_password
 from src.main import app
-from src.core.security import hash_password, create_access_token
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -46,6 +47,17 @@ def make_workspace(**kwargs) -> dict:
         "is_active": True,
         "created_at": None,
         "updated_at": None,
+        **kwargs,
+    }
+
+
+def make_refresh_token_record(**kwargs) -> dict:
+    from datetime import datetime, timedelta
+    return {
+        "id": str(uuid4()),
+        "user_id": USER_ID,
+        "expires_at": datetime.utcnow() + timedelta(days=7),
+        "revoked_at": None,
         **kwargs,
     }
 
@@ -115,7 +127,7 @@ async def client():
     """ASGI test client with a clean mock pool."""
     mock_pool = build_mock_pool()
     with patch("src.db.session.get_pool", return_value=mock_pool), \
-         patch("src.db.session._pool", mock_pool):
+         patch("src.db.session.pool", mock_pool):
         async with AsyncClient(
             transport=ASGITransport(app=app), base_url="http://test"
         ) as ac:
@@ -123,13 +135,16 @@ async def client():
 
 
 @pytest.fixture
-def auth_headers():
-    return {"Authorization": f"Bearer {ADMIN_TOKEN}"}
+def auth_cookies():
+    # Auth now travels as an httpOnly cookie (see api/deps.py's Cookie-based
+    # get_current_user), not an Authorization header — mirror that here so
+    # these fixtures actually exercise the real auth path.
+    return {"access_token": ADMIN_TOKEN}
 
 
 @pytest.fixture
-def viewer_headers():
-    return {"Authorization": f"Bearer {VIEWER_TOKEN}"}
+def viewer_cookies():
+    return {"access_token": VIEWER_TOKEN}
 
 
 @pytest.fixture

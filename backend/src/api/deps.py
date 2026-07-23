@@ -1,20 +1,20 @@
-from fastapi import Depends, HTTPException, status, Header
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from typing import Optional
 from uuid import UUID
+
 import asyncpg
+from fastapi import Cookie, Depends, HTTPException, status
 
 from src.core.security import verify_token
 from src.db.session import get_pool
 
-security = HTTPBearer()
-
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    access_token: str | None = Cookie(default=None),
     pool: asyncpg.Pool = Depends(get_pool),
 ):
-    payload = verify_token(credentials.credentials)
+    if not access_token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+
+    payload = verify_token(access_token)
     user_id = payload.get("user_id")
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid token")

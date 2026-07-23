@@ -17,7 +17,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 from src.config import settings
 from src.db.session import get_pool
 from src.integrations.meta import MetaAPIError
-from src.services.meta_sync import sync_campaign, SyncSkipped
+from src.services.meta_sync import SyncSkipped, sync_campaign
 
 logger = logging.getLogger(__name__)
 

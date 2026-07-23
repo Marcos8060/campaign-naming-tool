@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
 from uuid import UUID
+
 import asyncpg
+from fastapi import APIRouter, Depends, HTTPException
 
 from src.api.deps import get_current_user, get_workspace_id, require_role
-from src.db.session import get_pool
-from src.core.security import hash_password
 from src.core.email import send_invitation_email
+from src.core.security import hash_password
+from src.db.session import get_pool
 
 router = APIRouter()
 

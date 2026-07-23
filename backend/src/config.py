@@ -1,10 +1,10 @@
-from pydantic_settings import BaseSettings
-from pydantic import field_validator
-from typing import List
-from cryptography.fernet import Fernet
-import secrets
 import logging
-import sys
+import secrets
+from typing import List
+
+from cryptography.fernet import Fernet
+from pydantic import field_validator
+from pydantic_settings import BaseSettings
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +15,13 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://campaign_user:dev_password_123@localhost:5432/campaign_intelligence"
     jwt_secret: str = ""
     jwt_algorithm: str = "HS256"
-    jwt_expiration: int = 604800  # 7 days
+    # Short-lived on purpose — this is what actually authorizes every API
+    # call, so if one ever leaks (compromised device, malicious extension,
+    # a logging mistake somewhere), the exposure window is minutes, not
+    # days. refresh_token_expiration_days is what carries the "stay logged
+    # in for a week" experience instead; see POST /auth/refresh.
+    jwt_expiration: int = 900  # 15 minutes
+    refresh_token_expiration_days: int = 7
     allowed_origins: str = "http://localhost:3000"
     environment: str = "development"
 

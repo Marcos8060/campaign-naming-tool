@@ -113,7 +113,7 @@ export default function ExportsPage() {
             <strong>
               {PLATFORMS.find((p) => p.id === selectedPlatform)?.label} native format
             </strong>{' '}
-            — columns are mapped to match the platform's bulk upload template. Ready for direct import.
+            — columns are mapped to match the platform&apos;s bulk upload template. Ready for direct import.
           </div>
         )}
 

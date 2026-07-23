@@ -1,28 +1,89 @@
-from fastapi import APIRouter, HTTPException, status, Depends
-from pydantic import BaseModel
-from uuid import UUID, uuid4
-from datetime import datetime, timedelta
-import asyncpg
 import logging
+from datetime import datetime, timedelta
+from uuid import UUID, uuid4
 
-from src.core.security import (
-    hash_password,
-    verify_password,
-    create_access_token,
-    generate_reset_token,
-    hash_reset_token,
-)
-from src.core.email import send_password_reset_email
-from src.db.session import get_pool
+import asyncpg
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Response
+from pydantic import BaseModel
+
 from src.api.deps import get_current_user
 from src.config import settings
+from src.core.email import send_password_reset_email
+from src.core.security import (
+    create_access_token,
+    generate_refresh_token,
+    generate_reset_token,
+    hash_password,
+    hash_refresh_token,
+    hash_reset_token,
+    verify_password,
+)
+from src.db.session import get_pool
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+ACCESS_TOKEN_COOKIE = "access_token"
+REFRESH_TOKEN_COOKIE = "refresh_token"
+# Scoped narrower than the access token cookie on purpose — this cookie
+# should only ever be sent on the one request that's allowed to use it.
+# Keeping it off every other endpoint means it never shows up in ordinary
+# request logs/proxies, and a captured request to any other route can't
+# expose it.
+REFRESH_COOKIE_PATH = "/api/v1/auth/refresh"
+
+
+def set_auth_cookie(response: Response, token: str) -> None:
+    """Issue the session as an httpOnly cookie instead of relying on the
+    frontend to store the JWT itself (localStorage is readable by any JS
+    that runs on the page, which makes a stored token a standing XSS
+    target). `secure` is tied to environment rather than always-on so this
+    still works over plain http on localhost during development."""
+    response.set_cookie(
+        key=ACCESS_TOKEN_COOKIE,
+        value=token,
+        httponly=True,
+        secure=settings.is_production(),
+        samesite="lax",
+        max_age=settings.jwt_expiration,
+        path="/",
+    )
+
+
+def set_refresh_cookie(response: Response, token: str) -> None:
+    response.set_cookie(
+        key=REFRESH_TOKEN_COOKIE,
+        value=token,
+        httponly=True,
+        secure=settings.is_production(),
+        samesite="lax",
+        max_age=settings.refresh_token_expiration_days * 24 * 60 * 60,
+        path=REFRESH_COOKIE_PATH,
+    )
+
+
+def clear_session_cookies(response: Response) -> None:
+    # Attributes (path especially) must match what set_*_cookie used, or
+    # the browser won't recognize it as the same cookie to delete.
+    response.delete_cookie(key=ACCESS_TOKEN_COOKIE, path="/")
+    response.delete_cookie(key=REFRESH_TOKEN_COOKIE, path=REFRESH_COOKIE_PATH)
+
+
+async def issue_refresh_token(db, user_id) -> str:
+    """Generate, hash, and store a new refresh token for user_id. `db` can
+    be a pool or an open connection (e.g. inside register's transaction) —
+    both support .execute(). Returns the raw token to set as a cookie;
+    only its hash is ever persisted (see hash_refresh_token)."""
+    raw_token = generate_refresh_token()
+    expires_at = datetime.utcnow() + timedelta(days=settings.refresh_token_expiration_days)
+    await db.execute(
+        "INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES ($1, $2, $3)",
+        user_id, hash_refresh_token(raw_token), expires_at,
+    )
+    return raw_token
+
+
 RESET_TOKEN_EXPIRY_MINUTES = 60
-# Generic response for forgot-password regardless of whether the email is on
-# file — same "don't leak which emails exist" reasoning as login's error.
 GENERIC_RESET_RESPONSE = {"message": "If that email has an account, a reset link is on its way."}
 
 
@@ -39,14 +100,17 @@ class LoginRequest(BaseModel):
 
 
 class AuthResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
+    # No access_token field on purpose — the token only ever travels as the
+    # httpOnly cookie set by set_auth_cookie(). Putting it in the JSON body
+    # too would hand it straight back to page JS (and anything an XSS bug
+    # injects into it), which defeats the point of httpOnly in the first
+    # place.
     user: dict
     workspace: dict
 
 
 @router.post("/register", response_model=AuthResponse)
-async def register(body: RegisterRequest, pool: asyncpg.Pool = Depends(get_pool)):
+async def register(body: RegisterRequest, response: Response, pool: asyncpg.Pool = Depends(get_pool)):
     if len(body.password) < 8:
         raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
 
@@ -84,6 +148,8 @@ async def register(body: RegisterRequest, pool: asyncpg.Pool = Depends(get_pool)
                 body.name.strip(),
             )
 
+            refresh_token_raw = await issue_refresh_token(conn, user["id"])
+
     token = create_access_token({
         "user_id": str(user["id"]),
         "workspace_id": str(user["workspace_id"]),
@@ -94,15 +160,17 @@ async def register(body: RegisterRequest, pool: asyncpg.Pool = Depends(get_pool)
         return {k: str(v) if isinstance(v, UUID) else v for k, v in dict(row).items()
                 if k != "password_hash"}
 
+    set_auth_cookie(response, token)
+    set_refresh_cookie(response, refresh_token_raw)
+
     return AuthResponse(
-        access_token=token,
         user=serialize(user),
         workspace=serialize(workspace),
     )
 
 
 @router.post("/login", response_model=AuthResponse)
-async def login(body: LoginRequest, pool: asyncpg.Pool = Depends(get_pool)):
+async def login(body: LoginRequest, response: Response, pool: asyncpg.Pool = Depends(get_pool)):
     user = await pool.fetchrow(
         "SELECT * FROM users WHERE email = $1 AND is_active = true",
         body.email.lower().strip()
@@ -130,11 +198,104 @@ async def login(body: LoginRequest, pool: asyncpg.Pool = Depends(get_pool)):
     user_dict = {k: str(v) if isinstance(v, UUID) else v for k, v in dict(user).items()}
     user_dict.pop("password_hash", None)
 
+    refresh_token_raw = await issue_refresh_token(pool, user["id"])
+
+    set_auth_cookie(response, token)
+    set_refresh_cookie(response, refresh_token_raw)
+
     return AuthResponse(
-        access_token=token,
         user=user_dict,
         workspace={k: str(v) if isinstance(v, UUID) else v for k, v in dict(workspace).items()},
     )
+
+
+@router.post("/refresh")
+async def refresh_session(
+    response: Response,
+    refresh_token: str | None = Cookie(default=None),
+    pool: asyncpg.Pool = Depends(get_pool),
+):
+    """Mints a new (short-lived) access token from the longer-lived refresh
+    token, so the frontend doesn't have to force a re-login every 15
+    minutes. Called reactively — the frontend hits this once it gets a 401
+    from an expired access token, then retries the original request."""
+    if not refresh_token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    token_hash = hash_refresh_token(refresh_token)
+    record = await pool.fetchrow(
+        "SELECT id, user_id, expires_at, revoked_at FROM refresh_tokens WHERE token_hash = $1",
+        token_hash,
+    )
+    if not record:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+    if record["revoked_at"] is not None:
+        # This exact token was already rotated away by an earlier refresh —
+        # being presented again means it was copied before rotation and is
+        # now being replayed, not a legitimate retry. Treat it as a theft
+        # signal and kill every other live refresh token for this user so
+        # a stolen token can't keep minting new sessions.
+        await pool.execute(
+            "UPDATE refresh_tokens SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL",
+            record["user_id"],
+        )
+        logger.warning(
+            "Refresh token reuse detected for user %s — all sessions revoked.", record["user_id"]
+        )
+        clear_session_cookies(response)
+        raise HTTPException(status_code=401, detail="Session revoked. Please log in again.")
+
+    if record["expires_at"] < datetime.utcnow():
+        raise HTTPException(status_code=401, detail="Refresh token expired")
+
+    user = await pool.fetchrow(
+        "SELECT id, workspace_id, role, is_active FROM users WHERE id = $1",
+        record["user_id"],
+    )
+    if not user or not user["is_active"]:
+        raise HTTPException(status_code=401, detail="User not found or inactive")
+
+    async with pool.acquire() as conn:
+        async with conn.transaction():
+            # Rotate: mark this token used, then issue a fresh one. Marking
+            # rather than deleting is what makes the reuse check above
+            # possible on the *next* refresh attempt.
+            await conn.execute(
+                "UPDATE refresh_tokens SET revoked_at = NOW() WHERE id = $1",
+                record["id"],
+            )
+            new_refresh_raw = await issue_refresh_token(conn, user["id"])
+
+    new_access_token = create_access_token({
+        "user_id": str(user["id"]),
+        "workspace_id": str(user["workspace_id"]),
+        "role": user["role"],
+    })
+
+    set_auth_cookie(response, new_access_token)
+    set_refresh_cookie(response, new_refresh_raw)
+
+    return {"message": "Token refreshed"}
+
+
+@router.post("/logout")
+async def logout(
+    response: Response,
+    refresh_token: str | None = Cookie(default=None),
+    pool: asyncpg.Pool = Depends(get_pool),
+):
+    # Revoke the refresh token server-side too, not just clear cookies —
+    # otherwise "logging out" doesn't actually invalidate anything, it just
+    # stops this one browser from sending the credential. Best-effort: a
+    # missing/already-invalid token shouldn't block clearing the cookies.
+    if refresh_token:
+        await pool.execute(
+            "UPDATE refresh_tokens SET revoked_at = NOW() WHERE token_hash = $1 AND revoked_at IS NULL",
+            hash_refresh_token(refresh_token),
+        )
+    clear_session_cookies(response)
+    return {"message": "Logged out"}
 
 
 @router.get("/me")

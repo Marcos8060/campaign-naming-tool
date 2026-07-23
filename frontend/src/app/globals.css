@@ -36,6 +36,21 @@
     --color-positive-soft:  #e6f5ee;
     --color-positive-hover: #057a44;
 
+
+    --t1-fixed:      #0f1c3f;
+    --t2-fixed:      #6b7280;
+    --t3-fixed:      #9ca3af;
+    --bd-fixed:      #dde5f4;
+    --card-fixed:    #ffffff;
+    --surface-fixed: #f0f5ff;
+    --input-fixed:   #f5f8ff;
+
+    --color-landing-surface: #f8faff;
+    --color-navy-dark:       #0a1330;
+    --color-navy-darker:     #080f1f;
+    --color-accent-purple:   #6c5ce7;
+    --color-accent-emerald:  #00b894;
+
     /* Radix / shadcn tokens */
     --background: 0 0% 100%;
     --foreground: 222 47% 15%;
@@ -112,10 +127,6 @@
 /* ── Utilities ─────────────────────────────────────────────── */
 @layer utilities {
   .primary-gradient {
-    /* background-image (not the `background` shorthand) so this can be
-       combined with Tailwind's bg-clip-text for gradient headline text —
-       the shorthand resets background-clip back to border-box, which is
-       exactly why gradient text was rendering as a solid block before. */
     background-image: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
   }
   .primary-gradient-soft {
@@ -142,6 +153,22 @@
   .border-bd    { border-color: var(--bd); }
   .border-bd-light { border-color: var(--bd-light); }
   .bg-input     { background-color: var(--input-bg); }
+
+  /* Light-locked helpers (auth/marketing pages — see --*-fixed above) */
+  .text-t1-fixed      { color: var(--t1-fixed); }
+  .text-t2-fixed      { color: var(--t2-fixed); }
+  .text-t3-fixed      { color: var(--t3-fixed); }
+  .border-bd-fixed    { border-color: var(--bd-fixed); }
+  .bg-card-fixed      { background-color: var(--card-fixed); }
+  .bg-surface-fixed   { background-color: var(--surface-fixed); }
+  .bg-input-fixed     { background-color: var(--input-fixed); }
+
+  /* Landing accent helpers */
+  .bg-landing-surface { background-color: var(--color-landing-surface); }
+  .bg-navy-dark        { background-color: var(--color-navy-dark); }
+  .bg-navy-darker      { background-color: var(--color-navy-darker); }
+  .text-accent-purple  { color: var(--color-accent-purple); }
+  .text-accent-emerald { color: var(--color-accent-emerald); }
 }
 
 /* ── Animations ────────────────────────────────────────────── */
