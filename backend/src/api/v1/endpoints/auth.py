@@ -3,12 +3,13 @@ from datetime import datetime, timedelta
 from uuid import UUID, uuid4
 
 import asyncpg
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Response
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response
 from pydantic import BaseModel
 
 from src.api.deps import get_current_user
 from src.config import settings
 from src.core.email import send_password_reset_email
+from src.core.limiter import limiter
 from src.core.security import (
     create_access_token,
     generate_refresh_token,
@@ -110,7 +111,10 @@ class AuthResponse(BaseModel):
 
 
 @router.post("/register", response_model=AuthResponse)
-async def register(body: RegisterRequest, response: Response, pool: asyncpg.Pool = Depends(get_pool)):
+@limiter.limit("5/minute")
+async def register(
+    request: Request, body: RegisterRequest, response: Response, pool: asyncpg.Pool = Depends(get_pool)
+):
     if len(body.password) < 8:
         raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
 
@@ -170,7 +174,10 @@ async def register(body: RegisterRequest, response: Response, pool: asyncpg.Pool
 
 
 @router.post("/login", response_model=AuthResponse)
-async def login(body: LoginRequest, response: Response, pool: asyncpg.Pool = Depends(get_pool)):
+@limiter.limit("5/minute")
+async def login(
+    request: Request, body: LoginRequest, response: Response, pool: asyncpg.Pool = Depends(get_pool)
+):
     user = await pool.fetchrow(
         "SELECT * FROM users WHERE email = $1 AND is_active = true",
         body.email.lower().strip()
@@ -210,7 +217,9 @@ async def login(body: LoginRequest, response: Response, pool: asyncpg.Pool = Dep
 
 
 @router.post("/refresh")
+@limiter.limit("20/minute")
 async def refresh_session(
+    request: Request,
     response: Response,
     refresh_token: str | None = Cookie(default=None),
     pool: asyncpg.Pool = Depends(get_pool),
@@ -315,7 +324,10 @@ class ResetPasswordRequest(BaseModel):
 
 
 @router.post("/forgot-password")
-async def forgot_password(body: ForgotPasswordRequest, pool: asyncpg.Pool = Depends(get_pool)):
+@limiter.limit("5/minute")
+async def forgot_password(
+    request: Request, body: ForgotPasswordRequest, pool: asyncpg.Pool = Depends(get_pool)
+):
     user = await pool.fetchrow(
         "SELECT id, email FROM users WHERE email = $1 AND is_active = true",
         body.email.lower().strip(),
@@ -350,7 +362,10 @@ async def forgot_password(body: ForgotPasswordRequest, pool: asyncpg.Pool = Depe
 
 
 @router.post("/reset-password")
-async def reset_password(body: ResetPasswordRequest, pool: asyncpg.Pool = Depends(get_pool)):
+@limiter.limit("10/minute")
+async def reset_password(
+    request: Request, body: ResetPasswordRequest, pool: asyncpg.Pool = Depends(get_pool)
+):
     if len(body.new_password) < 8:
         raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
 

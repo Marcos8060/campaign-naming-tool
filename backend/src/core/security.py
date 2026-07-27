@@ -4,8 +4,8 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 import bcrypt
+import jwt
 from fastapi import HTTPException, status
-from jose import JWTError, jwt
 
 from src.config import settings
 
@@ -24,7 +24,7 @@ def verify_token(token: str) -> dict:
     try:
         payload = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
         return payload
-    except JWTError:
+    except jwt.PyJWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
@@ -75,7 +75,7 @@ def create_oauth_state(data: dict, expires_minutes: int = 10) -> str:
 def verify_oauth_state(token: str) -> dict:
     try:
         payload = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
-    except JWTError:
+    except jwt.PyJWTError:
         raise HTTPException(status_code=400, detail="Invalid or expired OAuth state")
     if payload.get("purpose") != "oauth_state":
         raise HTTPException(status_code=400, detail="Invalid OAuth state")

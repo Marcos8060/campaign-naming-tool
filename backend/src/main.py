@@ -5,9 +5,13 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 
 from src.api.v1.router import api_router
 from src.config import settings
+from src.core.limiter import limiter
 from src.db.session import close_db, init_db
 from src.services.scheduler import start_scheduler, stop_scheduler
 
@@ -42,6 +46,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Global default (200/minute/IP, see src/core/limiter.py) plus tighter
+# per-route limits on the auth endpoints most worth protecting from
+# brute-force/abuse (login, register, password reset). Routes without
+# an explicit @limiter.limit(...) just inherit the global default.
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
 
 app.include_router(api_router, prefix="/api/v1")
 
