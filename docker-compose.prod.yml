@@ -1,0 +1,102 @@
+
+# Production compose file — uses the hardened production Dockerfiles
+# (backend/Dockerfile, frontend/Dockerfile) instead of the *.dev ones, and
+# requires real secrets via a `.env` file rather than falling back to the
+# insecure dev defaults in docker-compose.yml. See .env.production.example
+# for every variable this file expects.
+#
+# Usage on the server:
+#   cp .env.production.example .env   # then fill in real values
+#   docker compose -f docker-compose.prod.yml up -d --build
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: campaign_db
+    environment:
+      POSTGRES_DB: campaign_intelligence
+      POSTGRES_USER: campaign_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      POSTGRES_INITDB_ARGS: "-E UTF8"
+    # Deliberately no host port mapping — only the backend container needs
+    # to reach this, over the internal campaign_network by service name.
+    # Nothing about Postgres should be reachable from the internet at all.
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U campaign_user -d campaign_intelligence"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - campaign_network
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: campaign_backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://campaign_user:${DB_PASSWORD}@postgres:5432/campaign_intelligence
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      JWT_ALGORITHM: HS256
+      JWT_EXPIRATION: 900
+      REFRESH_TOKEN_EXPIRATION_DAYS: 7
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:?Set ALLOWED_ORIGINS in .env}
+      ENVIRONMENT: production
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      EMAIL_FROM: ${EMAIL_FROM:-}
+      FRONTEND_URL: ${FRONTEND_URL:?Set FRONTEND_URL in .env}
+      OAUTH_REDIRECT_BASE_URL: ${OAUTH_REDIRECT_BASE_URL:-${FRONTEND_URL}}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?Set ENCRYPTION_KEY in .env}
+      META_APP_ID: ${META_APP_ID:-}
+      META_APP_SECRET: ${META_APP_SECRET:-}
+      META_API_VERSION: ${META_API_VERSION:-v21.0}
+    # Bound to localhost only — the only thing allowed to reach this is
+    # Nginx running on the same machine (set up separately). Nothing
+    # external ever talks to the backend directly, only through HTTPS.
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - backend_uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - campaign_network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # NEXT_PUBLIC_* values are baked into the JS bundle at build time,
+        # not read at container runtime — must be passed as a build arg.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?Set NEXT_PUBLIC_API_URL in .env}
+    container_name: campaign_frontend
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - campaign_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  backend_uploads:
+    driver: local
+
+networks:
+  campaign_network:
+    driver: bridge
