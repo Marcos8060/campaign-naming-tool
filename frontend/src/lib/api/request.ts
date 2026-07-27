@@ -29,16 +29,9 @@ export interface RequestOptions {
   body?: unknown;
   responseType?: 'json' | 'blob';
   headers?: Record<string, string>;
-  /** Internal — marks a request as already having gone through one
-   * refresh-and-retry cycle, so the 401 handler doesn't attempt a second
-   * one (or loop) if it fails again. Not meant to be passed by callers. */
   _isRetry?: boolean;
 }
 
-// Endpoints that must never trigger the refresh-and-retry flow below: a
-// failed login/register is just a normal error to surface to the user
-// (not a session expiring), and a failed /auth/refresh or /auth/logout
-// call retrying itself would loop.
 function isAuthEndpoint(path: string): boolean {
   return (
     path.includes('/auth/login') ||
@@ -48,19 +41,23 @@ function isAuthEndpoint(path: string): boolean {
   );
 }
 
+const CSRF_TOKEN_COOKIE = 'csrf_token';
+const CSRF_HEADER_NAME = 'X-CSRF-Token';
+
+// Backend's double-submit-cookie CSRF check (see backend/src/core/csrf.py)
+// requires this cookie's value echoed back as a header on every
+// state-changing request. Unlike access_token/refresh_token, this cookie
+// is deliberately readable by JS — that's the whole mechanism.
+function getCsrfToken(): string | null {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(new RegExp(`(?:^|; )${CSRF_TOKEN_COOKIE}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 export function toQueryKey(url: string): string[] {
   return url.split('?')[0].split('/').filter(Boolean);
 }
 
-// Access tokens are short-lived (15 min) by design — see backend
-// config.jwt_expiration — so any session longer than that will hit a 401
-// on its next request. Multiple requests can also 401 around the same
-// moment (e.g. a page firing several queries right as the token expires).
-// Sharing one in-flight refresh promise means they all wait on a single
-// /auth/refresh call instead of each independently racing to refresh —
-// which matters here specifically because refresh tokens rotate: only the
-// first of several concurrent refresh attempts would actually succeed,
-// and the others would incorrectly look like theft/reuse.
 let refreshPromise: Promise<boolean> | null = null;
 
 function refreshAccessToken(): Promise<boolean> {
@@ -82,12 +79,15 @@ export async function request<T>(url: string, options: RequestOptions): Promise<
   const path = url.startsWith('/') ? url : `/${url}`;
   const hasBody = options.body !== undefined && options.method !== 'GET' && options.method !== 'DELETE';
   const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+  const isMutating = options.method !== 'GET';
+  const csrfToken = isMutating ? getCsrfToken() : null;
 
   const response = await fetch(`${BASE_URL}${path}`, {
     method: options.method,
     credentials: 'include',
     headers: {
       ...(hasBody && !isFormData ? { 'Content-Type': 'application/json' } : {}),
+      ...(csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {}),
       ...options.headers,
     },
     body: hasBody ? (isFormData ? (options.body as FormData) : JSON.stringify(options.body)) : undefined,
@@ -105,9 +105,6 @@ export async function request<T>(url: string, options: RequestOptions): Promise<
     }
 
     if (response.status === 401 && !isAuthEndpoint(path) && typeof window !== 'undefined') {
-      // Either this was already a retry (refresh succeeded but the retried
-      // request still 401'd — shouldn't normally happen) or refresh itself
-      // failed. Either way, the session is genuinely over.
       store.dispatch(logout());
       window.location.href = '/login';
     }
