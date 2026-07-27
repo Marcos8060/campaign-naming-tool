@@ -6,6 +6,7 @@ from uuid import uuid4
 
 import pytest
 
+from src.core.limiter import limiter
 from src.core.security import hash_password, verify_token
 
 from .conftest import make_refresh_token_record, make_user, make_workspace
@@ -163,6 +164,30 @@ class TestLogin:
         detail = resp.json()["detail"].lower()
         # Should say "invalid email or password" not "user not found"
         assert "email" in detail or "invalid" in detail
+
+    async def test_sixth_attempt_within_a_minute_is_rate_limited(self, client):
+        """The rest of the suite runs with the limiter disabled (see
+        conftest.py) so repeated calls elsewhere aren't flaky — this test
+        re-enables it just for itself to prove the /login limit (5/minute,
+        see auth.py) actually rejects a brute-force burst with 429."""
+        ac, pool = client
+        pool.fetchrow.return_value = None
+        limiter.enabled = True
+        try:
+            for _ in range(5):
+                resp = await ac.post("/api/v1/auth/login", json={
+                    "email": "brute@test.com",
+                    "password": "irrelevant123",
+                })
+                assert resp.status_code == 401
+            resp = await ac.post("/api/v1/auth/login", json={
+                "email": "brute@test.com",
+                "password": "irrelevant123",
+            })
+            assert resp.status_code == 429
+        finally:
+            limiter.enabled = False
+            limiter.reset()
 
 
 @pytest.mark.asyncio

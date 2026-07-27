@@ -1,6 +1,15 @@
 -r requirements.txt
+# pytest's own flagged CVE (PYSEC-2026-1845, fixed 9.0.3) is dev-tooling
+# only — it never ships in the production image, since requirements.txt
+# (what the production Dockerfile installs) no longer includes any test
+# packages at all; this file is the only place they're listed now. Bumping
+# to pytest 9 would also require a matching pytest-asyncio major upgrade
+# (0.23's "auto" mode collection is incompatible with pytest 9's collector
+# API), which isn't worth the churn for a package with no production
+# exposure. Pinned to the last version known-compatible with this suite.
 pytest==7.4.4
 pytest-asyncio==0.23.3
+pytest-cov==4.1.0
 httpx==0.26.0
 ruff==0.1.14
 black==23.12.1

@@ -1,2 +1,12 @@
 node_modules
 .next
+out
+coverage
+storybook-static
+.env
+.env.*
+!.env.example
+.git
+.gitignore
+src/__tests__
+*.md

@@ -11,8 +11,24 @@ import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
+from src.core import csrf as csrf_module
+from src.core.limiter import limiter
 from src.core.security import create_access_token, hash_password
 from src.main import app
+
+# Tests share one client "IP" (httpx's ASGITransport has no real network
+# address) and call login/register far more than 5x/minute across a full
+# run, so the real per-route limits would make the suite flaky rather than
+# testing anything meaningful. Rate-limit behavior itself is covered by
+# path-specific tests below with the limiter re-enabled for just that test.
+limiter.enabled = False
+
+# Same reasoning as the limiter above: the many existing endpoint tests
+# exercise POST/PUT/PATCH/DELETE routes without carrying a matching
+# csrf_token cookie + X-CSRF-Token header, since that's not what they're
+# testing. CSRF enforcement itself is covered by dedicated tests in
+# test_csrf.py with this re-enabled for just those tests.
+csrf_module.enabled = False
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 

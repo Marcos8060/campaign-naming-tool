@@ -3,12 +3,14 @@ from datetime import datetime, timedelta
 from uuid import UUID, uuid4
 
 import asyncpg
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Response
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response
 from pydantic import BaseModel
 
 from src.api.deps import get_current_user
 from src.config import settings
+from src.core.csrf import CSRF_TOKEN_COOKIE, generate_csrf_token
 from src.core.email import send_password_reset_email
+from src.core.limiter import limiter
 from src.core.security import (
     create_access_token,
     generate_refresh_token,
@@ -62,11 +64,28 @@ def set_refresh_cookie(response: Response, token: str) -> None:
     )
 
 
+def set_csrf_cookie(response: Response, token: str) -> None:
+    """Deliberately NOT httpOnly, unlike the auth cookies — the frontend has
+    to read this value in JS to echo it back as a header (see
+    src/core/csrf.py). That's safe: this token only ever proves a request
+    came from same-origin JS, it isn't a credential by itself."""
+    response.set_cookie(
+        key=CSRF_TOKEN_COOKIE,
+        value=token,
+        httponly=False,
+        secure=settings.is_production(),
+        samesite="lax",
+        max_age=settings.jwt_expiration,
+        path="/",
+    )
+
+
 def clear_session_cookies(response: Response) -> None:
     # Attributes (path especially) must match what set_*_cookie used, or
     # the browser won't recognize it as the same cookie to delete.
     response.delete_cookie(key=ACCESS_TOKEN_COOKIE, path="/")
     response.delete_cookie(key=REFRESH_TOKEN_COOKIE, path=REFRESH_COOKIE_PATH)
+    response.delete_cookie(key=CSRF_TOKEN_COOKIE, path="/")
 
 
 async def issue_refresh_token(db, user_id) -> str:
@@ -110,7 +129,10 @@ class AuthResponse(BaseModel):
 
 
 @router.post("/register", response_model=AuthResponse)
-async def register(body: RegisterRequest, response: Response, pool: asyncpg.Pool = Depends(get_pool)):
+@limiter.limit("5/minute")
+async def register(
+    request: Request, body: RegisterRequest, response: Response, pool: asyncpg.Pool = Depends(get_pool)
+):
     if len(body.password) < 8:
         raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
 
@@ -162,6 +184,7 @@ async def register(body: RegisterRequest, response: Response, pool: asyncpg.Pool
 
     set_auth_cookie(response, token)
     set_refresh_cookie(response, refresh_token_raw)
+    set_csrf_cookie(response, generate_csrf_token())
 
     return AuthResponse(
         user=serialize(user),
@@ -170,7 +193,10 @@ async def register(body: RegisterRequest, response: Response, pool: asyncpg.Pool
 
 
 @router.post("/login", response_model=AuthResponse)
-async def login(body: LoginRequest, response: Response, pool: asyncpg.Pool = Depends(get_pool)):
+@limiter.limit("5/minute")
+async def login(
+    request: Request, body: LoginRequest, response: Response, pool: asyncpg.Pool = Depends(get_pool)
+):
     user = await pool.fetchrow(
         "SELECT * FROM users WHERE email = $1 AND is_active = true",
         body.email.lower().strip()
@@ -202,6 +228,7 @@ async def login(body: LoginRequest, response: Response, pool: asyncpg.Pool = Dep
 
     set_auth_cookie(response, token)
     set_refresh_cookie(response, refresh_token_raw)
+    set_csrf_cookie(response, generate_csrf_token())
 
     return AuthResponse(
         user=user_dict,
@@ -210,7 +237,9 @@ async def login(body: LoginRequest, response: Response, pool: asyncpg.Pool = Dep
 
 
 @router.post("/refresh")
+@limiter.limit("20/minute")
 async def refresh_session(
+    request: Request,
     response: Response,
     refresh_token: str | None = Cookie(default=None),
     pool: asyncpg.Pool = Depends(get_pool),
@@ -275,6 +304,7 @@ async def refresh_session(
 
     set_auth_cookie(response, new_access_token)
     set_refresh_cookie(response, new_refresh_raw)
+    set_csrf_cookie(response, generate_csrf_token())
 
     return {"message": "Token refreshed"}
 
@@ -315,7 +345,10 @@ class ResetPasswordRequest(BaseModel):
 
 
 @router.post("/forgot-password")
-async def forgot_password(body: ForgotPasswordRequest, pool: asyncpg.Pool = Depends(get_pool)):
+@limiter.limit("5/minute")
+async def forgot_password(
+    request: Request, body: ForgotPasswordRequest, pool: asyncpg.Pool = Depends(get_pool)
+):
     user = await pool.fetchrow(
         "SELECT id, email FROM users WHERE email = $1 AND is_active = true",
         body.email.lower().strip(),
@@ -350,7 +383,10 @@ async def forgot_password(body: ForgotPasswordRequest, pool: asyncpg.Pool = Depe
 
 
 @router.post("/reset-password")
-async def reset_password(body: ResetPasswordRequest, pool: asyncpg.Pool = Depends(get_pool)):
+@limiter.limit("10/minute")
+async def reset_password(
+    request: Request, body: ResetPasswordRequest, pool: asyncpg.Pool = Depends(get_pool)
+):
     if len(body.new_password) < 8:
         raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
 

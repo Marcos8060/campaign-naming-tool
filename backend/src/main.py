@@ -1,13 +1,21 @@
 import logging
 import os
 from contextlib import asynccontextmanager
+from secrets import compare_digest
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 
 from src.api.v1.router import api_router
 from src.config import settings
+from src.core import csrf as csrf_module
+from src.core.csrf import CSRF_HEADER_NAME, CSRF_SAFE_METHODS, CSRF_TOKEN_COOKIE
+from src.core.limiter import limiter
 from src.db.session import close_db, init_db
 from src.services.scheduler import start_scheduler, stop_scheduler
 
@@ -42,6 +50,32 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Global default (200/minute/IP, see src/core/limiter.py) plus tighter
+# per-route limits on the auth endpoints most worth protecting from
+# brute-force/abuse (login, register, password reset). Routes without
+# an explicit @limiter.limit(...) just inherit the global default.
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
+
+
+@app.middleware("http")
+async def csrf_protect(request: Request, call_next):
+    """Double-submit cookie check for every state-changing request (see
+    src/core/csrf.py for why this exists on top of SameSite=Lax). GET/HEAD/
+    OPTIONS and /api/v1/auth/* are exempt."""
+    if (
+        csrf_module.enabled
+        and request.method not in CSRF_SAFE_METHODS
+        and not csrf_module.is_exempt(request.url.path)
+    ):
+        cookie_token = request.cookies.get(CSRF_TOKEN_COOKIE)
+        header_token = request.headers.get(CSRF_HEADER_NAME)
+        if not cookie_token or not header_token or not compare_digest(cookie_token, header_token):
+            return JSONResponse(status_code=403, content={"detail": "CSRF token missing or invalid"})
+    return await call_next(request)
+
 
 app.include_router(api_router, prefix="/api/v1")
 
