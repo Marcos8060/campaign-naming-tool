@@ -8,7 +8,7 @@
 # API), which isn't worth the churn for a package with no production
 # exposure. Pinned to the last version known-compatible with this suite.
 pytest==7.4.4
-pytest-asyncio==0.23.3
+pytest-asyncio==1.4.0
 pytest-cov==4.1.0
 # httpx itself is a real runtime dependency now (see requirements.txt) —
 # inherited from the -r above, not re-pinned here.
