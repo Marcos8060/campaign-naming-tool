@@ -14,4 +14,4 @@ pytest-cov==4.1.0
 # inherited from the -r above, not re-pinned here.
 ruff==0.1.14
 black==23.12.1
-mypy==1.8.0
+mypy==2.3.0
