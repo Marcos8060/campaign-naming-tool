@@ -13,6 +13,10 @@ bcrypt==4.1.2
 python-multipart==0.0.32
 aiofiles==23.2.1
 aiosmtplib==5.1.2
+# Real runtime dependency, not just a test tool — src/integrations/meta.py
+# uses this to call the Meta Marketing API. (Also used in tests, which is
+# why it's easy to mistake for a test-only package — see requirements-dev.txt.)
+httpx==0.26.0
 pandas==2.1.4
 numpy==1.26.3
 python-dateutil==2.8.2
