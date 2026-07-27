@@ -100,3 +100,39 @@ describe('request() — access-token refresh-and-retry', () => {
     expect(refreshCalls).toHaveLength(1);
   });
 });
+
+describe('request() — CSRF header', () => {
+  beforeEach(() => {
+    store.dispatch(logout());
+    document.cookie = 'csrf_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
+  });
+
+  it('attaches X-CSRF-Token from the cookie on a mutating request', async () => {
+    document.cookie = 'csrf_token=abc123';
+    mockFetchSequence([{ ok: true, status: 200, body: {} }]);
+
+    await request('/campaigns', { method: 'POST', body: { name: 'x' } });
+
+    const [, init] = (global.fetch as jest.Mock).mock.calls[0];
+    expect(init.headers['X-CSRF-Token']).toBe('abc123');
+  });
+
+  it('does not attach the header on a GET request', async () => {
+    document.cookie = 'csrf_token=abc123';
+    mockFetchSequence([{ ok: true, status: 200, body: {} }]);
+
+    await request('/campaigns', { method: 'GET' });
+
+    const [, init] = (global.fetch as jest.Mock).mock.calls[0];
+    expect(init.headers['X-CSRF-Token']).toBeUndefined();
+  });
+
+  it('omits the header entirely when no csrf_token cookie is set', async () => {
+    mockFetchSequence([{ ok: true, status: 200, body: {} }]);
+
+    await request('/campaigns', { method: 'DELETE' });
+
+    const [, init] = (global.fetch as jest.Mock).mock.calls[0];
+    expect(init.headers['X-CSRF-Token']).toBeUndefined();
+  });
+});

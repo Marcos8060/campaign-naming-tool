@@ -8,6 +8,7 @@ from pydantic import BaseModel
 
 from src.api.deps import get_current_user
 from src.config import settings
+from src.core.csrf import CSRF_TOKEN_COOKIE, generate_csrf_token
 from src.core.email import send_password_reset_email
 from src.core.limiter import limiter
 from src.core.security import (
@@ -63,11 +64,28 @@ def set_refresh_cookie(response: Response, token: str) -> None:
     )
 
 
+def set_csrf_cookie(response: Response, token: str) -> None:
+    """Deliberately NOT httpOnly, unlike the auth cookies — the frontend has
+    to read this value in JS to echo it back as a header (see
+    src/core/csrf.py). That's safe: this token only ever proves a request
+    came from same-origin JS, it isn't a credential by itself."""
+    response.set_cookie(
+        key=CSRF_TOKEN_COOKIE,
+        value=token,
+        httponly=False,
+        secure=settings.is_production(),
+        samesite="lax",
+        max_age=settings.jwt_expiration,
+        path="/",
+    )
+
+
 def clear_session_cookies(response: Response) -> None:
     # Attributes (path especially) must match what set_*_cookie used, or
     # the browser won't recognize it as the same cookie to delete.
     response.delete_cookie(key=ACCESS_TOKEN_COOKIE, path="/")
     response.delete_cookie(key=REFRESH_TOKEN_COOKIE, path=REFRESH_COOKIE_PATH)
+    response.delete_cookie(key=CSRF_TOKEN_COOKIE, path="/")
 
 
 async def issue_refresh_token(db, user_id) -> str:
@@ -166,6 +184,7 @@ async def register(
 
     set_auth_cookie(response, token)
     set_refresh_cookie(response, refresh_token_raw)
+    set_csrf_cookie(response, generate_csrf_token())
 
     return AuthResponse(
         user=serialize(user),
@@ -209,6 +228,7 @@ async def login(
 
     set_auth_cookie(response, token)
     set_refresh_cookie(response, refresh_token_raw)
+    set_csrf_cookie(response, generate_csrf_token())
 
     return AuthResponse(
         user=user_dict,
@@ -284,6 +304,7 @@ async def refresh_session(
 
     set_auth_cookie(response, new_access_token)
     set_refresh_cookie(response, new_refresh_raw)
+    set_csrf_cookie(response, generate_csrf_token())
 
     return {"message": "Token refreshed"}
 
