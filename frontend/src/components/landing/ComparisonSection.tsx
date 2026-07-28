@@ -7,17 +7,15 @@ interface ComparisonRow {
   feature: string;
   camparc: CellValue;
   manual: CellValue;
-  agent: CellValue;
 }
 
 const ROWS: ComparisonRow[] = [
-  { feature: 'Enforced naming taxonomy', camparc: true, manual: false, agent: false },
-  { feature: 'One-click deploy to Meta', camparc: true, manual: false, agent: true },
-  { feature: 'Everything starts paused', camparc: true, manual: 'Depends on user', agent: 'warning' },
-  { feature: 'Real error messages', camparc: true, manual: 'Yes', agent: false },
-  { feature: 'Full audit trail', camparc: true, manual: false, agent: false },
-  { feature: 'Autonomous spending', camparc: false, manual: false, agent: 'blue-check' },
-  { feature: 'Self-hostable (Docker)', camparc: true, manual: false, agent: false },
+  { feature: 'Enforced naming taxonomy', camparc: true, manual: false },
+  { feature: 'One-click deploy to Meta', camparc: true, manual: false },
+  { feature: 'Everything starts paused', camparc: true, manual: 'Depends on user' },
+  { feature: 'Real error messages', camparc: true, manual: 'Yes' },
+  { feature: 'Full audit trail', camparc: true, manual: false },
+  { feature: 'Self-hostable (Docker)', camparc: true, manual: false },
 ];
 
 function Cell({ value }: { value: CellValue }) {
@@ -38,7 +36,7 @@ export function ComparisonSection() {
             Transparent by design.
           </h2>
           <p className="text-gray-500 text-base leading-relaxed">
-            How we stack up against manual work and AI agents.
+            How we stack up against doing it by hand.
           </p>
         </div>
 
@@ -60,13 +58,10 @@ export function ComparisonSection() {
                   <th className="px-4 sm:px-6 py-3 sm:py-4 text-center bg-gray-50 text-xs sm:text-sm font-semibold text-gray-500 whitespace-nowrap">
                     Manual (Meta UI)
                   </th>
-                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-center bg-gray-50 text-xs sm:text-sm font-semibold text-gray-500 whitespace-nowrap">
-                    AI Agents
-                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {ROWS.map(({ feature, camparc, manual, agent }) => (
+                {ROWS.map(({ feature, camparc, manual }) => (
                   <tr key={feature} className="hover:bg-gray-50/50 transition-colors">
                     <td className="sticky left-0 z-10 bg-white px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-700 font-medium">{feature}</td>
                     <td className="px-4 sm:px-6 py-3 sm:py-4 text-center bg-primary/[0.03] border-l border-r border-blue-100/50">
@@ -74,9 +69,6 @@ export function ComparisonSection() {
                     </td>
                     <td className="px-4 sm:px-6 py-3 sm:py-4 text-center">
                       <Cell value={manual} />
-                    </td>
-                    <td className="px-4 sm:px-6 py-3 sm:py-4 text-center">
-                      <Cell value={agent} />
                     </td>
                   </tr>
                 ))}

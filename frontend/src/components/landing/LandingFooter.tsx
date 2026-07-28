@@ -15,7 +15,6 @@ const FOOTER_LINKS = [
     links: [
       { label: 'Terms', href: '/terms' },
       { label: 'Privacy Policy', href: '/privacy' },
-      { label: 'Status', href: '/status' },
     ],
   },
 ];
@@ -35,8 +34,8 @@ export function LandingFooter() {
             </Link>
 
             <p className="text-sm text-gray-500 leading-relaxed max-w-xs mb-5">
-              Campaign naming, deployment, and reporting for Meta — self-hosted, built directly
-              against Meta&apos;s official API.
+              Campaign naming, deployment, and reporting across ad platforms — live on Meta today,
+              built directly against Meta&apos;s official API, with more platforms on the way.
             </p>
 
             <div className="flex flex-wrap items-center gap-2">
