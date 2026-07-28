@@ -49,6 +49,7 @@ def set_auth_cookie(response: Response, token: str) -> None:
         samesite="lax",
         max_age=settings.jwt_expiration,
         path="/",
+        domain=settings.cookie_domain or None,
     )
 
 
@@ -61,6 +62,7 @@ def set_refresh_cookie(response: Response, token: str) -> None:
         samesite="lax",
         max_age=settings.refresh_token_expiration_days * 24 * 60 * 60,
         path=REFRESH_COOKIE_PATH,
+        domain=settings.cookie_domain or None,
     )
 
 
@@ -77,15 +79,17 @@ def set_csrf_cookie(response: Response, token: str) -> None:
         samesite="lax",
         max_age=settings.jwt_expiration,
         path="/",
+        domain=settings.cookie_domain or None,
     )
 
 
 def clear_session_cookies(response: Response) -> None:
-    # Attributes (path especially) must match what set_*_cookie used, or
-    # the browser won't recognize it as the same cookie to delete.
-    response.delete_cookie(key=ACCESS_TOKEN_COOKIE, path="/")
-    response.delete_cookie(key=REFRESH_TOKEN_COOKIE, path=REFRESH_COOKIE_PATH)
-    response.delete_cookie(key=CSRF_TOKEN_COOKIE, path="/")
+    # Attributes (path and domain especially) must match what set_*_cookie
+    # used, or the browser won't recognize it as the same cookie to delete.
+    domain = settings.cookie_domain or None
+    response.delete_cookie(key=ACCESS_TOKEN_COOKIE, path="/", domain=domain)
+    response.delete_cookie(key=REFRESH_TOKEN_COOKIE, path=REFRESH_COOKIE_PATH, domain=domain)
+    response.delete_cookie(key=CSRF_TOKEN_COOKIE, path="/", domain=domain)
 
 
 async def issue_refresh_token(db, user_id) -> str:
