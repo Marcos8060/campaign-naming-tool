@@ -6,8 +6,12 @@ export function LivePreview({ generatedName, platformConfig, form }: LivePreview
   const pct = Math.min((charCount / maxLen) * 100, 100);
   const barColor = pct > 90 ? 'bg-red-500' : pct > 70 ? 'bg-yellow-500' : 'bg-positive';
 
+  // Sticky only once this sits beside the form (lg breakpoint, see the
+  // create-campaign page's grid) — stacked full-width below the form on
+  // mobile, sticky positioning there would just pin an already-visible
+  // block, serving no purpose.
   return (
-    <div className="bg-blue-50 border border-primary/20 rounded-xl p-5 space-y-4 sticky top-4">
+    <div className="bg-blue-50 border border-primary/20 rounded-xl p-5 space-y-4 lg:sticky lg:top-4">
       <div className="flex items-center gap-2">
         <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
         <span className="text-xs font-semibold text-primary uppercase tracking-wide">Live Preview</span>
