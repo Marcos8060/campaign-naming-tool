@@ -25,6 +25,18 @@ class Settings(BaseSettings):
     allowed_origins: str = "http://localhost:3000"
     environment: str = "development"
 
+    # Left blank in dev on purpose — frontend and backend both run on
+    # "localhost" there (just different ports), and cookies are scoped by
+    # hostname only, so a host-only cookie (the default when this is unset)
+    # is already visible to both. In production the frontend and API live on
+    # different subdomains (e.g. campanetics.com vs api.campanetics.com), so
+    # a host-only cookie set by the API is invisible to JS running on the
+    # frontend's origin — this matters specifically for the CSRF cookie,
+    # which the frontend must read via document.cookie (see csrf.py). Set
+    # this to the shared parent domain, e.g. ".campanetics.com", so cookies
+    # set by either subdomain are readable across both.
+    cookie_domain: str = ""
+
     smtp_host: str = "smtp.gmail.com"
     smtp_port: int = 587
     smtp_user: str = ""
