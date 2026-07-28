@@ -7,6 +7,7 @@ import { useGet, usePost } from '@/lib/hooks/api';
 import { Upload, Image } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRole } from '@/lib/hooks/useRole';
+import { API_ORIGIN } from '@/lib/api/request';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -86,7 +87,7 @@ export default function AssetsPage() {
             <div key={asset.id} className="group relative aspect-square bg-gray-100 rounded-xl overflow-hidden border border-gray-200">
               {asset.file_type?.startsWith('image/') ? (
                 <img
-                  src={`http://localhost:8000${asset.public_url}`}
+                  src={`${API_ORIGIN}${asset.public_url}`}
                   alt={asset.file_name}
                   className="w-full h-full object-cover"
                 />
