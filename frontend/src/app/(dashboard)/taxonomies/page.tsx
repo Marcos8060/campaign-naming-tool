@@ -14,6 +14,8 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { Combobox } from '@/components/ui/Combobox';
+import { slugifyCategory } from '@/lib/utils/taxonomy';
 
 export default function TaxonomiesPage() {
   const router = useRouter();
@@ -22,7 +24,7 @@ export default function TaxonomiesPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingNode, setEditingNode] = useState<TaxonomyNodeData | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<TaxonomyNodeData | null>(null);
-  const [form, setForm] = useState({ name: '', type: 'brand', code: '', parent_id: '' });
+  const [form, setForm] = useState({ name: '', type: '', code: '', parent_id: '' });
 
   useEffect(() => {
     if (isReady && isViewer) router.replace('/dashboard');
@@ -32,12 +34,18 @@ export default function TaxonomiesPage() {
 
   const { data: allTaxonomies = [] } = useGet<TaxonomyNodeData[]>({ url: '/taxonomies' });
 
+  // Same idea as TaxonomyEditModal: categories are user-defined now, so this
+  // suggests the workspace's existing categories (plus the original
+  // defaults for a fresh workspace) rather than locking the field to a
+  // fixed list.
+  const categoryOptions = Array.from(new Set([...TYPES, ...allTaxonomies.map((t) => t.type)])).sort();
+
   const createMutation = usePost<TaxonomyNodeData, Omit<TaxonomyNodeData, 'id' | 'children'>>({
     url: '/taxonomies',
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['taxonomies'] });
       setShowForm(false);
-      setForm({ name: '', type: 'brand', code: '', parent_id: '' });
+      setForm({ name: '', type: '', code: '', parent_id: '' });
       toast.success('Taxonomy created');
     },
     onError: () => toast.error('Failed to create taxonomy'),
@@ -109,10 +117,13 @@ export default function TaxonomiesPage() {
                   placeholder="e.g. NA" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                <Select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
-                  {TYPES.map((t) => <option key={t} value={t} className="capitalize">{t}</option>)}
-                </Select>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <Combobox
+                  value={form.type}
+                  onChange={(v) => setForm({ ...form, type: v })}
+                  options={categoryOptions}
+                  placeholder="Click to see categories, or type a new one"
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Parent (optional)</label>
@@ -126,8 +137,12 @@ export default function TaxonomiesPage() {
             </div>
             <div className="flex gap-3 mt-4">
               <Button
-                onClick={() => createMutation.mutate({ ...form, parent_id: form.parent_id || undefined })}
-                disabled={!form.name || !form.code}
+                onClick={() => createMutation.mutate({
+                  ...form,
+                  type: slugifyCategory(form.type) || form.type,
+                  parent_id: form.parent_id || undefined,
+                })}
+                disabled={!form.name || !form.code || !form.type.trim()}
                 loading={createMutation.isPending}
               >
                 Create
@@ -144,7 +159,7 @@ export default function TaxonomiesPage() {
             </span>
             <div className="flex items-center gap-4 text-xs text-gray-400">
               <span className="w-24 text-right">Code</span>
-              <span className="w-20 text-right">Type</span>
+              <span className="w-20 text-right">Category</span>
               {canManage && <span className="w-16" />}
             </div>
           </div>

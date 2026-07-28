@@ -6,3 +6,4 @@ export { Spinner, type SpinnerProps } from './Spinner';
 export { Input, type InputProps } from './Input';
 export { Select, type SelectProps } from './Select';
 export { DatePicker, type DatePickerProps } from './DatePicker';
+export { Combobox, type ComboboxProps } from './Combobox';

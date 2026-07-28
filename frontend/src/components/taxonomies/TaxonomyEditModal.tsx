@@ -3,6 +3,8 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { Combobox } from '@/components/ui/Combobox';
+import { slugifyCategory } from '@/lib/utils/taxonomy';
 
 export interface TaxonomyNodeData {
   id: string;
@@ -13,9 +15,12 @@ export interface TaxonomyNodeData {
   children?: TaxonomyNodeData[];
 }
 
-// Exported so taxonomies/page.tsx's "Type" dropdown can reuse the same list
-// instead of referencing an undefined `TYPES` (it previously did — this was
-// a pre-existing bug: the dropdown crashed on render before this fix).
+// Exported so taxonomies/page.tsx's "Category" dropdown can reuse the same
+// list instead of referencing an undefined `TYPES` (it previously did — this
+// was a pre-existing bug: the dropdown crashed on render before this fix).
+// Note: still called TYPES / `type` internally (matches the DB column and
+// API field) — only the user-facing label was renamed to "Category". See
+// docs note in taxonomies/page.tsx for why the two names now differ.
 export const TYPES = ['brand', 'product', 'region', 'objective', 'promotion', 'custom'];
 
 interface TaxonomyEditModalProps {
@@ -33,6 +38,16 @@ export function TaxonomyEditModal({ node, allTaxonomies, onClose, onSave, isPend
     type: node.type,
     parent_id: node.parent_id || '',
   });
+  // Categories are user-defined now — this workspace's existing categories
+  // (plus the original defaults, so a fresh workspace still has sensible
+  // suggestions) populate the Combobox below. It still accepts any typed
+  // value; slugifyCategory() normalizes it to a valid category on save.
+  const categoryOptions = Array.from(new Set([...TYPES, ...allTaxonomies.map((t) => t.type)])).sort();
+
+  const handleSave = () => {
+    const type = slugifyCategory(form.type) || form.type;
+    onSave({ ...form, type, parent_id: form.parent_id || undefined });
+  };
 
   return (
     <Modal
@@ -44,8 +59,8 @@ export function TaxonomyEditModal({ node, allTaxonomies, onClose, onSave, isPend
         <>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
           <Button
-            onClick={() => onSave({ ...form, parent_id: form.parent_id || undefined })}
-            disabled={!form.name || !form.code || isPending}
+            onClick={handleSave}
+            disabled={!form.name || !form.code || !form.type.trim() || isPending}
             loading={isPending}
           >
             Save Changes
@@ -64,10 +79,13 @@ export function TaxonomyEditModal({ node, allTaxonomies, onClose, onSave, isPend
             className="font-mono" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-          <Select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
-            {TYPES.map((t) => <option key={t} value={t} className="capitalize">{t}</option>)}
-          </Select>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+          <Combobox
+            value={form.type}
+            onChange={(v) => setForm({ ...form, type: v })}
+            options={categoryOptions}
+            placeholder="Click to see categories, or type a new one"
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Parent (optional)</label>

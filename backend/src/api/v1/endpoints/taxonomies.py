@@ -1,3 +1,4 @@
+import re
 from typing import Optional
 from uuid import UUID
 
@@ -8,6 +9,26 @@ from src.api.deps import get_current_user, get_workspace_id, require_role
 from src.db.session import get_pool
 
 router = APIRouter()
+
+# Must match the DB CHECK constraint added in migration 019 — kept in sync
+# so a bad value gets a clean 400 here instead of surfacing as a raw
+# asyncpg constraint-violation error. Categories are user-defined now (no
+# longer locked to a fixed list), but still have to stay in this safe
+# character set because the value gets used verbatim as a {type} token in
+# platform naming templates.
+_CATEGORY_TYPE_RE = re.compile(r"^[a-z][a-z0-9_]*$")
+
+
+def _validate_category_type(value: str) -> None:
+    if not _CATEGORY_TYPE_RE.match(value):
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Invalid category '{value}' — categories must start with a "
+                "lowercase letter and contain only lowercase letters, numbers, "
+                "and underscores (e.g. 'audience', 'placement')."
+            ),
+        )
 
 
 @router.get("")
@@ -66,6 +87,7 @@ async def create_taxonomy(
     current_user: dict = Depends(require_role("admin", "manager")),
     pool: asyncpg.Pool = Depends(get_pool),
 ):
+    _validate_category_type(body["type"])
     workspace_id = current_user["workspace_id"]
     level = 0
     if body.get("parent_id"):
@@ -102,6 +124,8 @@ async def update_taxonomy(
     workspace_id = current_user["workspace_id"]
     allowed = {"name", "code", "type", "sort_order", "metadata", "is_active"}
     updates = {k: v for k, v in body.items() if k in allowed}
+    if "type" in updates:
+        _validate_category_type(updates["type"])
 
     # Handle parent_id separately (can be None to move to root)
     parent_id_value = body.get("parent_id", "__missing__")
