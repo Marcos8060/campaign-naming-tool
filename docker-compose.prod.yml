@@ -45,6 +45,10 @@ services:
       JWT_EXPIRATION: 900
       REFRESH_TOKEN_EXPIRATION_DAYS: 7
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:?Set ALLOWED_ORIGINS in .env}
+      # Shared parent domain (e.g. ".campanetics.com") so cookies set by the
+      # API subdomain are readable by frontend JS on the root domain — see
+      # the comment on Settings.cookie_domain in backend/src/config.py.
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN:?Set COOKIE_DOMAIN in .env}
       ENVIRONMENT: production
       SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
       SMTP_PORT: ${SMTP_PORT:-587}
