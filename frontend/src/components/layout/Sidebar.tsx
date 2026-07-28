@@ -1,10 +1,13 @@
 'use client';
 
 import Link from 'next/link';
+import NextImage from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
 import { toggleSidebar, setMobileNavOpen } from '@/lib/store/slices/uiSlice';
+import { useGet } from '@/lib/hooks/api';
+import { API_ORIGIN } from '@/lib/api/request';
 import { cn } from '@/lib/utils/cn';
 import {
   LayoutDashboard, Tag, Megaphone, BarChart2, Download,
@@ -66,6 +69,9 @@ function DesktopSidebar() {
   const { currentWorkspace } = useSelector((state: RootState) => state.workspace);
   const { user } = useSelector((state: RootState) => state.auth);
   const role = user?.role ?? 'viewer';
+  // Set under Settings > Branding — falls back to the default Sparkles mark
+  // below when no logo's been uploaded for this workspace yet.
+  const { data: branding } = useGet({ url: '/branding' });
 
   const NAV = NAV_ALL.filter((item) => item.roles.includes(role));
   const BOTTOM_NAV = BOTTOM_NAV_ALL.filter((item) => item.roles.includes(role));
@@ -84,11 +90,22 @@ function DesktopSidebar() {
       <div className="h-16 flex items-center justify-between px-4 border-b flex-shrink-0" style={{ borderColor: 'var(--bd)' }}>
         {sidebarOpen ? (
           <div className="flex items-center gap-2.5 overflow-hidden">
-            <div className="w-8 h-8 rounded-lg primary-gradient flex-shrink-0 flex items-center justify-center shadow-sm">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
+            {branding?.logo_url ? (
+              <NextImage
+                src={`${API_ORIGIN}${branding.logo_url}`}
+                alt="Logo"
+                width={120}
+                height={28}
+                unoptimized
+                className="h-7 max-w-[120px] object-contain flex-shrink-0"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-lg primary-gradient flex-shrink-0 flex items-center justify-center shadow-sm">
+                <Sparkles className="w-4 h-4 text-white" />
+              </div>
+            )}
             <div className="overflow-hidden">
-              <p className="font-extrabold text-t1 text-sm leading-tight tracking-tight">Camparc</p>
+              {!branding?.logo_url && <p className="font-extrabold text-t1 text-sm leading-tight tracking-tight">Camparc</p>}
               {currentWorkspace?.name && (
                 <p className="text-[11px] text-t3 truncate max-w-[120px]">{currentWorkspace.name}</p>
               )}
@@ -139,6 +156,7 @@ function MobileDrawer() {
   const { currentWorkspace } = useSelector((state: RootState) => state.workspace);
   const { user } = useSelector((state: RootState) => state.auth);
   const role = user?.role ?? 'viewer';
+  const { data: branding } = useGet({ url: '/branding' });
 
   const NAV = NAV_ALL.filter((item) => item.roles.includes(role));
   const BOTTOM_NAV = BOTTOM_NAV_ALL.filter((item) => item.roles.includes(role));
@@ -162,11 +180,22 @@ function MobileDrawer() {
       >
         <div className="h-16 flex items-center justify-between px-5 border-b" style={{ borderColor: 'var(--bd)' }}>
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg primary-gradient flex items-center justify-center shadow-sm">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
+            {branding?.logo_url ? (
+              <NextImage
+                src={`${API_ORIGIN}${branding.logo_url}`}
+                alt="Logo"
+                width={140}
+                height={28}
+                unoptimized
+                className="h-7 max-w-[140px] object-contain flex-shrink-0"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-lg primary-gradient flex items-center justify-center shadow-sm">
+                <Sparkles className="w-4 h-4 text-white" />
+              </div>
+            )}
             <div>
-              <p className="font-extrabold text-t1 text-sm tracking-tight">Camparc</p>
+              {!branding?.logo_url && <p className="font-extrabold text-t1 text-sm tracking-tight">Camparc</p>}
               {currentWorkspace?.name && (
                 <p className="text-[11px] text-t3 truncate max-w-[140px]">{currentWorkspace.name}</p>
               )}
