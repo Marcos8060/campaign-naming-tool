@@ -10,15 +10,15 @@ const TRUST_BADGES = [
 export function HeroSection() {
   return (
     <section className="relative overflow-hidden bg-white">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_60%_-10%,rgba(46,107,228,0.08),transparent)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_40%_at_100%_100%,rgba(108,92,231,0.04),transparent)]" />
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_80%_60%_at_60%_-10%,rgba(46,107,228,0.08),transparent)]" />
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_40%_40%_at_100%_100%,rgba(108,92,231,0.04),transparent)]" />
 
       <div className="max-w-7xl mx-auto px-6 pt-14 pb-20 lg:pt-20 lg:pb-28">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
 
           <div>
             <div className="inline-flex items-center gap-2 text-xs font-bold text-primary bg-primary-soft border border-blue-100 px-3 py-1.5 rounded-full mb-6 uppercase tracking-wider">
-              Campaign naming &amp; deployment for Meta
+              Multi-platform campaign naming — live on Meta
             </div>
 
             <h1 className="text-4xl lg:text-5xl xl:text-[3.4rem] font-extrabold text-gray-900 leading-[1.1] tracking-tight mb-5">
@@ -26,8 +26,9 @@ export function HeroSection() {
             </h1>
 
             <p className="text-base text-gray-500 leading-relaxed max-w-[520px] mb-8">
-              The B2B SaaS tool for in-house teams and agencies to manage Meta campaigns with
-              absolute naming consistency and automated data loops.
+              The B2B SaaS tool for in-house teams and agencies to manage ad campaigns with
+              absolute naming consistency across platforms — deploying live to Meta today, with
+              more platforms on the way.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 mb-7">
