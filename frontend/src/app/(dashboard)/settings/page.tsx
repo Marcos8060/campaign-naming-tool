@@ -244,7 +244,7 @@ export default function SettingsPage() {
                 className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 border border-gray-100 transition-colors">
                 <div>
                   <p className="text-sm font-medium text-gray-900">Branding</p>
-                  <p className="text-xs text-gray-500">Set your workspace's logo</p>
+                  <p className="text-xs text-gray-500">Set your workspace&apos;s logo</p>
                 </div>
                 <span className="text-gray-400">→</span>
               </Link>

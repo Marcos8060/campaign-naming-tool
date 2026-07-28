@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import NextImage from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
@@ -90,7 +91,14 @@ function DesktopSidebar() {
         {sidebarOpen ? (
           <div className="flex items-center gap-2.5 overflow-hidden">
             {branding?.logo_url ? (
-              <img src={`${API_ORIGIN}${branding.logo_url}`} alt="Logo" className="h-7 max-w-[120px] object-contain flex-shrink-0" />
+              <NextImage
+                src={`${API_ORIGIN}${branding.logo_url}`}
+                alt="Logo"
+                width={120}
+                height={28}
+                unoptimized
+                className="h-7 max-w-[120px] object-contain flex-shrink-0"
+              />
             ) : (
               <div className="w-8 h-8 rounded-lg primary-gradient flex-shrink-0 flex items-center justify-center shadow-sm">
                 <Sparkles className="w-4 h-4 text-white" />
@@ -173,7 +181,14 @@ function MobileDrawer() {
         <div className="h-16 flex items-center justify-between px-5 border-b" style={{ borderColor: 'var(--bd)' }}>
           <div className="flex items-center gap-2.5">
             {branding?.logo_url ? (
-              <img src={`${API_ORIGIN}${branding.logo_url}`} alt="Logo" className="h-7 max-w-[140px] object-contain flex-shrink-0" />
+              <NextImage
+                src={`${API_ORIGIN}${branding.logo_url}`}
+                alt="Logo"
+                width={140}
+                height={28}
+                unoptimized
+                className="h-7 max-w-[140px] object-contain flex-shrink-0"
+              />
             ) : (
               <div className="w-8 h-8 rounded-lg primary-gradient flex items-center justify-center shadow-sm">
                 <Sparkles className="w-4 h-4 text-white" />

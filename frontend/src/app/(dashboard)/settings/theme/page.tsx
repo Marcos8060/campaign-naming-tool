@@ -7,6 +7,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useGet, usePost } from '@/lib/hooks/api';
 import { API_ORIGIN } from '@/lib/api/request';
 import { toast } from 'sonner';
+import Image from 'next/image';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 
@@ -45,16 +46,19 @@ export default function ThemePage() {
     <div className="max-w-xl space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Branding</h1>
-        <p className="text-gray-500 mt-1">Set the logo shown in your workspace's sidebar</p>
+        <p className="text-gray-500 mt-1">Set the logo shown in your workspace&apos;s sidebar</p>
       </div>
 
       <Card variant="outlined" padding="lg" className="space-y-4">
         <h3 className="font-semibold text-gray-900">Logo</h3>
         {branding?.logo_url && (
-          <img
+          <Image
             src={`${API_ORIGIN}${branding.logo_url}`}
             alt="Current logo"
-            className="h-10 object-contain"
+            width={160}
+            height={40}
+            unoptimized
+            className="h-10 w-auto object-contain"
           />
         )}
         <Input
