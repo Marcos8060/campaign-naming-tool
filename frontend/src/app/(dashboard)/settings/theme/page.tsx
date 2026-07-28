@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useRole } from '@/lib/hooks/useRole';
 import { useQueryClient } from '@tanstack/react-query';
 import { useGet, usePatch, usePost } from '@/lib/hooks/api';
+import { API_ORIGIN } from '@/lib/api/request';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -37,7 +38,7 @@ function ThemePreview({ colors, logoUrl }: { colors: Record<string, string>; log
       <div className="flex" style={{ minHeight: '200px' }}>
         <div className="w-28 flex-shrink-0 p-3 space-y-1" style={{ backgroundColor: primary + '18', borderRight: `1px solid ${border}` }}>
           {logoUrl ? (
-            <img src={`http://localhost:8000${logoUrl}`} alt="Logo" className="h-5 mb-3 object-contain" />
+            <img src={`${API_ORIGIN}${logoUrl}`} alt="Logo" className="h-5 mb-3 object-contain" />
           ) : (
             <div className="text-xs font-bold mb-3" style={{ color: primary }}>Camparc</div>
           )}
@@ -160,7 +161,7 @@ export default function ThemePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
                   {branding?.[urlKey] && (
                     <img
-                      src={`http://localhost:8000${branding[urlKey]}`}
+                      src={`${API_ORIGIN}${branding[urlKey]}`}
                       alt="Logo preview"
                       className="h-10 mb-2 object-contain"
                     />

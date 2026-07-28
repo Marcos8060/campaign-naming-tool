@@ -3,6 +3,14 @@ import { logout } from '@/lib/store/slices/authSlice';
 
 export const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
+// Uploaded files (assets, logos) are served from the API's origin at
+// /uploads, not under /api/v1 — strip that suffix off BASE_URL to get the
+// bare origin to prefix relative public_url/logo_url values with. Using
+// this instead of a hardcoded "http://localhost:8000" is what makes image
+// URLs resolve correctly in production, where the API lives on its own
+// subdomain (e.g. api.campanetics.com) rather than localhost.
+export const API_ORIGIN = BASE_URL.replace(/\/api\/v1\/?$/, '');
+
 export type ApiErrorBody = Record<string, unknown>;
 
 function extractMessage(body: ApiErrorBody, statusCode: number): string {
