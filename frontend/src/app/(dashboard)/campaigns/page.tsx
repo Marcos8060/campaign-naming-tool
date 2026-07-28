@@ -130,7 +130,8 @@ export default function CampaignsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Campaigns</h1>
           <p className="text-gray-500 mt-1">
@@ -140,7 +141,7 @@ export default function CampaignsPage() {
           </p>
         </div>
         {canCreate && (
-          <Button href="/campaigns/create" icon={<Plus className="w-4 h-4" />}>
+          <Button href="/campaigns/create" icon={<Plus className="w-4 h-4" />} className="w-full sm:w-auto justify-center">
             New Campaign
           </Button>
         )}
@@ -195,7 +196,18 @@ export default function CampaignsPage() {
             )}
           </div>
         ) : (
-          <table className="w-full">
+          <>
+            <p className="sm:hidden text-center text-xs text-gray-400 py-2 border-b border-gray-100">
+              Swipe to see all columns →
+            </p>
+            {/* overflow-hidden on the Card above only clips for rounded
+                corners — this inner overflow-x-auto is what actually lets
+                the table scroll sideways on narrow screens instead of
+                having columns silently clipped off with no way to reach
+                them (that was the real bug: the checkbox/platform/status
+                columns were being cut, not just squeezed). */}
+            <div className="overflow-x-auto">
+          <table className="w-full min-w-[640px]">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 {canCreate && (
@@ -261,6 +273,8 @@ export default function CampaignsPage() {
               ))}
             </tbody>
           </table>
+            </div>
+          </>
         )}
       </Card>
     </div>
