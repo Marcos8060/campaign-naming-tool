@@ -96,7 +96,7 @@ export default function TaxonomiesPage() {
         {showForm && canManage && (
           <Card variant="outlined" padding="lg">
             <h3 className="font-semibold text-gray-900 mb-4">New Taxonomy Node</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                 <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -142,7 +142,10 @@ export default function TaxonomiesPage() {
             <span className="text-sm font-medium text-gray-700">
               {allTaxonomies.length} {allTaxonomies.length === 1 ? 'taxonomy' : 'taxonomies'}
             </span>
-            <div className="flex items-center gap-4 text-xs text-gray-400">
+            {/* Column headers only make sense once rows have room to lay out
+                as a single line (see the sm: breakpoint in TaxonomyNode) —
+                hidden on mobile where rows wrap onto multiple lines instead. */}
+            <div className="hidden sm:flex items-center gap-4 text-xs text-gray-400">
               <span className="w-24 text-right">Code</span>
               <span className="w-20 text-right">Type</span>
               {canManage && <span className="w-16" />}

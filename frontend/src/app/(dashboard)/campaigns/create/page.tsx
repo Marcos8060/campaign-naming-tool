@@ -170,8 +170,13 @@ export default function CreateCampaignPage() {
         ))}
       </div>
 
-      <div className={`grid gap-6 ${showPreviewPanel ? 'grid-cols-5' : 'grid-cols-1'}`}>
-        <div className={showPreviewPanel ? 'col-span-3' : 'col-span-1'}>
+      {/* Single column and stacked on mobile/tablet — the 5-column split
+          only kicks in at lg (~1024px) where there's actually room for the
+          form and the live preview side by side. Below that, cramming both
+          into narrow half-columns is what made the template/generated-name
+          boxes wrap character-by-character. */}
+      <div className={`grid gap-6 grid-cols-1 ${showPreviewPanel ? 'lg:grid-cols-5' : ''}`}>
+        <div className={showPreviewPanel ? 'lg:col-span-3' : 'col-span-1'}>
           <Card variant="outlined" padding="lg">
 
             {step === 1 && (
@@ -271,14 +276,20 @@ export default function CreateCampaignPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Campaign Name <span className="text-gray-400 font-normal">(optional — auto-generated if empty)</span>
                   </label>
+                  {/* Inputs can't wrap text onto multiple lines — when the
+                      generated name (used as the placeholder) is long, it
+                      would otherwise get hard-clipped mid-character at the
+                      field's edge. truncate at least turns that into a
+                      clean ellipsis. */}
                   <Input
                     type="text"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     placeholder={generatedName || 'Auto-generated from template'}
+                    className="truncate"
                   />
                   {!form.name && generatedName && (
-                    <p className="text-xs text-primary mt-1">
+                    <p className="text-xs text-primary mt-1 break-all">
                       Will use: <span className="font-mono font-medium">{generatedName}</span>
                     </p>
                   )}
@@ -378,9 +389,13 @@ export default function CreateCampaignPage() {
                     ['End Date',       form.end_date || '—'],
                     ['Status',         'Draft'],
                   ] as [string, string][]).map(([label, value]) => (
-                    <div key={label} className="flex justify-between px-4 py-3 text-sm">
+                    // Stacked (label above value) on mobile — a short label
+                    // and a long value fighting for space in the same row is
+                    // what produced the interleaved, hard-to-read wrapping.
+                    // Side-by-side only once there's enough width (sm+).
+                    <div key={label} className="flex flex-col sm:flex-row sm:justify-between gap-1 px-4 py-3 text-sm">
                       <span className="text-gray-500">{label}</span>
-                      <span className="font-medium text-gray-900 text-right max-w-xs break-all">{value}</span>
+                      <span className="font-medium text-gray-900 sm:text-right sm:max-w-xs break-all">{value}</span>
                     </div>
                   ))}
                 </Card>
@@ -405,7 +420,7 @@ export default function CreateCampaignPage() {
         </div>
 
         {showPreviewPanel && (
-          <div className="col-span-2">
+          <div className="lg:col-span-2">
             <LivePreview generatedName={generatedName} platformConfig={platformConfig} form={form} />
           </div>
         )}
