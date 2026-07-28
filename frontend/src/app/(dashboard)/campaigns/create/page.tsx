@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { DatePicker } from '@/components/ui/DatePicker';
 import { cn } from '@/lib/utils/cn';
 import { formatMoney, currencyLabel } from '@/lib/utils/currency';
 
@@ -91,8 +92,8 @@ export default function CreateCampaignPage() {
     onError: (err) => toast.error(err.message || 'Failed to create campaign'),
   });
 
-  const generatedName = useMemo(() => {
-    if (!form.platform) return '';
+  const { generatedName, unfilledPlaceholders } = useMemo(() => {
+    if (!form.platform) return { generatedName: '', unfilledPlaceholders: [] as string[] };
     const sep = platformConfig?.separator || '_';
     const template = platformConfig?.naming_template || `{platform}${sep}{objective}${sep}{date}`;
     const now = new Date();
@@ -104,7 +105,29 @@ export default function CreateCampaignPage() {
     Object.entries(form.taxonomy_values).forEach(([k, v]) => {
       if (v) name = name.replace(`{${k}}`, v);
     });
-    return name;
+
+    // Any {placeholder} still left at this point has no matching taxonomy
+    // type configured (or none selected) — e.g. the template asks for
+    // {audience} but there's no "audience" taxonomy in this workspace yet.
+    // Previously these were left in the name verbatim (literal curly braces
+    // shipped straight into a real ad platform), so instead: strip the token
+    // together with one adjacent separator, and surface which ones were
+    // dropped so the gap is visible in the UI instead of silent.
+    const placeholderRe = /\{[a-zA-Z0-9_]+\}/g;
+    const unfilledPlaceholders = Array.from(name.matchAll(placeholderRe), (m) => m[0].slice(1, -1));
+    if (unfilledPlaceholders.length && sep) {
+      const escSep = sep.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      // Pass 1: a separator immediately before a placeholder ("_{product}") — drop both.
+      name = name.replace(new RegExp(`${escSep}\\{[a-zA-Z0-9_]+\\}`, 'g'), '');
+      // Pass 2: a placeholder immediately followed by a separator ("{product}_") —
+      // covers a placeholder sitting at the very start of the template.
+      name = name.replace(new RegExp(`\\{[a-zA-Z0-9_]+\\}${escSep}`, 'g'), '');
+    }
+    // Pass 3: anything left over (e.g. the whole template was a single token,
+    // so there was never an adjacent separator to remove alongside it).
+    name = name.replace(placeholderRe, '');
+
+    return { generatedName: name, unfilledPlaceholders };
   }, [form.platform, form.objective, form.taxonomy_values, platformConfig]);
 
   const finalName = form.name || generatedName || `Campaign_${Date.now()}`;
@@ -258,6 +281,20 @@ export default function CreateCampaignPage() {
                     to set them up.
                   </div>
                 )}
+                {unfilledPlaceholders.length > 0 && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
+                    This platform&apos;s naming template also expects{' '}
+                    <span className="font-mono font-medium">
+                      {unfilledPlaceholders.map((p) => `{${p}}`).join(', ')}
+                    </span>
+                    {' '}— no matching taxonomy exists yet (or none is selected), so{' '}
+                    {unfilledPlaceholders.length === 1 ? 'it' : 'these'} will just be left out of the generated name. Go to{' '}
+                    <Button variant="text" className="underline font-medium" onClick={() => router.push('/taxonomies')}>
+                      Taxonomies
+                    </Button>{' '}
+                    to add {unfilledPlaceholders.length === 1 ? 'it' : 'them'} if that wasn&apos;t intentional.
+                  </div>
+                )}
               </div>
             )}
 
@@ -313,14 +350,19 @@ export default function CreateCampaignPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                    <Input type="date" value={form.start_date}
-                      onChange={(e) => setForm({ ...form, start_date: e.target.value })}
+                    <DatePicker
+                      value={form.start_date}
+                      onChange={(v) => setForm({ ...form, start_date: v })}
+                      placeholder="Select start date"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                    <Input type="date" value={form.end_date}
-                      onChange={(e) => setForm({ ...form, end_date: e.target.value })}
+                    <DatePicker
+                      value={form.end_date}
+                      onChange={(v) => setForm({ ...form, end_date: v })}
+                      placeholder="Select end date"
+                      minDate={form.start_date || undefined}
                     />
                   </div>
                 </div>
