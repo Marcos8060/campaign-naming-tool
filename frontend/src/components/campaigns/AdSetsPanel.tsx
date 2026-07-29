@@ -237,10 +237,16 @@ function AdSetRow({
 
       {adSet.status === 'deployed' && (
         <div className="pl-3 border-l-2 border-gray-100 space-y-2">
+          {ads.map((ad) => (
+            <AdRow key={ad.id} ad={ad} adSetId={adSet.id} />
+          ))}
+
           {metaConnected && (
-            <Button variant="text" size="sm" icon={<Plus className="w-3.5 h-3.5" />} onClick={() => setShowAdForm((s) => !s)}>
-              {showAdForm ? 'Cancel' : 'Add Ad'}
-            </Button>
+            <div className={ads.length > 0 ? 'pt-2 border-t border-gray-100' : undefined}>
+              <Button variant="text" size="sm" icon={<Plus className="w-3.5 h-3.5" />} onClick={() => setShowAdForm((s) => !s)}>
+                {showAdForm ? 'Cancel' : 'Add Ad'}
+              </Button>
+            </div>
           )}
 
           {showAdForm && (
@@ -277,10 +283,6 @@ function AdSetRow({
               </Button>
             </div>
           )}
-
-          {ads.map((ad) => (
-            <AdRow key={ad.id} ad={ad} adSetId={adSet.id} />
-          ))}
         </div>
       )}
     </div>
