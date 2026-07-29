@@ -59,7 +59,7 @@ interface Props {
 export function AdSetsPanel({ campaignId, platformDeployed, hasCampaignBudget, currencyCode, metaConnected }: Props) {
   const queryClient = useQueryClient();
   const [showAdSetForm, setShowAdSetForm] = useState(false);
-  const [adSetForm, setAdSetForm] = useState({ name: '', countries: 'US', age_min: 18, age_max: 65, daily_budget: '' });
+  const [adSetForm, setAdSetForm] = useState({ name: '', countries: 'US', age_min: '18', age_max: '65', daily_budget: '' });
 
   const { data: adSets = [] } = useGet<AdSet[]>({
     url: `/campaigns/${campaignId}/ad-sets`,
@@ -72,15 +72,15 @@ export function AdSetsPanel({ campaignId, platformDeployed, hasCampaignBudget, c
     body: (f: typeof adSetForm) => ({
       name: f.name || undefined,
       countries: f.countries.split(',').map((c: string) => c.trim().toUpperCase()).filter(Boolean),
-      age_min: Number(f.age_min),
-      age_max: Number(f.age_max),
+      age_min: Number(f.age_min) || 18,
+      age_max: Number(f.age_max) || 65,
       daily_budget: f.daily_budget || undefined,
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ad-sets', campaignId] });
       toast.success('Ad set created on Meta — paused, ready for an ad');
       setShowAdSetForm(false);
-      setAdSetForm({ name: '', countries: 'US', age_min: 18, age_max: 65, daily_budget: '' });
+      setAdSetForm({ name: '', countries: 'US', age_min: '18', age_max: '65', daily_budget: '' });
     },
     onError: (err) => toast.error(err.message || 'Failed to create ad set'),
   });
@@ -115,11 +115,11 @@ export function AdSetsPanel({ campaignId, platformDeployed, hasCampaignBudget, c
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Age min</label>
-              <Input type="number" min="13" max="65" value={adSetForm.age_min} onChange={(e) => setAdSetForm({ ...adSetForm, age_min: Number(e.target.value) })} />
+              <Input type="number" min="13" max="65" value={adSetForm.age_min} onChange={(e) => setAdSetForm({ ...adSetForm, age_min: e.target.value })} />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Age max</label>
-              <Input type="number" min="13" max="65" value={adSetForm.age_max} onChange={(e) => setAdSetForm({ ...adSetForm, age_max: Number(e.target.value) })} />
+              <Input type="number" min="13" max="65" value={adSetForm.age_max} onChange={(e) => setAdSetForm({ ...adSetForm, age_max: e.target.value })} />
             </div>
           </div>
           {!hasCampaignBudget && (
