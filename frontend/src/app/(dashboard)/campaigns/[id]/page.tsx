@@ -179,19 +179,21 @@ export default function CampaignDetailPage() {
         </p>
       </Modal>
 
-      <div className="flex items-center gap-4">
-        <Link href="/campaigns" className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors">
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-2xl font-bold text-gray-900 font-mono truncate">{campaign.name}</h1>
-          <div className="flex items-center gap-3 mt-1">
-            <Badge tone={STATUS_TONE[campaign.status] ?? 'neutral'}>{campaign.status}</Badge>
-            <span className="text-gray-500 text-sm capitalize">{campaign.platform?.replace('_', ' ')}</span>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="flex items-center gap-4 min-w-0 sm:flex-1">
+          <Link href="/campaigns" className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors flex-shrink-0">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl font-bold text-gray-900 font-mono truncate">{campaign.name}</h1>
+            <div className="flex items-center gap-3 mt-1">
+              <Badge tone={STATUS_TONE[campaign.status] ?? 'neutral'}>{campaign.status}</Badge>
+              <span className="text-gray-500 text-sm capitalize">{campaign.platform?.replace('_', ' ')}</span>
+            </div>
           </div>
         </div>
         {canEdit && (
-          <div className="flex gap-2 flex-shrink-0">
+          <div className="flex flex-wrap gap-2 sm:flex-shrink-0">
             {campaign.platform === 'meta' && campaign.platform_status !== 'deployed' && campaign.status !== 'archived' && (
               metaConnected ? (
                 <Button
