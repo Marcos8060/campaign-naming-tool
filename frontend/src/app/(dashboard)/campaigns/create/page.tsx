@@ -61,15 +61,9 @@ export default function CreateCampaignPage() {
 
   const { data: taxonomies = [] } = useGet<Taxonomy[]>({ url: '/taxonomies', queryKey: ['taxonomies', 'all'] });
 
-  // Shares the ['platforms'] cache entry with settings/platforms/page.tsx —
-  // filtering client-side means selecting a different platform in the wizard
-  // doesn't refire the request once the list's been fetched once.
   const { data: allPlatforms } = useGet<PlatformConfig[]>({ url: '/platforms', enabled: !!form.platform });
   const platformConfig = allPlatforms?.find((p) => p.platform === form.platform) ?? null;
 
-  // Budget fields are labeled with whatever currency the connected ad account
-  // actually bills in (e.g. KES, GBP) instead of always assuming USD — a $300
-  // entry means something different depending on which currency it lands in.
   const { data: connections } = useGet<{ platform: string; status: string; currency?: string | null }[]>({
     url: '/integrations',
     enabled: !!form.platform,
@@ -106,25 +100,15 @@ export default function CreateCampaignPage() {
       if (v) name = name.replace(`{${k}}`, v);
     });
 
-    // Any {placeholder} still left at this point has no matching taxonomy
-    // type configured (or none selected) — e.g. the template asks for
-    // {audience} but there's no "audience" taxonomy in this workspace yet.
-    // Previously these were left in the name verbatim (literal curly braces
-    // shipped straight into a real ad platform), so instead: strip the token
-    // together with one adjacent separator, and surface which ones were
-    // dropped so the gap is visible in the UI instead of silent.
     const placeholderRe = /\{[a-zA-Z0-9_]+\}/g;
     const unfilledPlaceholders = Array.from(name.matchAll(placeholderRe), (m) => m[0].slice(1, -1));
     if (unfilledPlaceholders.length && sep) {
       const escSep = sep.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      // Pass 1: a separator immediately before a placeholder ("_{product}") — drop both.
       name = name.replace(new RegExp(`${escSep}\\{[a-zA-Z0-9_]+\\}`, 'g'), '');
-      // Pass 2: a placeholder immediately followed by a separator ("{product}_") —
-      // covers a placeholder sitting at the very start of the template.
+     
       name = name.replace(new RegExp(`\\{[a-zA-Z0-9_]+\\}${escSep}`, 'g'), '');
     }
-    // Pass 3: anything left over (e.g. the whole template was a single token,
-    // so there was never an adjacent separator to remove alongside it).
+   
     name = name.replace(placeholderRe, '');
 
     return { generatedName: name, unfilledPlaceholders };
@@ -210,9 +194,9 @@ export default function CreateCampaignPage() {
                       variant="outline"
                       onClick={() => setForm({ ...form, platform: p.id })}
                       className={cn(
-                        'block w-full h-auto rounded-xl border-2 p-4 text-left transition-all',
+                        'block w-full h-auto shadow-none rounded-xl p-4 text-left transition-all',
                         form.platform === p.id
-                          ? 'border-primary bg-primary-soft shadow-sm'
+                          ? 'border-primary bg-primary-soft'
                           : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50',
                       )}
                     >
