@@ -38,9 +38,6 @@ export default function CampaignDetailPage() {
 
   const { data: taxonomies = [] } = useGet<Taxonomy[]>({ url: '/taxonomies', enabled: showEdit });
 
-  // Only Meta deploys exist in this phase, so we only need to know whether
-  // Meta itself is connected — checked here (rather than disabling the button
-  // after a failed attempt) so the user sees why before they click it.
   const { data: connections } = useGet<{ platform: string; status: string; currency?: string | null }[]>({
     url: '/integrations',
     enabled: campaign?.platform === 'meta',
