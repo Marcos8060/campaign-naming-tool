@@ -6,6 +6,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { currencyLabel } from '@/lib/utils/currency';
 
 const OBJECTIVES = ['awareness', 'consideration', 'conversion', 'retention', 'traffic', 'leads'];
 
@@ -15,9 +16,10 @@ interface CampaignEditModalProps {
   onClose: () => void;
   onSave: (data: CampaignUpdatePayload) => void;
   isPending: boolean;
+  currencyCode?: string | null;
 }
 
-export function CampaignEditModal({ campaign, taxonomies, onClose, onSave, isPending }: CampaignEditModalProps) {
+export function CampaignEditModal({ campaign, taxonomies, onClose, onSave, isPending, currencyCode }: CampaignEditModalProps) {
   const [form, setForm] = useState({
     name: campaign.name || '',
     objective: campaign.objective || '',
@@ -83,7 +85,7 @@ export function CampaignEditModal({ campaign, taxonomies, onClose, onSave, isPen
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Total Budget ($)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Total Budget ({currencyLabel(currencyCode)})</label>
             <Input
               type="number" min="0" value={form.budget_total}
               onChange={(e) => setForm({ ...form, budget_total: e.target.value })}
@@ -91,7 +93,7 @@ export function CampaignEditModal({ campaign, taxonomies, onClose, onSave, isPen
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Daily Budget ($)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Daily Budget ({currencyLabel(currencyCode)})</label>
             <Input
               type="number" min="0" value={form.budget_daily}
               onChange={(e) => setForm({ ...form, budget_daily: e.target.value })}

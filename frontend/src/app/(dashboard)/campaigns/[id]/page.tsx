@@ -151,6 +151,7 @@ export default function CampaignDetailPage() {
           onClose={() => setShowEdit(false)}
           onSave={(data) => updateMutation.mutate(data)}
           isPending={updateMutation.isPending}
+          currencyCode={currencyCode}
         />
       )}
 
