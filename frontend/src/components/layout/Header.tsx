@@ -33,15 +33,7 @@ export function Header() {
   const initials = user?.name
     ? user.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
     : '??';
-
-  // Same portal + two-pass-measure approach as ActionMenu.tsx — the old
-  // version positioned this menu with plain `absolute`, which meant it only
-  // ever painted above content within Header's own stacking context. Since
-  // the routed page content is a DOM sibling elsewhere in the layout, its
-  // buttons could end up rendered on top of parts of this menu instead of
-  // under it (seen as page buttons visually bleeding through the dropdown).
-  // Portaling to <body> with viewport-fixed coordinates escapes that
-  // entirely, same fix as the campaigns row action menu.
+    
   useLayoutEffect(() => {
     if (!menuOpen) {
       setPosition(null);
