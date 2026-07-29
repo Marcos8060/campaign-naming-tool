@@ -203,6 +203,16 @@ function AdSetRow({
           </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
+          {adSet.status === 'deployed' && metaConnected && (
+            <Button
+              variant={showAdForm ? 'outline' : 'primary'}
+              size="sm"
+              icon={<Plus className="w-3.5 h-3.5" />}
+              onClick={() => setShowAdForm((s) => !s)}
+            >
+              {showAdForm ? 'Cancel' : 'Add Ad'}
+            </Button>
+          )}
           <Badge tone={STATUS_TONE[adSet.status]}>{adSet.status}</Badge>
           {adSet.status === 'failed' && (
             <Button
@@ -226,13 +236,8 @@ function AdSetRow({
         </div>
       )}
 
-      {adSet.status === 'deployed' && (
+      {adSet.status === 'deployed' && (showAdForm || ads.length > 0) && (
         <div className="pl-3 border-l-2 border-gray-100 space-y-2">
-          {metaConnected && (
-            <Button variant="text" size="sm" icon={<Plus className="w-3.5 h-3.5" />} onClick={() => setShowAdForm((s) => !s)}>
-              {showAdForm ? 'Cancel' : 'Add Ad'}
-            </Button>
-          )}
 
           {showAdForm && (
             <div className="space-y-2 bg-gray-50 rounded-lg p-3">
