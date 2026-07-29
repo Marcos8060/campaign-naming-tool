@@ -54,8 +54,14 @@ async def list_ads(
     pool: asyncpg.Pool = Depends(get_pool),
     current_user: dict = Depends(get_current_user),
 ):
+    # LEFT JOIN (not INNER) so an ad whose asset was since deleted still
+    # shows up — it just renders without a thumbnail instead of vanishing.
     rows = await pool.fetch(
-        "SELECT * FROM campaign_ads WHERE ad_set_id = $1 AND workspace_id = $2 ORDER BY created_at",
+        """SELECT ad.*, asset.public_url AS asset_url
+           FROM campaign_ads ad
+           LEFT JOIN campaign_assets asset ON asset.id = ad.asset_id
+           WHERE ad.ad_set_id = $1 AND ad.workspace_id = $2
+           ORDER BY ad.created_at""",
         ad_set_id, workspace_id,
     )
     return [_serialize(r) for r in rows]

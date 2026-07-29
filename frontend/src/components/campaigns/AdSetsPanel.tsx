@@ -1,15 +1,17 @@
 'use client';
 
 import { useState } from 'react';
+import NextImage from 'next/image';
 import { useQueryClient } from '@tanstack/react-query';
 import { useGet, usePost, useDelete } from '@/lib/hooks/api';
 import { toast } from 'sonner';
-import { Plus, AlertTriangle, ImageIcon, X } from 'lucide-react';
+import { Plus, AlertTriangle, ImageIcon, Layers, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Badge, type BadgeProps } from '@/components/ui/Badge';
+import { API_ORIGIN } from '@/lib/api/request';
 
 interface AdSet {
   id: string;
@@ -32,6 +34,7 @@ interface CampaignAd {
   status: 'draft' | 'deployed' | 'failed';
   platform_ad_id: string | null;
   platform_error: string | null;
+  asset_url: string | null;
 }
 
 interface Asset {
@@ -90,7 +93,10 @@ export function AdSetsPanel({ campaignId, platformDeployed, hasCampaignBudget, c
   return (
     <Card variant="outlined" padding="lg" className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-gray-900">Ad Sets</h3>
+        <h3 className="flex items-center gap-2 font-semibold text-gray-900">
+          <Layers className="w-[18px] h-[18px] text-primary" />
+          Ad Sets
+        </h3>
         {metaConnected && (
           <Button variant="outline" size="sm" icon={<Plus className="w-4 h-4" />} onClick={() => setShowAdSetForm((s) => !s)}>
             {showAdSetForm ? 'Cancel' : 'Add Ad Set'}
@@ -195,15 +201,18 @@ function AdSetRow({
   return (
     <div className="border border-gray-200 rounded-lg p-3 space-y-2">
       <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-gray-900 truncate" title={adSet.name}>{adSet.name}</p>
-          <p className="text-xs text-gray-400 truncate">
-            {adSet.countries.join(', ')} · ages {adSet.age_min}–{adSet.age_max}
-            {adSet.optimization_goal ? ` · optimizing for ${adSet.optimization_goal.replace(/_/g, ' ').toLowerCase()}` : ''}
-          </p>
+        <div className="flex items-start gap-2 min-w-0 flex-1">
+          <Layers className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 mt-0.5" />
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-gray-900 truncate" title={adSet.name}>{adSet.name}</p>
+            <p className="text-xs text-gray-400 truncate">
+              {adSet.countries.join(', ')} · ages {adSet.age_min}–{adSet.age_max}
+              {adSet.optimization_goal ? ` · optimizing for ${adSet.optimization_goal.replace(/_/g, ' ').toLowerCase()}` : ''}
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <Badge tone={STATUS_TONE[adSet.status]}>{adSet.status}</Badge>
+          <Badge tone={STATUS_TONE[adSet.status]} className="uppercase tracking-wide">{adSet.status}</Badge>
           {adSet.status === 'failed' && (
             <Button
               variant="ghost"
@@ -291,14 +300,30 @@ function AdRow({ ad, adSetId }: { ad: CampaignAd; adSetId: string }) {
   });
 
   return (
-    <div className="flex items-start justify-between gap-2 text-xs bg-white border border-gray-100 rounded p-2">
-      <div className="min-w-0">
-        <p className="font-medium text-gray-800">{ad.headline}</p>
-        {ad.status === 'failed' && <p className="text-red-500">{ad.platform_error}</p>}
-        {ad.status === 'deployed' && <p className="text-gray-400 font-mono">{ad.platform_ad_id}</p>}
+    <div className="flex items-center justify-between gap-3 text-xs bg-white border border-gray-100 rounded-lg p-2">
+      <div className="flex items-center gap-2.5 min-w-0">
+        <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
+          {ad.asset_url ? (
+            <NextImage
+              src={`${API_ORIGIN}${ad.asset_url}`}
+              alt={ad.headline || 'Ad creative'}
+              width={36}
+              height={36}
+              unoptimized
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <ImageIcon className="w-4 h-4 text-gray-300" />
+          )}
+        </div>
+        <div className="min-w-0">
+          <p className="font-medium text-gray-800 truncate">{ad.headline}</p>
+          {ad.status === 'failed' && <p className="text-red-500">{ad.platform_error}</p>}
+          {ad.status === 'deployed' && <p className="text-gray-400 font-mono truncate">{ad.platform_ad_id}</p>}
+        </div>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
-        <Badge tone={STATUS_TONE[ad.status]}>{ad.status}</Badge>
+        <Badge tone={STATUS_TONE[ad.status]} className="uppercase tracking-wide">{ad.status}</Badge>
         {ad.status === 'failed' && (
           <Button
             variant="ghost"

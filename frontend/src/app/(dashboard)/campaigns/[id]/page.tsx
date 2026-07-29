@@ -6,7 +6,10 @@ import { useRole } from '@/lib/hooks/useRole';
 import { useQueryClient } from '@tanstack/react-query';
 import { useGet, usePost, usePatch, useDelete } from '@/lib/hooks/api';
 import Link from 'next/link';
-import { ArrowLeft, Edit2, Copy, Play, Pause, Trash2, Rocket, AlertTriangle, RefreshCw } from 'lucide-react';
+import {
+  ArrowLeft, Edit2, Copy, Play, Pause, Trash2, Rocket, RefreshCw,
+  Info, Wallet, Calendar, UploadCloud, Tag, Hash,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import type { Campaign, Taxonomy } from '@/types';
 import type { CampaignUpdatePayload } from '@/types/campaign-detail';
@@ -17,6 +20,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge, type BadgeProps } from '@/components/ui/Badge';
 import { formatMoney } from '@/lib/utils/currency';
+import { cn } from '@/lib/utils/cn';
 
 const STATUS_TONE: Record<string, BadgeProps['tone']> = {
   active: 'success',
@@ -139,6 +143,24 @@ export default function CampaignDetailPage() {
 
   const taxonomyValues: Record<string, string> = campaign.taxonomy_values || {};
 
+  const createdByInitials = campaign.created_by_name
+    ? campaign.created_by_name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+    : '—';
+
+  // Duration progress is purely derived from the campaign's own start/end
+  // dates — no new data, just a visual read of fields already on the page.
+  // Only renders when both ends of the flight are known (an open-ended
+  // "Ongoing" campaign has no meaningful percentage to show).
+  let durationPercent: number | null = null;
+  if (campaign.start_date && campaign.end_date) {
+    const start = new Date(campaign.start_date).getTime();
+    const end = new Date(campaign.end_date).getTime();
+    if (end > start) {
+      const elapsed = Math.min(Math.max(Date.now() - start, 0), end - start);
+      durationPercent = Math.round((elapsed / (end - start)) * 100);
+    }
+  }
+
   return (
     <div className="max-w-4xl space-y-6">
       {showEdit && (
@@ -182,10 +204,12 @@ export default function CampaignDetailPage() {
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-bold text-gray-900 font-mono truncate">{campaign.name}</h1>
+            <h1 className="text-2xl font-bold text-gray-900 font-mono break-words">{campaign.name}</h1>
             <div className="flex items-center gap-3 mt-1">
-              <Badge tone={STATUS_TONE[campaign.status] ?? 'neutral'}>{campaign.status}</Badge>
-              <span className="text-gray-500 text-sm capitalize">{campaign.platform?.replace('_', ' ')}</span>
+              <Badge tone={STATUS_TONE[campaign.status] ?? 'neutral'} className="uppercase tracking-wide">
+                {campaign.status}
+              </Badge>
+              <span className="text-gray-500 text-sm capitalize">{campaign.platform?.replace('_', ' ')} Ads Platform</span>
             </div>
           </div>
         </div>
@@ -238,11 +262,9 @@ export default function CampaignDetailPage() {
               </Button>
             ) : campaign.status !== 'archived' && campaign.status !== 'completed' && (
               <Button
-                variant="outline"
                 icon={<Play className="w-4 h-4" />}
                 loading={statusMutation.isPending}
                 onClick={() => statusMutation.mutate('active')}
-                className="border-positive/30 text-positive hover:bg-positive-soft"
               >
                 Activate
               </Button>
@@ -273,109 +295,183 @@ export default function CampaignDetailPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card variant="outlined" padding="lg" className="space-y-3">
-          <h3 className="font-semibold text-gray-900">Campaign Details</h3>
-          {[
-            { label: 'Platform', value: campaign.platform?.replace('_', ' ') },
-            { label: 'Platform ID', value: campaign.platform_id || '—' },
-            { label: 'Objective', value: campaign.objective || '—' },
-            { label: 'Status', value: campaign.status },
-            { label: 'Created by', value: campaign.created_by_name || '—' },
-            { label: 'Created', value: campaign.created_at ? new Date(campaign.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '—' },
-            { label: 'Last updated', value: campaign.updated_at ? new Date(campaign.updated_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '—' },
-          ].map(({ label, value }) => (
-            <div key={label} className="flex justify-between text-sm border-b border-gray-100 pb-2 last:border-0 last:pb-0">
-              <span className="text-gray-500">{label}</span>
-              <span className="font-medium text-gray-900 capitalize">{value}</span>
-            </div>
-          ))}
+          <h3 className="flex items-center gap-2 font-semibold text-gray-900">
+            <Info className="w-[18px] h-[18px] text-primary" />
+            Campaign Details
+          </h3>
+          <div className="flex justify-between text-sm border-b border-gray-100 pb-2">
+            <span className="text-gray-500">Platform</span>
+            <span className="font-medium text-gray-900 capitalize">{campaign.platform?.replace('_', ' ')}</span>
+          </div>
+          <div className="flex justify-between text-sm border-b border-gray-100 pb-2">
+            <span className="text-gray-500">Platform ID</span>
+            <span className="font-mono font-medium text-gray-900">{campaign.platform_id || '—'}</span>
+          </div>
+          <div className="flex justify-between text-sm border-b border-gray-100 pb-2">
+            <span className="text-gray-500">Objective</span>
+            <span className="font-medium text-gray-900 capitalize">{campaign.objective || '—'}</span>
+          </div>
+          <div className="flex justify-between items-center text-sm border-b border-gray-100 pb-2">
+            <span className="text-gray-500">Status</span>
+            <Badge tone={STATUS_TONE[campaign.status] ?? 'neutral'} className="uppercase tracking-wide">
+              {campaign.status}
+            </Badge>
+          </div>
+          <div className="flex justify-between items-center text-sm border-b border-gray-100 pb-2">
+            <span className="text-gray-500">Created by</span>
+            <span className="flex items-center gap-2 font-medium text-gray-900">
+              <span className="w-6 h-6 rounded-full primary-gradient flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
+                {createdByInitials}
+              </span>
+              {campaign.created_by_name || '—'}
+            </span>
+          </div>
+          <div className="flex justify-between text-sm border-b border-gray-100 pb-2">
+            <span className="text-gray-500">Created</span>
+            <span className="font-medium text-gray-900">
+              {campaign.created_at ? new Date(campaign.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '—'}
+            </span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-500">Last updated</span>
+            <span className="font-medium text-gray-900">
+              {campaign.updated_at ? new Date(campaign.updated_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '—'}
+            </span>
+          </div>
         </Card>
 
         <Card variant="outlined" padding="lg" className="space-y-3">
-          <h3 className="font-semibold text-gray-900">Budget & Schedule</h3>
-          {[
-            { label: 'Total Budget', value: formatMoney(campaign.budget_total, currencyCode) },
-            { label: 'Daily Budget', value: formatMoney(campaign.budget_daily, currencyCode) },
-            { label: 'Start Date', value: campaign.start_date || '—' },
-            { label: 'End Date', value: campaign.end_date || 'Ongoing' },
-          ].map(({ label, value }) => (
-            <div key={label} className="flex justify-between text-sm border-b border-gray-100 pb-2 last:border-0 last:pb-0">
-              <span className="text-gray-500">{label}</span>
-              <span className="font-medium text-gray-900">{value}</span>
+          <h3 className="flex items-center gap-2 font-semibold text-gray-900">
+            <Wallet className="w-[18px] h-[18px] text-primary" />
+            Budget & Schedule
+          </h3>
+          <div className="bg-primary-soft rounded-xl px-4 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-primary/70">Total Budget</p>
+            <p className="text-2xl font-bold text-primary mt-0.5">{formatMoney(campaign.budget_total, currencyCode)}</p>
+          </div>
+          <div className="flex justify-between text-sm border-b border-gray-100 pb-2">
+            <span className="text-gray-500">Daily Budget</span>
+            <span className="font-medium text-gray-900">{formatMoney(campaign.budget_daily, currencyCode)}</span>
+          </div>
+          <div className="flex justify-between items-center text-sm border-b border-gray-100 pb-2">
+            <span className="text-gray-500 flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5" />
+              Start Date
+            </span>
+            <span className="font-medium text-gray-900">{campaign.start_date || '—'}</span>
+          </div>
+          <div className={cn('flex justify-between items-center text-sm', durationPercent === null && 'border-b-0', durationPercent !== null && 'border-b border-gray-100 pb-2')}>
+            <span className="text-gray-500 flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5" />
+              End Date
+            </span>
+            <span className="font-medium text-gray-900">{campaign.end_date || 'Ongoing'}</span>
+          </div>
+          {durationPercent !== null && (
+            <div>
+              <div className="flex justify-between items-center mb-1.5">
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-primary">Duration Progress</span>
+                <span className="text-xs text-gray-500">{durationPercent}% Complete</span>
+              </div>
+              <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-primary rounded-full" style={{ width: `${durationPercent}%` }} />
+              </div>
             </div>
-          ))}
+          )}
         </Card>
 
         {campaign.platform === 'meta' && (
-          <Card variant="outlined" padding="lg" className="space-y-3">
-            <h3 className="font-semibold text-gray-900">Meta Deployment</h3>
-            {campaign.platform_status === 'deployed' ? (
-              <>
-                <div className="flex items-center gap-2">
-                  <Badge tone="success">Deployed</Badge>
-                  <span className="text-xs text-gray-400">
-                    {campaign.platform_deployed_at
-                      ? new Date(campaign.platform_deployed_at).toLocaleString(undefined, {
-                          year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
-                        })
-                      : ''}
-                  </span>
+          <Card variant="outlined" padding="lg" className="lg:col-span-2 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3 min-w-0">
+                <div
+                  className={cn(
+                    'w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0',
+                    campaign.platform_status === 'deployed' && 'bg-primary-soft',
+                    campaign.platform_status === 'failed' && 'bg-red-50',
+                    campaign.platform_status !== 'deployed' && campaign.platform_status !== 'failed' && 'bg-gray-100',
+                  )}
+                >
+                  <UploadCloud
+                    className={cn(
+                      'w-5 h-5',
+                      campaign.platform_status === 'deployed' && 'text-primary',
+                      campaign.platform_status === 'failed' && 'text-red-500',
+                      campaign.platform_status !== 'deployed' && campaign.platform_status !== 'failed' && 'text-gray-400',
+                    )}
+                  />
                 </div>
-                <p className="text-sm text-gray-500">
-                  Created as <span className="font-mono text-gray-700">{campaign.platform_id}</span> on Meta,
-                  paused. Activate it in Meta Ads Manager (or here, via the Activate button) when it&apos;s ready to spend.
-                </p>
-                <div className="text-xs text-gray-400 border-t border-gray-100 pt-2">
-                  {campaign.last_synced_at
-                    ? `Performance last synced ${new Date(campaign.last_synced_at).toLocaleString(undefined, {
-                        year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
-                      })}`
-                    : 'Performance never synced yet — use Sync Performance above.'}
-                  {' '}Camparc also syncs automatically every 6 hours, so this button is only needed if you want fresher numbers right now.
-                </div>
-                {syncResult && (
-                  <div className="text-sm bg-gray-50 rounded-lg p-3 space-y-1">
-                    <p className="text-gray-700 font-medium">
-                      {syncResult.days_synced > 0
-                        ? `${syncResult.days_synced} day${syncResult.days_synced === 1 ? '' : 's'} synced (${syncResult.since} → ${syncResult.until})`
-                        : `No delivery recorded (${syncResult.since} → ${syncResult.until})`}
-                    </p>
-                    <p className="text-gray-500">
-                      {formatMoney(syncResult.total_spend, currencyCode)} spend · {syncResult.total_impressions.toLocaleString()} impressions
-                      · {syncResult.total_clicks.toLocaleString()} clicks · {syncResult.total_conversions.toLocaleString()} conversions
-                    </p>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-semibold text-gray-900">Meta Deployment</h3>
+                    {campaign.platform_status === 'deployed' && (
+                      <Badge tone="success" className="uppercase tracking-wide">Deployed</Badge>
+                    )}
+                    {campaign.platform_status === 'failed' && (
+                      <Badge tone="danger" className="uppercase tracking-wide">Deploy failed</Badge>
+                    )}
+                    {campaign.platform_status !== 'deployed' && campaign.platform_status !== 'failed' && (
+                      <Badge tone="neutral" className="uppercase tracking-wide">Not deployed</Badge>
+                    )}
                   </div>
-                )}
-              </>
-            ) : campaign.platform_status === 'failed' ? (
-              <>
-                <div className="flex items-center gap-2">
-                  <Badge tone="danger">Deploy failed</Badge>
+                  {campaign.platform_status === 'deployed' && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      Created as <span className="font-mono text-gray-700">{campaign.platform_id}</span> on Meta, paused.
+                      {' '}{campaign.last_synced_at
+                        ? `Performance last synced ${new Date(campaign.last_synced_at).toLocaleString(undefined, {
+                            year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+                          })}.`
+                        : 'Performance never synced yet.'}
+                      {' '}Camparc also syncs automatically every 6 hours.
+                    </p>
+                  )}
+                  {campaign.platform_status === 'failed' && (
+                    <p className="text-sm text-red-600 mt-1">{campaign.platform_error || 'Something went wrong deploying to Meta.'}</p>
+                  )}
+                  {campaign.platform_status !== 'deployed' && campaign.platform_status !== 'failed' && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      {metaConnected
+                        ? 'This campaign only exists in Camparc so far. Deploy it to create the matching campaign on your connected Meta ad account (paused, ready to activate).'
+                        : 'Connect a Meta ad account in Settings → Integrations, then deploy this campaign to push it live.'}
+                    </p>
+                  )}
                 </div>
-                <div className="flex items-start gap-2 text-sm text-red-600 bg-red-50 rounded-lg p-3">
-                  <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                  <span>{campaign.platform_error || 'Something went wrong deploying to Meta.'}</span>
-                </div>
-                {canEdit && metaConnected && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    icon={<Rocket className="w-4 h-4" />}
-                    loading={deployMutation.isPending}
-                    onClick={() => deployMutation.mutate()}
-                  >
-                    Retry deploy
-                  </Button>
-                )}
-              </>
-            ) : (
-              <>
-                <Badge tone="neutral">Not deployed</Badge>
-                <p className="text-sm text-gray-500">
-                  {metaConnected
-                    ? 'This campaign only exists in Camparc so far. Deploy it to create the matching campaign on your connected Meta ad account (paused, ready to activate).'
-                    : 'Connect a Meta ad account in Settings → Integrations, then deploy this campaign to push it live.'}
+              </div>
+              {campaign.platform_status === 'deployed' && (
+                <Button
+                  variant="outline"
+                  icon={<RefreshCw className="w-4 h-4" />}
+                  loading={syncMutation.isPending}
+                  onClick={() => syncMutation.mutate()}
+                  className="flex-shrink-0"
+                >
+                  Force Sync
+                </Button>
+              )}
+              {campaign.platform_status === 'failed' && canEdit && metaConnected && (
+                <Button
+                  variant="outline"
+                  icon={<Rocket className="w-4 h-4" />}
+                  loading={deployMutation.isPending}
+                  onClick={() => deployMutation.mutate()}
+                  className="flex-shrink-0"
+                >
+                  Retry deploy
+                </Button>
+              )}
+            </div>
+            {syncResult && (
+              <div className="text-sm bg-gray-50 rounded-lg p-3 space-y-1">
+                <p className="text-gray-700 font-medium">
+                  {syncResult.days_synced > 0
+                    ? `${syncResult.days_synced} day${syncResult.days_synced === 1 ? '' : 's'} synced (${syncResult.since} → ${syncResult.until})`
+                    : `No delivery recorded (${syncResult.since} → ${syncResult.until})`}
                 </p>
-              </>
+                <p className="text-gray-500">
+                  {formatMoney(syncResult.total_spend, currencyCode)} spend · {syncResult.total_impressions.toLocaleString()} impressions
+                  · {syncResult.total_clicks.toLocaleString()} clicks · {syncResult.total_conversions.toLocaleString()} conversions
+                </p>
+              </div>
             )}
           </Card>
         )}
@@ -394,11 +490,14 @@ export default function CampaignDetailPage() {
 
         {Object.keys(taxonomyValues).length > 0 && (
           <Card variant="outlined" padding="lg" className="space-y-3">
-            <h3 className="font-semibold text-gray-900">Taxonomy Breakdown</h3>
+            <h3 className="flex items-center gap-2 font-semibold text-gray-900">
+              <Tag className="w-[18px] h-[18px] text-primary" />
+              Taxonomy Breakdown
+            </h3>
             {Object.entries(taxonomyValues).map(([key, value]) => (
-              <div key={key} className="flex justify-between text-sm border-b border-gray-100 pb-2 last:border-0 last:pb-0">
+              <div key={key} className="flex justify-between items-center text-sm border-b border-gray-100 pb-2 last:border-0 last:pb-0">
                 <span className="text-gray-500 capitalize">{key}</span>
-                <span className="font-mono text-sm font-medium text-primary bg-primary-soft px-2 py-0.5 rounded">
+                <span className="font-mono text-xs font-semibold text-primary bg-primary-soft px-2.5 py-1 rounded-full">
                   {String(value)}
                 </span>
               </div>
@@ -407,20 +506,24 @@ export default function CampaignDetailPage() {
         )}
 
         <Card variant="outlined" padding="lg">
-          <h3 className="font-semibold text-gray-900 mb-4">Generated Name</h3>
-          <div className="bg-gray-900 rounded-lg px-4 py-3">
+          <h3 className="flex items-center gap-2 font-semibold text-gray-900 mb-4">
+            <Hash className="w-[18px] h-[18px] text-primary" />
+            Generated Name
+          </h3>
+          <div className="relative bg-gray-900 rounded-lg pl-4 pr-11 py-3">
             <p className="font-mono text-green-400 text-sm font-bold break-all">{campaign.name}</p>
-          </div>
-          <div className="flex justify-between text-xs text-gray-400 mt-2">
-            <span>{campaign.name.length} characters</span>
-            <Button
-              variant="text"
-              size="sm"
+            <button
+              type="button"
               onClick={() => { navigator.clipboard.writeText(campaign.name); toast.success('Copied to clipboard'); }}
+              title="Copy"
+              className="absolute top-2.5 right-2.5 p-1.5 rounded-md text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
             >
-              Copy
-            </Button>
+              <Copy className="w-3.5 h-3.5" />
+            </button>
           </div>
+          <p className="text-xs text-gray-400 mt-2">
+            {campaign.name.length} characters · auto-generated from the campaign taxonomy and ad set settings
+          </p>
         </Card>
       </div>
     </div>
