@@ -12,6 +12,6 @@ pytest-asyncio==0.23.3
 pytest-cov==4.1.0
 # httpx itself is a real runtime dependency now (see requirements.txt) —
 # inherited from the -r above, not re-pinned here.
-ruff==0.1.14
+ruff==0.16.1
 black==23.12.1
 mypy==1.8.0
